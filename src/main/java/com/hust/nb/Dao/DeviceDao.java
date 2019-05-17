@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * Description:nb
  * Created by Administrator on 2019/5/17
@@ -16,5 +18,7 @@ public interface DeviceDao extends JpaRepository<Device,Device>,JpaSpecification
     Device findByDeviceNoAndEnprNo(String deviceNo, String enprNo);
 
     Page<Device> findAllByDeviceNoAndEnprNo(String deviceNo, String enprNo, Pageable pageable);
+
+    List<Device> findAllByUserId(int userId);
 }
 

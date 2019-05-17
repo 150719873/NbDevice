@@ -3,6 +3,8 @@ package com.hust.nb.Service;
 import com.hust.nb.Entity.Device;
 import org.springframework.data.domain.Page;
 
+import java.util.List;
+
 /**
  * Description:nb
  * Created by Administrator on 2019/5/17
@@ -13,4 +15,6 @@ public interface DeviceService {
     Page<Device> getDevicePageByDeviceNoAndEnprNo(String deviceNo, String enprNo, int page, int rows);
 
     void updateDevice(Device device);
+
+    List<Device> getAllByUserId(int userId);
 }

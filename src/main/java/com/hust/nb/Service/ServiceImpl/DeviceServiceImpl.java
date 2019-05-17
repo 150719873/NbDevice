@@ -9,6 +9,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * Description:nb
  * Created by Administrator on 2019/5/17
@@ -34,5 +36,10 @@ public class DeviceServiceImpl implements DeviceService {
     @Override
     public void updateDevice(Device device) {
         deviceDao.save(device);
+    }
+
+    @Override
+    public List<Device> getAllByUserId(int userId) {
+        return deviceDao.findAllByUserId(userId);
     }
 }
