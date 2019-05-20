@@ -45,16 +45,16 @@ public class OperateController {
      */
     @ResponseBody
     @PostMapping("/GetRegionInfo")
-    public Object getRegionInfo(@RequestBody String msg){
+    public Object getRegionInfo(@RequestBody String msg) {
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
         String enprNo = jsonObject.getString("enprNo");
-        try{
+        try {
             List<Region> regions = regionService.getByEnprNo(enprNo);
             jsonMap.put("code", "200");
             jsonMap.put("info", "查询成功");
             jsonMap.put("data", regions);
-        } catch (Exception e){
+        } catch (Exception e) {
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
@@ -75,9 +75,9 @@ public class OperateController {
         int regionId = jsonObject.getInteger("regionId");
         Map<String, Object> commuBlockMap = new HashMap<>();
         List<Community> communities = communityService.getByRegionId(regionId);
-        if(communities.size() != 0){
-            try{
-                for(Community community : communities){
+        if (communities.size() != 0) {
+            try {
+                for (Community community : communities) {
                     String communityName = community.getCommunityName();
                     List<Block> blocks = blockService.getByCommunityId(community.getCommunityId());
                     commuBlockMap.put(communityName, blocks);
@@ -85,7 +85,7 @@ public class OperateController {
                 jsonMap.put("code", "200");
                 jsonMap.put("info", "查询成功");
                 jsonMap.put("data", commuBlockMap);
-            } catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
                 jsonMap.put("code", "-1");
                 jsonMap.put("info", "查询失败");
@@ -99,7 +99,7 @@ public class OperateController {
      * 方法功能描述:根据楼栋获取用户信息
      */
     @ResponseBody
-    @PostMapping("/NB/GetUserInfoByBlock")
+    @PostMapping("/GetUserInfoByBlock")
     @CrossOrigin
     public Object getUserInfoByBlock(@RequestBody String msg) {
         Map<String, Object> jsonMap = new HashMap<>();
@@ -131,18 +131,18 @@ public class OperateController {
      * 方法功能描述:根据小区楼栋查询具体住址
      */
     @ResponseBody
-    @PostMapping("/NB/GetAddrInfoByBlock")
+    @PostMapping("/GetAddrInfoByBlock")
     @CrossOrigin
-    public Object getAddrInfoByBlock(@RequestBody String msg){
+    public Object getAddrInfoByBlock(@RequestBody String msg) {
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
         int blockId = jsonObject.getInteger("blockId");
-        try{
+        try {
             List<String> addrs = userService.getAddrsByBlockId(blockId);
             jsonMap.put("code", "200");
             jsonMap.put("info", "查询成功");
             jsonMap.put("data", addrs);
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
@@ -155,23 +155,23 @@ public class OperateController {
      * 方法功能描述:根据用户姓名和水司编码查询用户
      */
     @ResponseBody
-    @PostMapping("/NB/GetUserByNameAndEnprNo")
+    @PostMapping("/GetUserByNameAndEnprNo")
     @CrossOrigin
-    public Object getUserByNameAndEnprNo(@RequestBody String msg){
+    public Object getUserByNameAndEnprNo(@RequestBody String msg) {
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
         String userName = jsonObject.getString("userName");
         String enprNo = jsonObject.getString("enprNo");
-        try{
+        try {
             List<User> userList = userService.getUserByNameAndEnprNo(userName, enprNo);
             List<Object> detailList = new ArrayList<>();
-            for(User user : userList){
+            for (User user : userList) {
                 detailList.add(getFrontInfoByUser(user));
             }
             jsonMap.put("code", "200");
             jsonMap.put("info", "查询成功");
             jsonMap.put("data", detailList);
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
@@ -184,14 +184,14 @@ public class OperateController {
      * 方法功能描述:根据表地址和水司编码查询用户
      */
     @ResponseBody
-    @PostMapping("/NB/GetUserByAddrAndEnprNo")
+    @PostMapping("/GetUserByAddrAndEnprNo")
     @CrossOrigin
-    public Object getUserByAddrAndEnprNo(@RequestBody String msg){
+    public Object getUserByAddrAndEnprNo(@RequestBody String msg) {
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
         String deviceNo = jsonObject.getString("deviceNo");
         String enprNo = jsonObject.getString("enprNo");
-        try{
+        try {
             Device device = deviceService.getByDeviceNoAndEnprNo(deviceNo, enprNo);
             int userId = device.getUserId();
             User user = userService.getByUserId(userId);
@@ -199,7 +199,7 @@ public class OperateController {
             jsonMap.put("code", "200");
             jsonMap.put("info", "查询成功");
             jsonMap.put("data", detailMap);
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
@@ -212,20 +212,44 @@ public class OperateController {
      * 方法功能描述:根据小区楼栋和住址查询用户
      */
     @ResponseBody
-    @PostMapping("/NB/GetUserByBlockAndAddr")
+    @PostMapping("/GetUserByBlockAndAddr")
     @CrossOrigin
-    public Object getUserByBlockAndAddr(@RequestBody String msg){
+    public Object getUserByBlockAndAddr(@RequestBody String msg) {
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
         int blockId = jsonObject.getInteger("blockId");
         String userAddr = jsonObject.getString("userAddr");
-        try{
+        try {
             User user = userService.getByBLockIdAndAddr(blockId, userAddr);
             Map detailMap = getFrontInfoByUser(user);
             jsonMap.put("code", "200");
             jsonMap.put("info", "查询成功");
             jsonMap.put("data", detailMap);
-        } catch (Exception e){
+        } catch (Exception e) {
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "查询失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+    /**
+     * 方法功能描述:根据用户ID查找用户
+     */
+    @ResponseBody
+    @PostMapping("/GetUserUserId")
+    @CrossOrigin
+    public Object getUserUserId(@RequestBody String msg) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        int userId = jsonObject.getInteger("userId");
+        try {
+            User user = userService.getByUserId(userId);
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "查询成功");
+            jsonMap.put("data", user);
+        } catch (Exception e) {
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
@@ -236,7 +260,7 @@ public class OperateController {
     /**
      * 用于前端显示的所有信息
      */
-    private Map getFrontInfoByUser(User user){
+    private Map getFrontInfoByUser(User user) {
         Map<String, Object> detailMap = new HashMap<>();
         String addr = user.getUserAddr();
         int userId = user.getUserId();
