@@ -19,4 +19,6 @@ public interface UserService {
     User getByUserId(int userId);
 
     User getByBLockIdAndAddr(int blockId, String addr);
+
+    void updateUser(User user);
 }

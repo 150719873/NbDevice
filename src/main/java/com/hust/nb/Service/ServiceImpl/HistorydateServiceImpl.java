@@ -9,6 +9,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * Description:nb
  * Created by Administrator on 2019/5/17
@@ -24,6 +26,22 @@ public class HistorydateServiceImpl implements HistorydataService {
         Pageable pageable = PageRequest.of(page - 1, rows);
         Page<Historydata> pageList = historyDao.findByImei(imei, pageable);
         return pageList;
+    }
+
+    @Override
+    public List<Historydata> get30DaysData(String imei) {
+        return historyDao.find30daysData(imei);
+
+    }
+
+    @Override
+    public List<Historydata> getCurMonthData(String imei) {
+        return historyDao.getCurMonthData(imei);
+    }
+
+    @Override
+    public List<Historydata> getPreMonthData(String imei) {
+        return historyDao.getPreMonthData(imei);
     }
 }
 

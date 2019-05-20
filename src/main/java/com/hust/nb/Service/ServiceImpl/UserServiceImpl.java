@@ -47,4 +47,9 @@ public class UserServiceImpl implements UserService {
     public User getByBLockIdAndAddr(int blockId, String addr) {
         return userDao.findUserByBlockIdAndUserAddr(blockId, addr);
     }
+
+    @Override
+    public void updateUser(User user) {
+        userDao.save(user);
+    }
 }

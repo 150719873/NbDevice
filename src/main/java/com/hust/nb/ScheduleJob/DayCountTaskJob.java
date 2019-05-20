@@ -1,0 +1,135 @@
+package com.hust.nb.ScheduleJob;
+
+import com.hust.nb.Dao.DaycountDao;
+import com.hust.nb.Dao.DeviceDao;
+import com.hust.nb.Dao.HistoryDao;
+import com.hust.nb.Entity.Daycount;
+import com.hust.nb.Entity.Device;
+import com.hust.nb.Entity.Historydata;
+import com.hust.nb.util.GetDate;
+import com.hust.nb.util.QBTDeviceTmpGetter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Description:nb
+ * Created by Administrator on 2019/5/20
+ */
+@Component
+public class DayCountTaskJob {
+
+    @Autowired
+    HistoryDao historydataDao;
+
+    @Autowired
+    DeviceDao deviceDao;
+
+    @Autowired
+    DaycountDao daycountDao;
+
+    @Autowired
+    QBTDeviceTmpGetter deviceTmpGetter;
+
+    @Value("${com.QBTT.dbPrefix}")
+    private String dbPrefix;
+
+    /**
+     * 每天执行一次
+     * 10点执行更新，针对每个水表插入dayCount记录,显示的是查看当天前一天的日用水量
+     * 每天一次更新device表的读取时间，水表读数，日用水量
+     * 不具有实时性
+     */
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void dayCountUpdate() {
+        System.out.println("====================日水量统计====================");
+        List<Device> deviceList = deviceDao.findAll();
+        BigDecimal limit = new BigDecimal(200);
+        BigDecimal zero = new BigDecimal(0);
+        Calendar calendar = Calendar.getInstance();
+        for(Device device : deviceList) {
+            int deviceId = device.getId();
+            Daycount preDaycount = daycountDao.findDaycountByDeviceIdOrderByIdDesc(deviceId);//前一天的记录
+            Daycount daycount = new Daycount();
+            String imei = device.getImei();
+            if(imei.equals("")){
+                //说明此水表是NB表
+                Historydata historydata = historydataDao.findByImeiOrderByIdDesc(imei);
+                if(historydata==null){
+                    continue;
+                }
+                daycount.setDeviceId(deviceId);
+                daycount.setEndTime(historydata.getReadTime());
+                daycount.setEndValue(historydata.getDeviceValue());
+                daycount.setDate(calendar.get(Calendar.DATE));
+                if (preDaycount != null) {
+                    daycount.setStartTime(preDaycount.getEndTime());
+                    daycount.setStartValue(preDaycount.getEndValue());
+                    daycount.setDayAmount(historydata.getDeviceValue().subtract(preDaycount.getEndValue()));
+                    if(daycount.getStartTime()==daycount.getEndTime()){
+                        daycount.setState(2);
+                    }else if(daycount.getDayAmount().compareTo(limit)==1){
+                        daycount.setState(3);
+                    }else if(daycount.getDayAmount().compareTo(zero)==-1){
+                        daycount.setState(1);
+                    }else {
+                        daycount.setState(0);
+                    }
+                } else {
+                    daycount.setDayAmount(historydata.getDeviceValue());
+                    daycount.setState(0);
+                }
+                daycountDao.save(daycount);
+                device.setReadTime(historydata.getReadTime());
+                device.setReadValue(historydata.getDeviceValue());
+                device.setDayAmount(daycount.getDayAmount());
+                device.setState(daycount.getState());
+                deviceDao.save(device);
+            } else {
+                //说明此水表是集中器水表，需要调接口
+                String deviceNo = device.getDeviceNo();
+                String enprNo = device.getEnprNo();
+                //查询出此水表的最新读数
+                String tableName = dbPrefix + GetDate.getCurrentMonth();
+                List queryRes = deviceTmpGetter.getLatestRecord(deviceNo, enprNo, tableName);
+                Map map = (Map) queryRes.get(0);
+                Timestamp endTime = (Timestamp)map.get("readTime");
+                BigDecimal showValue = (BigDecimal) map.get("showValue");
+                daycount.setDeviceId(deviceId);
+                daycount.setEndTime(endTime);
+                daycount.setEndValue(showValue);
+                daycount.setDate(calendar.get(Calendar.DATE));
+                if (preDaycount != null) {
+                    daycount.setStartTime(preDaycount.getEndTime());
+                    daycount.setStartValue(preDaycount.getEndValue());
+                    daycount.setDayAmount(showValue.subtract(preDaycount.getEndValue()));
+                    if(daycount.getStartTime()==daycount.getEndTime()){
+                        daycount.setState(2);
+                    }else if(daycount.getDayAmount().compareTo(limit)==1){
+                        daycount.setState(3);
+                    }else if(daycount.getDayAmount().compareTo(zero)==-1){
+                        daycount.setState(1);
+                    }else {
+                        daycount.setState(0);
+                    }
+                } else {
+                    daycount.setDayAmount(showValue);
+                    daycount.setState(0);
+                }
+                daycountDao.save(daycount);
+                device.setReadTime(endTime);
+                device.setReadValue(showValue);
+                device.setDayAmount(daycount.getDayAmount());
+                device.setState(daycount.getState());
+                deviceDao.save(device);
+            }
+        }
+    }
+}

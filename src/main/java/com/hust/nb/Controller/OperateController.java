@@ -233,29 +233,6 @@ public class OperateController {
         return object;
     }
 
-    /**
-     * 方法功能描述:根据用户ID查找用户
-     */
-    @ResponseBody
-    @PostMapping("/GetUserUserId")
-    @CrossOrigin
-    public Object getUserUserId(@RequestBody String msg) {
-        Map<String, Object> jsonMap = new HashMap<>();
-        JSONObject jsonObject = JSONObject.parseObject(msg);
-        int userId = jsonObject.getInteger("userId");
-        try {
-            User user = userService.getByUserId(userId);
-            jsonMap.put("code", "200");
-            jsonMap.put("info", "查询成功");
-            jsonMap.put("data", user);
-        } catch (Exception e) {
-            e.printStackTrace();
-            jsonMap.put("code", "-1");
-            jsonMap.put("info", "查询失败");
-        }
-        Object object = JSONObject.toJSON(jsonMap);
-        return object;
-    }
 
     /**
      * 用于前端显示的所有信息
