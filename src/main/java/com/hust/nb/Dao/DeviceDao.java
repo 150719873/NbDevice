@@ -15,6 +15,7 @@ import java.util.List;
  */
 @Repository
 public interface DeviceDao extends JpaRepository<Device,Device>,JpaSpecificationExecutor<Device> {
+
     Device findByDeviceNoAndEnprNo(String deviceNo, String enprNo);
 
     Page<Device> findAllByDeviceNoAndEnprNo(String deviceNo, String enprNo, Pageable pageable);

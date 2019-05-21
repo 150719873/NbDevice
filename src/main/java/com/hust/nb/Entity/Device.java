@@ -11,14 +11,8 @@ import java.sql.Timestamp;
  * Created by Administrator on 2019/5/17
  */
 @Entity
-@Table(name = "nt_device", schema = "dbo", catalog = "mixAll")
-public class Device implements Serializable, Cloneable {
-    //重写克隆方法，用于换表时进行克隆
-    @Override
-    public Object clone() throws CloneNotSupportedException {
-        Object object = super.clone();
-        return object;
-    }
+@Table(name = "nb_device", schema = "dbo", catalog = "mixAll")
+public class Device implements Serializable {
 
     /**
      * 主键
@@ -39,7 +33,7 @@ public class Device implements Serializable, Cloneable {
     /**
      * 表编号
      */
-    @Id
+    @Basic
     @Column(name = "device_no")
     private String deviceNo;
 

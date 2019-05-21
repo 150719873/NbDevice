@@ -22,7 +22,6 @@ import java.util.Map;
  * Created by Administrator on 2019/5/17
  */
 @Controller
-@RequestMapping("/Operate")
 @CrossOrigin
 public class OperateController {
     @Autowired
@@ -64,7 +63,7 @@ public class OperateController {
 
 
     /**
-     * 方法功能描述:根据区域ID小区以及楼栋信息
+     * 方法功能描述:根据区域ID获取小区以及楼栋信息
      */
     @CrossOrigin
     @ResponseBody
@@ -73,23 +72,23 @@ public class OperateController {
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
         int regionId = jsonObject.getInteger("regionId");
-        Map<String, Object> commuBlockMap = new HashMap<>();
+        List<Map> res = new ArrayList<>();
         List<Community> communities = communityService.getByRegionId(regionId);
-        if (communities.size() != 0) {
-            try {
-                for (Community community : communities) {
-                    String communityName = community.getCommunityName();
-                    List<Block> blocks = blockService.getByCommunityId(community.getCommunityId());
-                    commuBlockMap.put(communityName, blocks);
-                }
-                jsonMap.put("code", "200");
-                jsonMap.put("info", "查询成功");
-                jsonMap.put("data", commuBlockMap);
-            } catch (Exception e) {
-                e.printStackTrace();
-                jsonMap.put("code", "-1");
-                jsonMap.put("info", "查询失败");
+        try {
+            for (Community community : communities) {
+                Map<String, Object> commuBlockMap = new HashMap<>();
+                String communityName = community.getCommunityName();
+                List<Block> blocks = blockService.getByCommunityId(community.getCommunityId());
+                commuBlockMap.put(communityName, blocks);
+                res.add(commuBlockMap);
             }
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "查询成功");
+            jsonMap.put("data", res);
+        } catch (Exception e) {
+            e.printStackTrace();
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "查询失败");
         }
         Object object = JSONObject.toJSON(jsonMap);
         return object;

@@ -6,10 +6,7 @@ import com.hust.nb.Entity.User;
 import com.hust.nb.Service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,7 +48,7 @@ public class UserController {
      * 方法功能描述:根据用户ID查找用户
      */
     @ResponseBody
-    @PostMapping("/GetUserUserId")
+    @PostMapping("/GetUserById")
     @CrossOrigin
     public Object getUserUserId(@RequestBody String msg) {
         Map<String, Object> jsonMap = new HashMap<>();

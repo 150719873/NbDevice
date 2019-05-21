@@ -2,6 +2,7 @@ package com.hust.nb.Controller;
 
 import cn.hutool.http.HttpRequest;
 import com.alibaba.fastjson.JSONObject;
+import com.hust.nb.Entity.Device;
 import com.hust.nb.Entity.Historydata;
 import com.hust.nb.Service.DeviceService;
 import com.hust.nb.Service.HistorydataService;
@@ -34,20 +35,21 @@ public class HistorydataController {
      * 方法功能描述:查询任一水表的当月或者上月历史纪录。
      */
     @ResponseBody
-    @PostMapping("/NB/GetHistoryData")
-    public Object getHistorydataByDeviceNo(@RequestBody String msg){
+    @PostMapping("/GetHistoryData")
+    public Object getHistorydataByDeviceNo(@RequestBody String msg) {
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
         String deviceNo = jsonObject.getString("deviceNo");
         String enprNo = jsonObject.getString("enprNo");
         int isCurMon = jsonObject.getInteger("isCurMon");
-        String imei = deviceService.getByDeviceNoAndEnprNo(deviceNo, enprNo).getImei();
         Object object = null;
-        if(!imei.equals("")){
-            //该表为NB水表，有iemi号
-            try{
+        Device device = deviceService.getByDeviceNoAndEnprNo(deviceNo, enprNo);
+        if (device != null && device.getImei() != null) {
+            String imei = device.getImei();
+            //该表为NB水表，有imei号
+            try {
                 List<Historydata> res;
-                if(isCurMon == 1){
+                if (isCurMon == 0) {
                     res = historydataService.getCurMonthData(imei);
                 } else {
                     res = historydataService.getPreMonthData(imei);
@@ -55,16 +57,15 @@ public class HistorydataController {
                 jsonMap.put("code", "200");
                 jsonMap.put("info", "查询成功");
                 jsonMap.put("data", res);
-            } catch (Exception e){
-                jsonMap.put("code","-1");
-                jsonMap.put("info","查询失败");
-                jsonMap.put("data","");
+            } catch (Exception e) {
+                jsonMap.put("code", "-1");
+                jsonMap.put("info", "查询失败");
+                jsonMap.put("data", "");
             }
             object = JSONObject.toJSON(jsonMap);
-
         } else {
             //该表为集中器水表
-            String qbttResult= HttpRequest.post("http://localhost:8088/QBTT/Device/QueryHistoryData")
+            String qbttResult = HttpRequest.post("http://localhost:8080/QBTT/Device/QueryHistoryData")
                     .body(jsonObject.toString())
                     .execute()
                     .body();

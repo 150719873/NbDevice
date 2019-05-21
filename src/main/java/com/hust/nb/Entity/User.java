@@ -72,7 +72,7 @@ public class User implements Serializable {
      * 持卡人
      */
     @Basic
-    @Column(name = "bank_owner")
+    @Column(name = "account_owner")
     private String bankOwner;
 
     /**

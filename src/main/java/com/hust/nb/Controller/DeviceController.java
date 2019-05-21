@@ -17,8 +17,7 @@ import java.util.Map;
  * Created by Administrator on 2019/5/17
  */
 @Controller
-@CrossOrigin
-@RequestMapping("/Device")
+@CrossOrigin(origins = "*")
 public class DeviceController {
 
     @Autowired
@@ -34,12 +33,13 @@ public class DeviceController {
         JSONObject jsonObject = JSONObject.parseObject(msg);
         String deviceNo = jsonObject.getString("deviceNo");
         String enprNo = jsonObject.getString("enprNo");
-        Device device = deviceService.getByDeviceNoAndEnprNo(enprNo, deviceNo);
-        if (device!=null){
+        try{
+            Device device = deviceService.getByDeviceNoAndEnprNo(deviceNo, enprNo);
             jsonMap.put("code","200");
             jsonMap.put("info","查询成功");
             jsonMap.put("data",device);
-        }else{
+        }catch (Exception e){
+            e.printStackTrace();
             jsonMap.put("code","-1");
             jsonMap.put("info","查询失败");
             jsonMap.put("data","");
@@ -49,36 +49,10 @@ public class DeviceController {
     }
 
     /**
-     * 方法功能描述:查询水表的列表。
-     * 分页
-     */
-    @ResponseBody
-    @PostMapping("/GetDevicesInfo")
-    public Object queryForList(@RequestBody String msg) {
-        Map<String,Object> jsonMap = new HashMap<>();
-        JSONObject jsonObject = JSONObject.parseObject(msg);
-        String deviceNo = jsonObject.getString("deviceNo");
-        String enprNo = jsonObject.getString("enprNo");
-        int page = jsonObject.getInteger("page");
-        int rows = jsonObject.getInteger("rows");
-        Page<Device> pages = deviceService.getDevicePageByDeviceNoAndEnprNo(deviceNo, enprNo, page, rows);
-        if(pages.getSize() != 0){
-            jsonMap.put("code","200");
-            jsonMap.put("info","查询成功");
-            jsonMap.put("data",pages);
-        } else {
-            jsonMap.put("code","-1");
-            jsonMap.put("info","查询失败");
-            jsonMap.put("data","");
-        }
-        return JSONObject.toJSON(jsonMap);
-    }
-
-    /**
      * 方法功能描述:修改水表信息
      */
     @ResponseBody
-    @PostMapping("/NB/UpdateDeviceDetailInfo")
+    @PostMapping("/UpdateDeviceDetailInfo")
     @CrossOrigin
     public Object updateDevice(@RequestBody String device){
         Device DeviceEntity = JSON.parseObject(device, Device.class);
