@@ -1,12 +1,15 @@
 package com.hust.nb.Controller;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.hust.nb.Dao.OperatorDao;
 import com.hust.nb.Entity.*;
 import com.hust.nb.Service.BlockService;
 import com.hust.nb.Service.CommunityService;
 import com.hust.nb.Service.DeviceService;
 import com.hust.nb.Service.RegionService;
 import com.hust.nb.Service.UserService;
+import com.hust.nb.util.EntityFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
@@ -38,6 +41,9 @@ public class OperateController {
 
     @Autowired
     DeviceService deviceService;
+
+    @Autowired
+    OperatorDao operatorDao;
 
     /**
      * 获取水司的全部区域信息
@@ -227,6 +233,114 @@ public class OperateController {
         } catch (Exception e) {
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+
+    /**
+     * 方法功能描述:登录
+     */
+    @ResponseBody
+    @PostMapping("/Login")
+    public Object checkOperatorInfo(@RequestBody String msg) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        String userName = jsonObject.getString("userName");
+        String password = jsonObject.getString("password");
+        try {
+            Operator operator = operatorDao.findOperatorByUserNameAndPassword(userName, password);
+            if (operator != null) {
+                jsonMap.put("code", "200");
+                jsonMap.put("info", "查询成功");
+                jsonMap.put("data", operator);
+            } else {
+                jsonMap.put("code", "-1");
+                jsonMap.put("info", "登录失败");
+            }
+        } catch (Exception e) {
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "查询失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+    /**
+     * 获取所有管理员信息
+     */
+    @ResponseBody
+    @PostMapping("/GetOperatorList")
+    public Object getOperatorList(@RequestBody String msg) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        String enprNo = jsonObject.getString("enprNo");
+        try {
+            List<Operator> res = operatorDao.findAllByEnprNo(enprNo);
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "查询成功");
+            jsonMap.put("data", res);
+        } catch (Exception e) {
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "查询失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+    /**
+     * 增加或修改管理员
+     *
+     * @param msg
+     * @return
+     */
+    @ResponseBody
+    @PostMapping("/AddOrModifyOperator")
+    @CrossOrigin
+    public Object addOrModifyOperator(@RequestBody String msg) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        Integer operatorId = jsonObject.getInteger("operatorId");
+        String userName = jsonObject.getString("userName");
+        String password = jsonObject.getString("password");
+        String phone = jsonObject.getString("phone");
+        int userType = jsonObject.getInteger("userType");
+        String operatorName = jsonObject.getString("operatorName");
+        String manageCommunity = jsonObject.getString("manageCommunity");
+        String enprNo = jsonObject.getString("enprNo");
+        if(operatorId == null){
+            //新增
+            Operator operator = EntityFactory.OperatorFactory(userName, password, phone,
+                    userType, operatorName, manageCommunity, enprNo);
+            operatorDao.save(operator);
+        } else {
+            //修改
+            Operator operator = JSON.parseObject(msg, Operator.class);
+            operatorDao.save(operator);
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+    /**
+     * 删除管理员
+     */
+    @ResponseBody
+    @PostMapping("/DeleteOperator")
+    @CrossOrigin
+    public Object deleteOperator(@RequestBody String msg) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        int operatorId = jsonObject.getInteger("operatorId");
+        try {
+            operatorDao.deleteByOperatorId(operatorId);
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "删除成功");
+        } catch (Exception e) {
+            e.printStackTrace();
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "删除失败");
         }
         Object object = JSONObject.toJSON(jsonMap);
         return object;

@@ -121,6 +121,13 @@ public class Device implements Serializable {
     @Column(name = "imei")
     private String imei;
 
+    /**
+     * 用水类型
+     */
+    @Basic
+    @Column(name = "water_type")
+    private Integer waterType;
+
 
     public Integer getId() {
         return id;
@@ -240,5 +247,13 @@ public class Device implements Serializable {
 
     public void setImei(String imei) {
         this.imei = imei;
+    }
+
+    public Integer getWaterType() {
+        return waterType;
+    }
+
+    public void setWaterType(Integer waterType) {
+        this.waterType = waterType;
     }
 }
