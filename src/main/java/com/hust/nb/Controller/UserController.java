@@ -27,7 +27,7 @@ public class UserController {
      * 方法功能描述:更改单个用户详细信息
      */
     @ResponseBody
-    @PostMapping("/NB/UpdateUserDetailInfo")
+    @PostMapping("/UpdateUserDetailInfo")
     @CrossOrigin
     public Object updateUser(@RequestBody String user) {
         User UserEntity = JSON.parseObject(user, User.class);
