@@ -44,8 +44,6 @@ public class DayCountTaskJob {
     /**
      * 每天执行一次
      * 10点执行更新，针对每个水表插入dayCount记录,显示的是查看当天前一天的日用水量
-     * 每天一次更新device表的读取时间，水表读数，日用水量
-     * 不具有实时性
      */
     @Scheduled(cron = "0 0 0 * * ?")
     public void dayCountUpdate() {
@@ -86,9 +84,11 @@ public class DayCountTaskJob {
                     daycount.setDayAmount(historydata.getDeviceValue());
                     daycount.setState(0);
                 }
+                /**
+                 * 已经在nt_history表编写了触发器，每块表只要来了新数据，就更新nb_device表的数据
+                 * 所以nb_device表的数据是实时更新的
+                 */
                 daycountDao.save(daycount);
-                device.setReadTime(historydata.getReadTime());
-                device.setReadValue(historydata.getDeviceValue());
                 device.setDayAmount(daycount.getDayAmount());
                 device.setState(daycount.getState());
                 deviceDao.save(device);
@@ -123,6 +123,11 @@ public class DayCountTaskJob {
                     daycount.setDayAmount(showValue);
                     daycount.setState(0);
                 }
+                /**
+                 * 需要采集在插入tmp表的同时更新t_device表的数据
+                 * 以保持t_device表的数据也是实时更新的
+                 * 如果没有此功能，那么只能在页面点击查看所有表的时候才会更新数据
+                 */
                 daycountDao.save(daycount);
                 device.setReadTime(endTime);
                 device.setReadValue(showValue);
