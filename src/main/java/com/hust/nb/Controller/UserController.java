@@ -45,7 +45,7 @@ public class UserController {
     }
 
     /**
-     * 方法功能描述:根据用户ID查找用户
+     * 方法功能描述:根据用户ID获取用户详细信息
      */
     @ResponseBody
     @PostMapping("/GetUserById")

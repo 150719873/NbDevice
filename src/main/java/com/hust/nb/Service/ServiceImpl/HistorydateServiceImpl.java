@@ -43,5 +43,10 @@ public class HistorydateServiceImpl implements HistorydataService {
     public List<Historydata> getPreMonthData(String imei) {
         return historyDao.getPreMonthData(imei);
     }
+
+    @Override
+    public Historydata getLatestRecord(String deviceNo, String enprNo) {
+        return historyDao.getLatestRecord(deviceNo, enprNo);
+    }
 }
 

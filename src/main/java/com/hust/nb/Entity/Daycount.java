@@ -25,8 +25,8 @@ public class Daycount implements Serializable {
      * device表对应的ID
      */
     @Basic
-    @Column(name = "device_id")
-    private int deviceId;
+    @Column(name = "device_no")
+    private String deviceNo;
 
     /**
      * 起始时间
@@ -77,6 +77,13 @@ public class Daycount implements Serializable {
     @Column(name = "state")
     private Integer state;
 
+    /**
+     * 水司编码
+     */
+    @Basic
+    @Column(name = "enprNo")
+    private String enprNo;
+
 
     public Integer getId() {
         return id;
@@ -84,14 +91,6 @@ public class Daycount implements Serializable {
 
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public int getDeviceId() {
-        return deviceId;
-    }
-
-    public void setDeviceId(int deviceId) {
-        this.deviceId = deviceId;
     }
 
     public Timestamp getStartTime() {
@@ -150,4 +149,19 @@ public class Daycount implements Serializable {
         this.state = state;
     }
 
+    public String getDeviceNo() {
+        return deviceNo;
+    }
+
+    public void setDeviceNo(String deviceNo) {
+        this.deviceNo = deviceNo;
+    }
+
+    public String getEnprNo() {
+        return enprNo;
+    }
+
+    public void setEnprNo(String enprNo) {
+        this.enprNo = enprNo;
+    }
 }

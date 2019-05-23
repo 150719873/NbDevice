@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -21,5 +22,8 @@ public interface DeviceDao extends JpaRepository<Device,Device>,JpaSpecification
     Page<Device> findAllByDeviceNoAndEnprNo(String deviceNo, String enprNo, Pageable pageable);
 
     List<Device> findAllByUserId(int userId);
+
+    @Transactional
+    void deleteByDeviceNoAndEnprNo(String deviceNo, String enprNo);
 }
 

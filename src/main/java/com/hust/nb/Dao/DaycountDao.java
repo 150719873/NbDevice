@@ -3,6 +3,7 @@ package com.hust.nb.Dao;
 import com.hust.nb.Entity.Daycount;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 
 /**
  * Description:nb
@@ -11,4 +12,8 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 public interface DaycountDao extends JpaRepository<Daycount,Daycount>,JpaSpecificationExecutor<Daycount> {
 
     Daycount findDaycountByDeviceIdOrderByIdDesc(int deviceId);
+
+    @Query(nativeQuery = true, value = "select top 1 * from mixAll.dbo.nt_daycount where device_no = ?1 and enprNo = ?2 order by id desc")
+    Daycount findDaycountByDeviceNoAndEnprNoOrderByIdDesc(String deviceNo, String enprNo);
+
 }

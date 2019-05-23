@@ -17,4 +17,6 @@ public interface HistorydataService {
     List<Historydata> getCurMonthData(String imei);
 
     List<Historydata> getPreMonthData(String imei);
+
+    Historydata getLatestRecord(String deviceNo, String enprNo);
 }

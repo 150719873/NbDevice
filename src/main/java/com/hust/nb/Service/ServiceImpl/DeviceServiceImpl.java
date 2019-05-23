@@ -42,4 +42,14 @@ public class DeviceServiceImpl implements DeviceService {
     public List<Device> getAllByUserId(int userId) {
         return deviceDao.findAllByUserId(userId);
     }
+
+    @Override
+    public void addDevice(Device device) {
+        deviceDao.save(device);
+    }
+
+    @Override
+    public void delDeviceByDeviceNoAndEnprNo(String deviceNo, String enprNo) {
+        deviceDao.deleteByDeviceNoAndEnprNo(deviceNo, enprNo);
+    }
 }

@@ -12,7 +12,15 @@ import java.sql.Timestamp;
  */
 @Entity
 @Table(name = "nb_device", schema = "dbo", catalog = "mixAll")
-public class Device implements Serializable {
+public class Device implements Serializable,Cloneable {
+
+    //重写克隆方法，用于换表时进行克隆
+    @Override
+    public Object clone() throws CloneNotSupportedException
+    {
+        Object object = super.clone();
+        return object;
+    }
 
     /**
      * 主键

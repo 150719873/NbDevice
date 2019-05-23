@@ -1,6 +1,10 @@
 package com.hust.nb.util;
 
+import com.hust.nb.Entity.DeviceChange;
 import com.hust.nb.Entity.Operator;
+
+import java.math.BigDecimal;
+import java.sql.Timestamp;
 
 /**
  * Description:nb
@@ -19,5 +23,20 @@ public class EntityFactory {
         operator.setManageCommunity(manageCommunity);
         operator.setManageCommunity(enprNo);
         return operator;
+    }
+
+    public static DeviceChange deviceChangeFactory(int userId, Timestamp changeDate, int operatorId, String oldNo
+    , BigDecimal oldVal, String newNo, BigDecimal newVal, int flag, String enprNo){
+        DeviceChange deviceChange = new DeviceChange();
+        deviceChange.setUserId(userId);
+        deviceChange.setChangeDate(changeDate);
+        deviceChange.setOperatorId(operatorId);
+        deviceChange.setOldNo(oldNo);
+        deviceChange.setOldVal(oldVal);
+        deviceChange.setNewNo(newNo);
+        deviceChange.setNewVal(newVal);
+        deviceChange.setFlag(flag);
+        deviceChange.setEnprNo(enprNo);
+        return deviceChange;
     }
 }

@@ -34,4 +34,8 @@ public interface HistoryDao extends JpaRepository<Historydata,Historydata>,JpaSp
     @Query(nativeQuery = true,
             value = "SELECT * FROM mixAll.dbo.nt_historydata where DATEDIFF(month,read_time,GETDATE())=1 and imei = ?1")
     List<Historydata> getPreMonthData(String imei);
+
+    @Query(nativeQuery = true, value = "SELECT top 1 * FROM mixAll.dbo.nt_historydata where imei = " +
+            "(select imei from mixAll.dbo.nb_device where device_no = ?1 and enprNo = ?2) order by id desc")
+    Historydata getLatestRecord(String deviceNo, String enprNo);
 }

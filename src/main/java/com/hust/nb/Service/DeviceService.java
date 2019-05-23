@@ -17,4 +17,8 @@ public interface DeviceService {
     void updateDevice(Device device);
 
     List<Device> getAllByUserId(int userId);
+
+    void addDevice(Device device);
+
+    void delDeviceByDeviceNoAndEnprNo(String deviceNo, String enprNo);
 }
