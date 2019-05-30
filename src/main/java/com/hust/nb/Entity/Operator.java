@@ -6,6 +6,7 @@ import java.io.Serializable;
 /**
  * Description:nb
  * Created by Administrator on 2019/5/21
+ * 管理员表
  */
 @Entity
 @Table(name = "nt_operator", schema = "dbo", catalog = "mixAll")

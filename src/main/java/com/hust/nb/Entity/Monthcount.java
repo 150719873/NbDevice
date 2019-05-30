@@ -7,15 +7,15 @@ import java.sql.Timestamp;
 
 /**
  * Description:nb
- * Created by Administrator on 2019/5/20
- * 日水量表
+ * 月水量表
+ * Created by Administrator on 2019/5/24
  */
 @Entity
-@Table(name = "t_daycount")
-public class Daycount implements Serializable {
+@Table(name = "nt_monthcount", schema = "dbo", catalog = "mixAll")
+public class Monthcount implements Serializable {
 
     /**
-     * 主键
+     * 自增主键
      */
     @Id
     @Column(name = "id")
@@ -23,60 +23,46 @@ public class Daycount implements Serializable {
     private Integer id;
 
     /**
-     * 表编号
+     * 水表编号
      */
     @Basic
     @Column(name = "device_no")
     private String deviceNo;
 
     /**
-     * 起始时间
+     * 开始时间
      */
     @Basic
     @Column(name = "start_time")
-    private java.sql.Timestamp startTime;
+    private Timestamp startTime;
 
     /**
-     * 起始读数
+     * 开始读数
      */
     @Basic
     @Column(name = "start_value")
-    private java.math.BigDecimal startValue;
+    private BigDecimal startValue;
 
     /**
-     * 终止时间
+     * 结束时间
      */
     @Basic
     @Column(name = "end_time")
-    private java.sql.Timestamp endTime;
+    private Timestamp endTime;
 
     /**
-     * 终止读数
+     * 结束读数
      */
     @Basic
     @Column(name = "end_value")
-    private java.math.BigDecimal endValue;
+    private BigDecimal endValue;
 
     /**
-     * 日用量
+     * 月水量
      */
     @Basic
-    @Column(name = "day_amount")
-    private java.math.BigDecimal dayAmount;
-
-    /**
-     * 日期
-     */
-    @Basic
-    @Column(name = "date")
-    private Integer date;
-
-    /**
-     * 状态
-     */
-    @Basic
-    @Column(name = "state")
-    private Integer state;
+    @Column(name = "month_amount")
+    private BigDecimal monthAmount;
 
     /**
      * 水司编码
@@ -85,13 +71,20 @@ public class Daycount implements Serializable {
     @Column(name = "enprNo")
     private String enprNo;
 
-
     public Integer getId() {
         return id;
     }
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public String getDeviceNo() {
+        return deviceNo;
+    }
+
+    public void setDeviceNo(String deviceNo) {
+        this.deviceNo = deviceNo;
     }
 
     public Timestamp getStartTime() {
@@ -126,36 +119,12 @@ public class Daycount implements Serializable {
         this.endValue = endValue;
     }
 
-    public BigDecimal getDayAmount() {
-        return dayAmount;
+    public BigDecimal getMonthAmount() {
+        return monthAmount;
     }
 
-    public void setDayAmount(BigDecimal dayAmount) {
-        this.dayAmount = dayAmount;
-    }
-
-    public Integer getDate() {
-        return date;
-    }
-
-    public void setDate(Integer date) {
-        this.date = date;
-    }
-
-    public Integer getState() {
-        return state;
-    }
-
-    public void setState(Integer state) {
-        this.state = state;
-    }
-
-    public String getDeviceNo() {
-        return deviceNo;
-    }
-
-    public void setDeviceNo(String deviceNo) {
-        this.deviceNo = deviceNo;
+    public void setMonthAmount(BigDecimal monthAmount) {
+        this.monthAmount = monthAmount;
     }
 
     public String getEnprNo() {

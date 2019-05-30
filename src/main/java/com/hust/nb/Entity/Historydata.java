@@ -8,6 +8,7 @@ import java.sql.Timestamp;
 /**
  * Description:nb
  * Created by Administrator on 2019/5/17
+ * NB表数据推送表
  */
 @Entity
 @Table(name = "nt_historydata",schema= "dbo",catalog = "mixAll")

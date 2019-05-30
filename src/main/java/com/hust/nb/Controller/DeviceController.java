@@ -114,7 +114,7 @@ public class DeviceController {
         newVal, 0, enprNo);
         Device oldDevice = deviceService.getByDeviceNoAndEnprNo(oldNo, enprNo);
         Device newDevice = deviceService.getByDeviceNoAndEnprNo(newNo, enprNo);
-        Daycount latestDaycount = daycountDao.findDaycountByDeviceNoAndEnprNoOrderByIdDesc(oldNo, enprNo);
+        Daycount latestDaycount = daycountDao.findLatestDaycountRecord(oldNo, enprNo);
         Daycount oldClear =new Daycount();
         /**
          * 旧表的daycount是最新旧表读数减去最近daycount的endValue

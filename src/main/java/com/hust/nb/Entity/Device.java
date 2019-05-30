@@ -9,6 +9,7 @@ import java.sql.Timestamp;
 /**
  * Description:nb
  * Created by Administrator on 2019/5/17
+ * 水表表
  */
 @Entity
 @Table(name = "nb_device", schema = "dbo", catalog = "mixAll")

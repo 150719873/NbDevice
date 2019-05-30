@@ -23,6 +23,8 @@ public interface DeviceDao extends JpaRepository<Device,Device>,JpaSpecification
 
     List<Device> findAllByUserId(int userId);
 
+    List<Device> findAllByEnprNo(String enprNo);
+
     @Transactional
     void deleteByDeviceNoAndEnprNo(String deviceNo, String enprNo);
 }

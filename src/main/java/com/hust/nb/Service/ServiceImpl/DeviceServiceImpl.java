@@ -52,4 +52,9 @@ public class DeviceServiceImpl implements DeviceService {
     public void delDeviceByDeviceNoAndEnprNo(String deviceNo, String enprNo) {
         deviceDao.deleteByDeviceNoAndEnprNo(deviceNo, enprNo);
     }
+
+    @Override
+    public List<Device> findAllByEnprNo(String enprNo) {
+        return deviceDao.findAllByEnprNo(enprNo);
+    }
 }

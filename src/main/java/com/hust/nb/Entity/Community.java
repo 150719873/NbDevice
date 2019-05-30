@@ -6,6 +6,7 @@ import java.io.Serializable;
 /**
  * Description:nb
  * Created by Administrator on 2019/5/17
+ * 小区表
  */
 @Entity
 @Table(name = "nt_community", schema = "dbo", catalog = "mixAll")

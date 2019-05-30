@@ -28,4 +28,6 @@ public interface UserDao extends JpaRepository<User,User>,JpaSpecificationExecut
     User findUserByUserId(int userId);
 
     User findUserByBlockIdAndUserAddr(int blockId, String addr);
+
+    List<User> findAllByEnprNo(String enprNo);
 }

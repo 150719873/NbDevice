@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 /**
  * Description:nb
  * Created by Administrator on 2019/5/17
+ * 用户表
  */
 @Entity
 @Table(name = "nt_user", schema = "dbo", catalog = "mixAll")

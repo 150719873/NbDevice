@@ -24,7 +24,7 @@ import java.util.Map;
  * Created by Administrator on 2019/5/20
  */
 @Component
-public class DayCountTaskJob {
+public class DayCountScheduledJob {
 
     @Autowired
     HistoryDao historydataDao;
@@ -53,17 +53,19 @@ public class DayCountTaskJob {
         BigDecimal zero = new BigDecimal(0);
         Calendar calendar = Calendar.getInstance();
         for(Device device : deviceList) {
-            int deviceId = device.getId();
-            Daycount preDaycount = daycountDao.findDaycountByDeviceIdOrderByIdDesc(deviceId);//前一天的记录
+            String deviceNo = device.getDeviceNo();
+            String enprNo = device.getEnprNo();
+            Daycount preDaycount = daycountDao.findLatestDaycountRecord(deviceNo,enprNo);//前一天的记录
             Daycount daycount = new Daycount();
             String imei = device.getImei();
-            if(imei.equals("")){
+            if(imei != null){
                 //说明此水表是NB表
                 Historydata historydata = historydataDao.findByImeiOrderByIdDesc(imei);
                 if(historydata==null){
                     continue;
                 }
-                daycount.setDeviceId(deviceId);
+                daycount.setDeviceNo(device.getDeviceNo());
+                daycount.setEnprNo(device.getEnprNo());
                 daycount.setEndTime(historydata.getReadTime());
                 daycount.setEndValue(historydata.getDeviceValue());
                 daycount.setDate(calendar.get(Calendar.DATE));
@@ -94,15 +96,14 @@ public class DayCountTaskJob {
                 deviceDao.save(device);
             } else {
                 //说明此水表是集中器水表，需要调接口
-                String deviceNo = device.getDeviceNo();
-                String enprNo = device.getEnprNo();
                 //查询出此水表的最新读数
                 String tableName = dbPrefix + GetDate.getCurrentMonth();
                 List queryRes = deviceTmpGetter.getLatestRecord(deviceNo, enprNo, tableName);
                 Map map = (Map) queryRes.get(0);
                 Timestamp endTime = (Timestamp)map.get("readTime");
                 BigDecimal showValue = (BigDecimal) map.get("showValue");
-                daycount.setDeviceId(deviceId);
+                daycount.setDeviceNo(device.getDeviceNo());
+                daycount.setEnprNo(device.getEnprNo());
                 daycount.setEndTime(endTime);
                 daycount.setEndValue(showValue);
                 daycount.setDate(calendar.get(Calendar.DATE));

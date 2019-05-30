@@ -6,6 +6,7 @@ import java.io.Serializable;
 /**
  * Description:nb
  * Created by Administrator on 2019/5/17
+ * 区域表
  */
 @Entity
 @Table(name = "nt_region", schema = "dbo", catalog = "mixAll")

@@ -12,4 +12,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface DeviceChangeDao extends JpaRepository<DeviceChange,DeviceChange>,JpaSpecificationExecutor<DeviceChange> {
 
+    DeviceChange findByEnprNoAndNewNo(String enprNo, String newNo);
 }

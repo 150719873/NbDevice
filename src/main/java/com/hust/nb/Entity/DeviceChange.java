@@ -7,6 +7,7 @@ import java.sql.Timestamp;
 /**
  * Description:nb
  * Created by Administrator on 2019/5/23
+ * 换表记录表
  */
 @Entity
 @Table(name = "nt_devicechange", schema = "dbo", catalog = "mixAll")

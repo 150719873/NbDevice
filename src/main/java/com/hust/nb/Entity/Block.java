@@ -6,6 +6,7 @@ import java.io.Serializable;
 /**
  * Description:nb
  * Created by Administrator on 2019/5/17
+ * 楼栋表
  */
 @Entity
 @Table(name = "nt_block", schema = "dbo", catalog = "mixAll")

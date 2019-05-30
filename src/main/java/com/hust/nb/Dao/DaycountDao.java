@@ -11,9 +11,11 @@ import org.springframework.data.jpa.repository.Query;
  */
 public interface DaycountDao extends JpaRepository<Daycount,Daycount>,JpaSpecificationExecutor<Daycount> {
 
-    Daycount findDaycountByDeviceIdOrderByIdDesc(int deviceId);
 
     @Query(nativeQuery = true, value = "select top 1 * from mixAll.dbo.nt_daycount where device_no = ?1 and enprNo = ?2 order by id desc")
-    Daycount findDaycountByDeviceNoAndEnprNoOrderByIdDesc(String deviceNo, String enprNo);
+    Daycount findLatestDaycountRecord(String deviceNo, String enprNo);
+
+    @Query(nativeQuery = true, value = "select top 1 * from mixAll.dbo.nt_daycount where device_no = ?1 and enprNo = ?2 order by id asc")
+    Daycount findOldestDaycountRecord(String deviceNo, String enprNo);
 
 }
