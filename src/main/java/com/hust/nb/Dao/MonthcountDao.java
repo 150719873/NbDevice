@@ -15,7 +15,7 @@ public interface MonthcountDao extends JpaRepository<Monthcount,Monthcount>,JpaS
 
     Monthcount findById(int id);
 
-    Page<Monthcount> findAllByDeviceNoAndEnprNoOrderByIdDesc(String deviceNo, String enprNo, Pageable pageable);
+    Page<Monthcount> findAllByDeviceNoAndEnprNo(String deviceNo, String enprNo, Pageable pageable);
 
     @Query(nativeQuery = true,value = "SELECT * FROM ConnectTest.dbo.nt_monthcount WHERE device_no = ?1 ORDER BY id DESC LIMIT 1")
     Monthcount findMonthcountByDeviceNoOrderByIdDesc(String deviceNo);

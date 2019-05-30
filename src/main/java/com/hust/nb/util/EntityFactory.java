@@ -1,5 +1,6 @@
 package com.hust.nb.util;
 
+import com.hust.nb.Entity.Daycount;
 import com.hust.nb.Entity.DeviceChange;
 import com.hust.nb.Entity.Operator;
 
@@ -26,7 +27,8 @@ public class EntityFactory {
     }
 
     public static DeviceChange deviceChangeFactory(int userId, Timestamp changeDate, int operatorId, String oldNo
-    , BigDecimal oldVal, String newNo, BigDecimal newVal, int flag, String enprNo){
+    , BigDecimal oldVal, String newNo, BigDecimal newVal, int flag, String enprNo)
+    {
         DeviceChange deviceChange = new DeviceChange();
         deviceChange.setUserId(userId);
         deviceChange.setChangeDate(changeDate);
@@ -38,5 +40,20 @@ public class EntityFactory {
         deviceChange.setFlag(flag);
         deviceChange.setEnprNo(enprNo);
         return deviceChange;
+    }
+
+    public static Daycount daycountFactory(String deviceNo, Timestamp startTime, BigDecimal startValue, Timestamp endTime
+    , BigDecimal endValue, BigDecimal dayAmount, int date, int state)
+    {
+        Daycount daycount = new Daycount();
+        daycount.setDeviceNo(deviceNo);
+        daycount.setStartTime(startTime);
+        daycount.setStartValue(startValue);
+        daycount.setEndTime(endTime);
+        daycount.setEndValue(endValue);
+        daycount.setDayAmount(dayAmount);
+        daycount.setDate(date);
+        daycount.setState(state);
+        return daycount;
     }
 }

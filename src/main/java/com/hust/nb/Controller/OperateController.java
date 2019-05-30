@@ -4,21 +4,15 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.hust.nb.Dao.OperatorDao;
 import com.hust.nb.Entity.*;
-import com.hust.nb.Service.BlockService;
-import com.hust.nb.Service.CommunityService;
-import com.hust.nb.Service.DeviceService;
-import com.hust.nb.Service.RegionService;
-import com.hust.nb.Service.UserService;
+import com.hust.nb.Service.*;
 import com.hust.nb.util.EntityFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * Description:nb
@@ -44,6 +38,9 @@ public class OperateController {
 
     @Autowired
     OperatorDao operatorDao;
+
+    @Autowired
+    EnterpriseService enterpriseService;
 
     /**
      * 获取水司的全部区域信息
@@ -254,7 +251,10 @@ public class OperateController {
             if (operator != null) {
                 jsonMap.put("code", "200");
                 jsonMap.put("info", "查询成功");
-                jsonMap.put("data", operator);
+                jsonMap.put("operator", operator);
+                String enprNo = operator.getEnprNo();
+                Enterprise enterprise = enterpriseService.findByEnprNo(enprNo);
+                jsonMap.put("enterprise", enterprise);
             } else {
                 jsonMap.put("code", "-1");
                 jsonMap.put("info", "登录失败");
@@ -265,6 +265,16 @@ public class OperateController {
         }
         Object object = JSONObject.toJSON(jsonMap);
         return object;
+    }
+
+    /**
+     * 方法功能描述:更改水司信息
+     */
+    @ResponseBody
+    @PostMapping("/updateCompanyInfo")
+    @CrossOrigin
+    public Object updateCompanyInfo(@RequestBody String company) {
+        return null;
     }
 
     /**
@@ -309,15 +319,23 @@ public class OperateController {
         String operatorName = jsonObject.getString("operatorName");
         String manageCommunity = jsonObject.getString("manageCommunity");
         String enprNo = jsonObject.getString("enprNo");
-        if(operatorId == null){
-            //新增
-            Operator operator = EntityFactory.OperatorFactory(userName, password, phone,
-                    userType, operatorName, manageCommunity, enprNo);
-            operatorDao.save(operator);
-        } else {
-            //修改
-            Operator operator = JSON.parseObject(msg, Operator.class);
-            operatorDao.save(operator);
+        try{
+            if(operatorId == null){
+                //新增
+                Operator operator = EntityFactory.OperatorFactory(userName, password, phone,
+                        userType, operatorName, manageCommunity, enprNo);
+                operatorDao.save(operator);
+            } else {
+                //修改
+                Operator operator = JSON.parseObject(msg, Operator.class);
+                operatorDao.save(operator);
+            }
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "成功");
+        } catch (Exception e){
+            e.printStackTrace();
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "失败");
         }
         Object object = JSONObject.toJSON(jsonMap);
         return object;

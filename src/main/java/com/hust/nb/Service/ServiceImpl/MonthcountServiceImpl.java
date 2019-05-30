@@ -1,13 +1,15 @@
 package com.hust.nb.Service.ServiceImpl;
 
 import com.hust.nb.Dao.MonthcountDao;
+import com.hust.nb.Entity.Device;
 import com.hust.nb.Entity.Monthcost;
 import com.hust.nb.Entity.Monthcount;
 import com.hust.nb.Service.MonthcountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -23,6 +25,13 @@ public class MonthcountServiceImpl implements MonthcountService {
     @Override
     public Monthcount findLatestRecordByDeviceNoAndEnprNo(String deviceNo, String enprNo) {
         return monthcountDao.findTopByDeviceNoAndEnprNoOrderByIdDesc(deviceNo, enprNo);
+    }
+
+    @Override
+    public Page<Monthcount> findMonthcountPage(String deviceNo, String enprNo, int rows, int page) {
+        Pageable pageable = PageRequest.of(page - 1, rows);
+        Page<Monthcount> pageList = monthcountDao.findAllByDeviceNoAndEnprNo(deviceNo, enprNo, pageable);
+        return pageList;
     }
 
     @Override

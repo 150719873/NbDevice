@@ -24,7 +24,7 @@ public interface MonthcostDao extends JpaRepository<Monthcost,Monthcost>,JpaSpec
 
     Monthcost findById(int id);
 
-    @Query(nativeQuery = true,value = "select * from mixAll.dbo.nt_monthcost where money_change < 0 and user_id = ?1 ORDER BY id DESC ")
+    @Query(nativeQuery = true,value = "select * from mixAll.dbo.nt_monthcost where and user_id = ?1 and money_change < 0 ORDER BY id DESC ")
     Page<Monthcost> findAllByUserId(int userId , Pageable pageable);
 
     Page<Monthcost> findAllByUserIdOrderByIdDesc(int userId , Pageable pageable);

@@ -16,4 +16,6 @@ public interface EnterpriseDao extends JpaRepository<Enterprise,Enterprise>,JpaS
     @Query(nativeQuery = true,value = "select * from mixAll.dbo.nt_enterprise where id = ?1")
     Enterprise findEnprNoById(Integer id);
 
+    Enterprise findByEnprNo(String enprNo);
+
 }

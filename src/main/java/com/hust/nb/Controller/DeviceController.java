@@ -1,15 +1,12 @@
 package com.hust.nb.Controller;
 
+import cn.hutool.http.HttpRequest;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.hust.nb.Dao.DaycountDao;
-import com.hust.nb.Entity.Daycount;
-import com.hust.nb.Entity.Device;
-import com.hust.nb.Entity.DeviceChange;
-import com.hust.nb.Entity.Historydata;
-import com.hust.nb.Service.DeviceChangeService;
-import com.hust.nb.Service.DeviceService;
-import com.hust.nb.Service.HistorydataService;
+import com.hust.nb.Entity.*;
+import com.hust.nb.Service.*;
+import com.hust.nb.util.Adapter;
 import com.hust.nb.util.EntityFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.QueryAnnotation;
@@ -20,10 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Description:nb
@@ -44,6 +38,12 @@ public class DeviceController {
 
     @Autowired
     DeviceChangeService deviceChangeService;
+
+    @Autowired
+    DaycountService daycountService;
+
+    @Autowired
+    MonthcountService monthcountService;
 
     /**
      * 方法功能描述:获取水表详细信息
@@ -159,6 +159,103 @@ public class DeviceController {
         }else {
             jsonMap.put("code","-1");
             jsonMap.put("info","不存在该旧表或新表已存在");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+    /**
+     * 方法功能描述:查询任一水表的当月或者上月历史纪录。
+     */
+    @ResponseBody
+    @PostMapping("/GetHistoryData")
+    public Object getHistorydataByDeviceNo(@RequestBody String msg) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        String deviceNo = jsonObject.getString("deviceNo");
+        String enprNo = jsonObject.getString("enprNo");
+        int isCurMon = jsonObject.getInteger("isCurMon");
+        Object object = null;
+        Device device = deviceService.getByDeviceNoAndEnprNo(deviceNo, enprNo);
+        if (device != null && device.getImei() != null) {
+            String imei = device.getImei();
+            //该表为NB水表，有imei号
+            try {
+                List<Historydata> res;
+                if (isCurMon == 0) {
+                    res = historydataService.getCurMonthData(imei);
+                } else {
+                    res = historydataService.getPreMonthData(imei);
+                }
+                List<NBHistoryData> ret = new ArrayList<>();
+                for(Historydata historydata : res){
+                    ret.add(Adapter.rawHisToNBHis(historydata));
+                }
+                jsonMap.put("code", "200");
+                jsonMap.put("info", "查询成功");
+                jsonMap.put("data", ret);
+            } catch (Exception e) {
+                jsonMap.put("code", "-1");
+                jsonMap.put("info", "查询失败");
+            }
+            object = JSONObject.toJSON(jsonMap);
+        } else {
+            //该表为集中器水表
+            String qbttResult = HttpRequest.post("http://localhost:8080/QBTT/Device/QueryHistoryData")
+                    .body(jsonObject.toString())
+                    .execute()
+                    .body();
+            System.out.println(qbttResult);
+            object = qbttResult;
+        }
+        return object;
+    }
+
+    /**
+     * 查看水表的日用水量
+     */
+    @ResponseBody
+    @PostMapping("/getDaycountPage")
+    public Object getDaycountPage(@RequestBody String msg) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        String deviceNo = jsonObject.getString("deviceNo");
+        String enprNo = jsonObject.getString("enprNo");
+        int rows = jsonObject.getInteger("rows");
+        int page = jsonObject.getInteger("page");
+        try{
+            Page<Daycount> pageList = daycountService.findDaycountPage(deviceNo, enprNo, rows, page);
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "查询成功");
+            jsonMap.put("data", pageList);
+        } catch (Exception e){
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "查询失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+    /**
+     * 查看水表的月用水量
+     */
+    @ResponseBody
+    @PostMapping("/getMonthcountPage")
+    public Object getMonthcountPage(@RequestBody String msg) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        String deviceNo = jsonObject.getString("deviceNo");
+        String enprNo = jsonObject.getString("enprNo");
+        int rows = jsonObject.getInteger("rows");
+        int page = jsonObject.getInteger("page");
+        try{
+            Page<Monthcount> pageList = monthcountService.findMonthcountPage(deviceNo, enprNo, rows, page);
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "查询成功");
+            jsonMap.put("data", pageList);
+        } catch (Exception e){
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "查询失败");
         }
         Object object = JSONObject.toJSON(jsonMap);
         return object;

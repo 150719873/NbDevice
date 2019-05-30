@@ -14,6 +14,8 @@ public interface MonthcountService {
 
     Monthcount findLatestRecordByDeviceNoAndEnprNo(String deviceNo, String enprNo);
 
+    Page<Monthcount> findMonthcountPage(String deviceNo, String enprNo, int rows, int page);
+
     void save(Monthcount monthcount);
 
     void addMonthcost(Monthcost tmonthcost);

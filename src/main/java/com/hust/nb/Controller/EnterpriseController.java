@@ -60,40 +60,35 @@ public class EnterpriseController {
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
         String msg1 = jsonObject.getString("waterPrice");
-        int userType = Integer.parseInt(jsonObject.getString("userType"));
         ChargeLevel changeEntity = JSON.parseObject(msg1, ChargeLevel.class);
         String enprNo = changeEntity.getEnprNo();
         int type = changeEntity.getType();
         ChargeLevel chargeLevelEntity = chargeLevelService.getByEnprNoAndType(enprNo, type);
-        if (chargeLevelEntity != null && userType == 1) {//权限不够不可以进行修改阶梯水价
-            chargeLevelEntity.setMin(changeEntity.getMin());
-            chargeLevelEntity.setMinCharge(changeEntity.getMinCharge());
-            chargeLevelEntity.setFirst(changeEntity.getFirst());
-            chargeLevelEntity.setSecond(changeEntity.getSecond());
-            chargeLevelEntity.setThird(changeEntity.getThird());
-            chargeLevelEntity.setFourth(changeEntity.getFourth());
-            chargeLevelEntity.setFifth(changeEntity.getFifth());
-            chargeLevelEntity.setFirstEdge(changeEntity.getFirstEdge());
-            chargeLevelEntity.setSecondEdge(changeEntity.getSecondEdge());
-            chargeLevelEntity.setThirdEdge(changeEntity.getThirdEdge());
-            chargeLevelEntity.setFourthEdge(changeEntity.getFourthEdge());
-            chargeLevelEntity.setFifthEdge(changeEntity.getFifthEdge());
-            chargeLevelEntity.setSixthEdge(changeEntity.getSixthEdge());
-            try {
-                chargeLevelService.save(chargeLevelEntity);
-                jsonMap.put("code", "200");
-                jsonMap.put("info", "修改成功");
-            } catch (Exception e) {
-                e.printStackTrace();
-                jsonMap.put("code", "-1");
-                jsonMap.put("info", "修改失败");
-                jsonMap.put("info", "修改失败");
-            }
-        } else {
-            jsonMap.put("code", "-2");
-            jsonMap.put("info", "权限不足");
+        chargeLevelEntity.setMin(changeEntity.getMin());
+        chargeLevelEntity.setMinCharge(changeEntity.getMinCharge());
+        chargeLevelEntity.setFirst(changeEntity.getFirst());
+        chargeLevelEntity.setSecond(changeEntity.getSecond());
+        chargeLevelEntity.setThird(changeEntity.getThird());
+        chargeLevelEntity.setFourth(changeEntity.getFourth());
+        chargeLevelEntity.setFifth(changeEntity.getFifth());
+        chargeLevelEntity.setFirstEdge(changeEntity.getFirstEdge());
+        chargeLevelEntity.setSecondEdge(changeEntity.getSecondEdge());
+        chargeLevelEntity.setThirdEdge(changeEntity.getThirdEdge());
+        chargeLevelEntity.setFourthEdge(changeEntity.getFourthEdge());
+        chargeLevelEntity.setFifthEdge(changeEntity.getFifthEdge());
+        chargeLevelEntity.setSixthEdge(changeEntity.getSixthEdge());
+        try {
+            chargeLevelService.save(chargeLevelEntity);
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "修改成功");
+        } catch (Exception e) {
+            e.printStackTrace();
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "修改失败");
         }
         Object object = JSONObject.toJSON(jsonMap);
         return object;
     }
+
+
 }
