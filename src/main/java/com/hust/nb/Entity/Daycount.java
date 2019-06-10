@@ -11,7 +11,7 @@ import java.sql.Timestamp;
  * 日水量表
  */
 @Entity
-@Table(name = "t_daycount")
+@Table(name = "nt_daycount", schema = "dbo", catalog = "mixAll")
 public class Daycount implements Serializable {
 
     /**

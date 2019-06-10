@@ -22,7 +22,7 @@ public class EntityFactory {
         operator.setUserType(userType);
         operator.setOperatorName(operatorName);
         operator.setManageCommunity(manageCommunity);
-        operator.setManageCommunity(enprNo);
+        operator.setEnprNo(enprNo);
         return operator;
     }
 
