@@ -104,6 +104,13 @@ public class User implements Serializable {
     @Column(name = "enprNo")
     private String enprNo;
 
+    /**
+     *用户编号
+     */
+    @Basic
+    @Column(name = "user_no")
+    private String userNo;
+
     public Integer getUserId() {
         return userId;
     }
@@ -206,5 +213,13 @@ public class User implements Serializable {
 
     public void setEnprNo(String enprNo) {
         this.enprNo = enprNo;
+    }
+
+    public String getUserNo() {
+        return userNo;
+    }
+
+    public void setUserNo(String userNo) {
+        this.userNo = userNo;
     }
 }

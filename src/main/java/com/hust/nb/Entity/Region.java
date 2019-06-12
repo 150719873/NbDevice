@@ -33,6 +33,14 @@ public class Region implements Serializable {
     @Column(name = "enprNo")
     private String enprNo;
 
+    /**
+     *
+     * 备注
+     */
+    @Basic
+    @Column(name = "remark")
+    private String remark;
+
     public Integer getRegionId() {
         return regionId;
     }
@@ -55,5 +63,13 @@ public class Region implements Serializable {
 
     public void setEnprNo(String enprNo) {
         this.enprNo = enprNo;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
     }
 }

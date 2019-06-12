@@ -8,21 +8,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 import java.text.MessageFormat;
 import java.util.List;
 
 /**
- * Description:nb
- * Created by Administrator on 2019/5/24
+ * Description:nbqbtt
+ * Created by hyJoo on 2019/06/6
  */
-@Configuration
-public class ScheduleConfig {
+
+@Component
+public class RemindRuleScheduler {
     /**
      * 日志
      */
-    private final Logger log = LoggerFactory.getLogger(Scheduler.class);
+    private final Logger log = LoggerFactory.getLogger(RemindRuleScheduler.class);
 
     private final String REMINDRULE = "REMINDRULE";
 

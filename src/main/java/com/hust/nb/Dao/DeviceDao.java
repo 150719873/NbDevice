@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,5 +28,11 @@ public interface DeviceDao extends JpaRepository<Device,Device>,JpaSpecification
 
     @Transactional
     void deleteByDeviceNoAndEnprNo(String deviceNo, String enprNo);
+
+    @Query(nativeQuery = true, value = "select device_no from mixAll.dbo.nb_device where enprNo = ?1")
+    List<String> findDeviceNoByEnprNo(String enprNo);
+
+    @Query(nativeQuery = true, value = "select imei from mixAll.dbo.nb_device")
+    List<String> findImei();
 }
 

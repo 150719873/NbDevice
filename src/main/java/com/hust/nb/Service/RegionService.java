@@ -10,4 +10,7 @@ import java.util.List;
  */
 public interface RegionService {
     List<Region> getByEnprNo(String enprNo);
+
+    void saveRegion(Region region);
+
 }

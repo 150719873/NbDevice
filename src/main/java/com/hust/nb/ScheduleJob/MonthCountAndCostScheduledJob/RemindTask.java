@@ -27,7 +27,7 @@ public class RemindTask {
      * 创建的一个定时任务,每天会执行一遍,代替1中的onApplicationEvent方法
      */
     @Autowired
-    private ScheduleConfig scheduleConfig;
+    private RemindRuleScheduler remindRuleScheduler;
 
     // 每天执行定时任务:测试使用,每分钟执行
     @Scheduled(cron = "0 0/1 * * * ?")
@@ -35,7 +35,7 @@ public class RemindTask {
         log.debug("RemindTask starting...");
         // A:创建或者更新定期的所有动态任务
         try {
-            scheduleConfig.initStartJob();
+            remindRuleScheduler.initStartJob();
         } catch (SchedulerException e) {
             log.error("RemindTask 初始化定期提醒任务失败.. {}", e);
         }

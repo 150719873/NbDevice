@@ -30,4 +30,13 @@ public interface UserDao extends JpaRepository<User,User>,JpaSpecificationExecut
     User findUserByBlockIdAndUserAddr(int blockId, String addr);
 
     List<User> findAllByEnprNo(String enprNo);
+
+    @Query(nativeQuery = true, value = "select user_no from mixAll.dbo.nt_user")
+    List<String> findUserNo();
+
+    @Query(nativeQuery = true, value = "select user_id from mixAll.dbo.nt_user where user_name = ?1 and user_tel = ?2 and addr = ?3")
+    Integer findUserByUserNameAndUserTelAndAddr(String userName, String userTel, String addr);
+
+    @Query(nativeQuery = true, value = "select * from mixAll.dbo.nt_user")
+    List<User> findUserTelAndName();
 }

@@ -6,11 +6,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.scheduling.quartz.AdaptableJobFactory;
+import org.springframework.stereotype.Component;
 
 /**
  * Description:nb
  * Created by Administrator on 2019/5/24
  */
+@Component
 public class JobFactory extends AdaptableJobFactory {
 
     //用来创建JOB实例
