@@ -41,6 +41,13 @@ public class Community implements Serializable {
     @Column(name = "region_id")
     private int regionId;
 
+    /**
+     *所属抄表类型
+     */
+    @Basic
+    @Column(name = "collectionType")
+    private Integer collectionType;
+
     public Integer getCommunityId() {
         return communityId;
     }
@@ -71,5 +78,13 @@ public class Community implements Serializable {
 
     public void setRegionId(int regionId) {
         this.regionId = regionId;
+    }
+
+    public Integer getCollectionType() {
+        return collectionType;
+    }
+
+    public void setCollectionType(Integer collectionType) {
+        this.collectionType = collectionType;
     }
 }

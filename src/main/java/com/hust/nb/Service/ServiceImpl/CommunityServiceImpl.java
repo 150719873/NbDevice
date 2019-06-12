@@ -22,4 +22,10 @@ public class CommunityServiceImpl implements CommunityService {
     public List<Community> getByRegionId(int regionId) {
         return communityDao.getAllByRegionId(regionId);
     }
+
+    @Override
+    public void saveCommunity(Community community){
+        communityDao.save(community);
+    }
+
 }

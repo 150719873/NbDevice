@@ -14,4 +14,7 @@ import java.util.List;
 @Repository
 public interface BlockDao extends JpaRepository<Block,Block>,JpaSpecificationExecutor<Block> {
     List<Block> getAllByCommunityId(int communityId);
+
+    Block getAllByCommunityIdAndBlockName(Integer communityId, String blockName);
+
 }

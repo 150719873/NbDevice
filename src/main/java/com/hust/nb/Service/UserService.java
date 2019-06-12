@@ -21,4 +21,6 @@ public interface UserService {
     User getByBLockIdAndAddr(int blockId, String addr);
 
     void updateUser(User user);
+
+    List<User> findInfo();
 }

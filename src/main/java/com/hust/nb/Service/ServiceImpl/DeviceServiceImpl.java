@@ -57,4 +57,15 @@ public class DeviceServiceImpl implements DeviceService {
     public List<Device> findAllByEnprNo(String enprNo) {
         return deviceDao.findAllByEnprNo(enprNo);
     }
+
+
+    @Override
+    public List<String> findDeviceNoByEnprNo(String enprNo){
+        return deviceDao.findDeviceNoByEnprNo(enprNo);
+    }
+
+    @Override
+    public List<String> findImei(){
+        return deviceDao.findImei();
+    }
 }

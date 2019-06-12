@@ -10,4 +10,6 @@ import java.util.List;
  */
 public interface CommunityService {
     List<Community> getByRegionId(int regionId);
+
+    void saveCommunity(Community community);
 }

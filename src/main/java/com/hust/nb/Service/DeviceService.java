@@ -23,4 +23,8 @@ public interface DeviceService {
     void delDeviceByDeviceNoAndEnprNo(String deviceNo, String enprNo);
 
     List<Device> findAllByEnprNo(String enprNo);
+
+    List<String> findDeviceNoByEnprNo(String enprNo);
+
+    List<String> findImei();
 }

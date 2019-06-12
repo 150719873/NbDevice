@@ -22,5 +22,10 @@ public class RegionServiceImpl implements RegionService {
     public List<Region> getByEnprNo(String enprNo) {
         return regionDao.getAllByEnprNo(enprNo);
     }
+
+    @Override
+    public void saveRegion(Region region){
+        regionDao.save(region);
+    }
 }
 
