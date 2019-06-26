@@ -23,4 +23,6 @@ public interface UserService {
     void updateUser(User user);
 
     List<User> findInfo();
+
+    User findByUserNameAndUserAddrAAndUserTel(String userName, String userAddr, String userTel);
 }

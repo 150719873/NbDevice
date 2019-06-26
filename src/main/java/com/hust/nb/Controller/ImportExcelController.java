@@ -57,7 +57,7 @@ public class ImportExcelController {
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
         String enprNo = jsonObject.getString("enprNo");
-        int userType = Integer.parseInt(jsonObject.getString("userType"));
+//        int userType = Integer.parseInt(jsonObject.getString("userType"));
         String regionName = jsonObject.getString("regionName");
         String remark = jsonObject.getString("remark");
         Enterprise enterprise = enterpriseService.findByEnprNo(enprNo);
@@ -70,7 +70,7 @@ public class ImportExcelController {
             }
         }
         Region region = new Region();
-        if (userType == 0 || userType == 1) {
+//        if (userType == 0 || userType == 1) {
             if (regionName == null) {
                 region.setRegionName(enterprise.getEnprName());
             } else {
@@ -78,7 +78,7 @@ public class ImportExcelController {
             }
             region.setRemark(remark);
             region.setEnprNo(enprNo);
-        }
+//        }
         try {
             regionService.saveRegion(region);
             jsonMap.put("code", "200");
@@ -101,7 +101,7 @@ public class ImportExcelController {
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
         String enprNo = jsonObject.getString("enprNo");
-        int userType = Integer.parseInt(jsonObject.getString("userType"));
+//        int userType = Integer.parseInt(jsonObject.getString("userType"));
         String communityName = jsonObject.getString("communityName");
         int collectType = Integer.parseInt(jsonObject.getString("collectionType"));
         int regionId = jsonObject.getInteger("regionId");
@@ -114,12 +114,10 @@ public class ImportExcelController {
             }
         }
         Community community = new Community();
-        if (userType == 0 || userType == 1) {
             community.setCollectionType(collectType);
             community.setCommunityName(communityName);
             community.setEnprNo(enprNo);
             community.setRegionId(regionId);
-        }
         try {
             communityService.saveCommunity(community);
             jsonMap.put("code", "200");
@@ -328,6 +326,18 @@ public class ImportExcelController {
                     }
                     if ("".equals(cellList.get(2))) {
                         errstr.append("序号为(" + j + ")这一行的用户类型为空，请检查excel！");
+                    }
+                    User user = userService.findByUserNameAndUserAddrAAndUserTel(cellList.get(1), cellList.get(9), cellList.get(3));
+                    Device device = deviceService.findByDeviceNoAndImei(cellList.get(8), cellList.get(10));
+                    if (user != null && device != null){
+                        if (cellList.get(3).equals(user.getUserTel())
+                                && cellList.get(5).equals(user.getBankAccount())
+                                && cellList.get(6).equals(user.getBankOwner())
+                                && cellList.get(7).equals(user.getBankAddr())
+//                                && cellList.get(13).equals(String.valueOf(device.getDeviceType()))
+                                ){
+                            continue;
+                        }
                     }
                     if ("".equals(cellList.get(3))) {
                         errstr.append("序号为(" + j + ")这一行的用户电话为空，请检查excel！");

@@ -68,4 +68,10 @@ public class DeviceServiceImpl implements DeviceService {
     public List<String> findImei(){
         return deviceDao.findImei();
     }
+
+    @Override
+    public Device findByDeviceNoAndImei(String deviceNo, String imei){
+        return deviceDao.findByDeviceNoAndImei(deviceNo, imei);
+    }
+
 }

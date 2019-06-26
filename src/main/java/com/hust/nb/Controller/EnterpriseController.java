@@ -3,18 +3,19 @@ package com.hust.nb.Controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.hust.nb.Entity.ChargeLevel;
+import com.hust.nb.Entity.Enterprise;
 import com.hust.nb.Service.ChargeLevelService;
+import com.hust.nb.Service.EnterpriseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * Description:nb
@@ -26,6 +27,9 @@ public class EnterpriseController {
 
     @Autowired
     ChargeLevelService chargeLevelService;
+
+    @Autowired
+    EnterpriseService enterpriseService;
 
     /**
      * 获取该水司下的所有阶梯水价
@@ -91,4 +95,40 @@ public class EnterpriseController {
     }
 
 
+    /**
+     * 设置和修改计费时间和收费类型
+     */
+    @ResponseBody
+    @PostMapping("/updateCronAndType")
+    public Object updateCronAndType(@RequestBody String msg){
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        String enprNo = jsonObject.getString("enprNo");
+        int cron = jsonObject.getInteger("cron");
+        int costType = jsonObject.getInteger("costType");
+        String enprName = jsonObject.getString("enprName");
+        Enterprise enterprise = enterpriseService.findByEnprNo(enprNo);
+
+        if (cron != 0){
+            enterprise.setCron("0 0 0 "+cron+" * ?");
+            enterprise.setCostType(costType);
+            enterprise.setEnprName(enprName);
+        }else{
+            enterprise.setCron("0 0 0 L * ?");
+            enterprise.setCostType(costType);
+            enterprise.setEnprName(enprName);
+        }
+        try {
+            enterpriseService.saveEnterpriseCronAndCostType(enterprise);
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "设置修改成功");
+        }catch (Exception e){
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "设置修改失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
 }
+

@@ -20,4 +20,9 @@ public class EnterpriseServiceImpl implements EnterpriseService {
     public Enterprise findByEnprNo(String enprNo) {
         return enterpriseDao.findByEnprNo(enprNo);
     }
+
+    @Override
+    public void saveEnterpriseCronAndCostType(Enterprise enterprise){
+        enterpriseDao.save(enterprise);
+    }
 }

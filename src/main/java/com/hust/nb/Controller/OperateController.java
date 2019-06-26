@@ -83,7 +83,9 @@ public class OperateController {
                 String communityName = community.getCommunityName();
                 List<Block> blocks = blockService.getByCommunityId(community.getCommunityId());
                 commuBlockMap.put(communityName, blocks);
+                commuBlockMap.put(communityName, community);
                 res.add(commuBlockMap);
+
             }
             jsonMap.put("code", "200");
             jsonMap.put("info", "查询成功");

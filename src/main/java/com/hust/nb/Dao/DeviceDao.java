@@ -34,5 +34,7 @@ public interface DeviceDao extends JpaRepository<Device,Device>,JpaSpecification
 
     @Query(nativeQuery = true, value = "select imei from mixAll.dbo.nb_device")
     List<String> findImei();
+
+    Device findByDeviceNoAndImei(String deviceNo, String imei);
 }
 

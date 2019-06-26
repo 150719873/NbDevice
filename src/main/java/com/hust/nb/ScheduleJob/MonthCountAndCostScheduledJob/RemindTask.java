@@ -30,7 +30,7 @@ public class RemindTask {
     private RemindRuleScheduler remindRuleScheduler;
 
     // 每天执行定时任务:测试使用,每分钟执行
-    @Scheduled(cron = "0 0/1 * * * ?")
+    @Scheduled(cron = "0 0 0 10 * ?")
     public void testGetDemoData() {
         log.debug("RemindTask starting...");
         // A:创建或者更新定期的所有动态任务
