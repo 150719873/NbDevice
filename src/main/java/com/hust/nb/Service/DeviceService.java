@@ -27,4 +27,6 @@ public interface DeviceService {
     List<String> findDeviceNoByEnprNo(String enprNo);
 
     List<String> findImei();
+
+    Device findByDeviceNoAndImei(String deviceNo, String imei);
 }

@@ -58,4 +58,9 @@ public class UserServiceImpl implements UserService {
     public List<User> findInfo(){
         return userDao.findUserTelAndName();
     }
+
+    @Override
+    public User findByUserNameAndUserAddrAAndUserTel(String userName, String userAddr, String userTel){
+        return userDao.findByUserNameAndUserAddrAndUserTel(userName, userAddr, userTel);
+    }
 }

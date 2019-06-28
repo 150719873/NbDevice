@@ -8,4 +8,6 @@ import com.hust.nb.Entity.Enterprise;
  */
 public interface EnterpriseService {
     Enterprise findByEnprNo(String enprNo);
+
+    void saveEnterpriseCronAndCostType(Enterprise enterprise);
 }

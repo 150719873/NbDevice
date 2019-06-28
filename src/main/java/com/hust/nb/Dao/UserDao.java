@@ -39,4 +39,6 @@ public interface UserDao extends JpaRepository<User,User>,JpaSpecificationExecut
 
     @Query(nativeQuery = true, value = "select * from mixAll.dbo.nt_user")
     List<User> findUserTelAndName();
+
+    User findByUserNameAndUserAddrAndUserTel(String userName, String userAddr, String userTel);
 }
