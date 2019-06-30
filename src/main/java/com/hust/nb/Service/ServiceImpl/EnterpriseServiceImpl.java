@@ -6,6 +6,8 @@ import com.hust.nb.Service.EnterpriseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * Description:nb
  * Created by Administrator on 2019/5/30
@@ -23,6 +25,16 @@ public class EnterpriseServiceImpl implements EnterpriseService {
 
     @Override
     public void saveEnterpriseCronAndCostType(Enterprise enterprise){
+        enterpriseDao.save(enterprise);
+    }
+
+    @Override
+    public List<Enterprise> getAllEnpr() {
+        return enterpriseDao.findAll();
+    }
+
+    @Override
+    public void addEnpr(Enterprise enterprise) {
         enterpriseDao.save(enterprise);
     }
 }

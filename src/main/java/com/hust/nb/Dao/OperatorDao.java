@@ -24,4 +24,8 @@ public interface OperatorDao extends JpaRepository<Operator,Operator>,JpaSpecifi
 
     @Query(nativeQuery = true, value = "select id from mixAll.dbo.nt_operator where id = ?1")
     int findIdById(int operatorId);
+
+    List<Operator> findByEnprNoAndUserType(String enprNo, int userType);
+
+    Operator findByOperatorId(int operatorId);
 }

@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.util.*;
 
 /**
@@ -165,7 +166,9 @@ public class ImportExcelController {
             List<List<String>>[] sheets = importExcel.readSheets(is, isExcel2003);//读取整个EXCEL文件
             List<String> userNoList = importExcelService.findUserNo();
             for (int k = 0; k < sheets.length; k++) {//k代表第k + 1个sheet，blockName和sheet是对应的
-                blockName = importExcel.blockName[k];//得到blockName
+                if (sheets[k] != null){
+                    blockName = importExcel.blockName[k];//得到blockName
+                }
                 List<List<String>> dataList = sheets[k];//得到每个sheet数据
                 Block block0 = importExcelService.findBlockByCommunityIdAndBlockName(communityId, blockName);
                 if (block0 == null) {//如果不存在此楼栋，导入
@@ -208,6 +211,8 @@ public class ImportExcelController {
                             userEntity.setBlockId(block.getBlockId());
                             userEntity.setUserNo(cellList.get(16));
                             userEntity.setEnprNo(enprNo);
+
+                            userEntity.setAccountBalance(new BigDecimal("0"));
                             userNoList.add(cellList.get(16));
                             try {
                                 importExcelService.saveImportedExcel(userEntity);

@@ -83,9 +83,7 @@ public class OperateController {
                 String communityName = community.getCommunityName();
                 List<Block> blocks = blockService.getByCommunityId(community.getCommunityId());
                 commuBlockMap.put(communityName, blocks);
-                commuBlockMap.put(communityName, community);
                 res.add(commuBlockMap);
-
             }
             jsonMap.put("code", "200");
             jsonMap.put("info", "查询成功");
@@ -112,7 +110,7 @@ public class OperateController {
         int rows = Integer.parseInt(jsonObject.getString("rows"));
         int page = Integer.parseInt(jsonObject.getString("page"));
         Page<User> userPage = userService.getUserPageByBlockId(blockId, page, rows);
-        if (userPage.hasContent()) {
+        try {
             List<Object> userDetailList = new ArrayList<>();
             long total = userPage.getTotalElements();
             for (User user : userPage.getContent()) {
@@ -122,7 +120,7 @@ public class OperateController {
             jsonMap.put("code", "200");
             jsonMap.put("info", "查询成功");
             jsonMap.put("data", userDetailList);
-        } else {
+        } catch (Exception e){
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
             jsonMap.put("data", "");
@@ -251,12 +249,18 @@ public class OperateController {
         try {
             Operator operator = operatorDao.findOperatorByUserNameAndPassword(userName, password);
             if (operator != null) {
-                jsonMap.put("code", "200");
-                jsonMap.put("info", "查询成功");
-                jsonMap.put("operator", operator);
-                String enprNo = operator.getEnprNo();
-                Enterprise enterprise = enterpriseService.findByEnprNo(enprNo);
-                jsonMap.put("enterprise", enterprise);
+                if(operator.getUserType() == 0){
+                    jsonMap.put("code", "201");
+                    jsonMap.put("info", "查询成功");
+                    jsonMap.put("operator", operator);
+                } else {
+                    jsonMap.put("code", "200");
+                    jsonMap.put("info", "查询成功");
+                    jsonMap.put("operator", operator);
+                    String enprNo = operator.getEnprNo();
+                    Enterprise enterprise = enterpriseService.findByEnprNo(enprNo);
+                    jsonMap.put("enterprise", enterprise);
+                }
             } else {
                 jsonMap.put("code", "-1");
                 jsonMap.put("info", "登录失败");
@@ -361,6 +365,36 @@ public class OperateController {
             e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "删除失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+    /**
+     * 修改个人信息
+     */
+    @ResponseBody
+    @PostMapping("/UpdatePrivateInfo")
+    @CrossOrigin
+    public Object updatePrivateInfo(@RequestBody String msg) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        String operatorName = jsonObject.getString("operatorName");
+        String phone = jsonObject.getString("phone");
+        String password = jsonObject.getString("password");
+        int operatorId = Integer.parseInt(jsonObject.getString("operatorId"));
+        Operator operator = operatorDao.findByOperatorId(operatorId);
+        operator.setOperatorName(operatorName);
+        operator.setPhone(phone);
+        operator.setPassword(password);
+        try {
+            operatorDao.save(operator);
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "修改成功");
+        } catch (Exception e) {
+            e.printStackTrace();
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "修改失败");
         }
         Object object = JSONObject.toJSON(jsonMap);
         return object;

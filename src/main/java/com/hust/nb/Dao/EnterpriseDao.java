@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * Description:nb
  * Created by Administrator on 2019/5/24
@@ -17,5 +19,7 @@ public interface EnterpriseDao extends JpaRepository<Enterprise,Enterprise>,JpaS
     Enterprise findEnprNoById(Integer id);
 
     Enterprise findByEnprNo(String enprNo);
+
+    List<Enterprise> findAll();
 
 }
