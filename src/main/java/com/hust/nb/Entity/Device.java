@@ -132,6 +132,7 @@ public class Device implements Serializable,Cloneable {
 
     /**
      * 用水类型
+     * 	1 居民生活用水 2 工业用水 3 行政事业单位用水 4 经营用水 5 特种行业用水
      */
     @Basic
     @Column(name = "water_type")

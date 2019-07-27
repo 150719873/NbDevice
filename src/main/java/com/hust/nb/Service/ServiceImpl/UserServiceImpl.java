@@ -29,6 +29,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Page<User> findAllByCommunityId(int communityId, int page, int rows){
+        Pageable pageable = PageRequest.of(page - 1, rows);
+        Page<User> page1 = userDao.findAllByCommunityId(communityId, pageable);
+        return page1;
+    }
+
+    @Override
     public List<String> getAddrsByBlockId(int blockId) {
         return userDao.findAddrsByBlockId(blockId);
     }
@@ -62,5 +69,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findByUserNameAndUserAddrAAndUserTel(String userName, String userAddr, String userTel){
         return userDao.findByUserNameAndUserAddrAndUserTel(userName, userAddr, userTel);
+    }
+
+    @Override
+    public List<Integer> getUserIdsByBlockId(int blockId){
+        return userDao.getUserIdsByBlockId(blockId);
     }
 }

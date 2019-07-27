@@ -3,6 +3,7 @@ package com.hust.nb.Dao;
 import com.hust.nb.Entity.Block;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -16,5 +17,7 @@ public interface BlockDao extends JpaRepository<Block,Block>,JpaSpecificationExe
     List<Block> getAllByCommunityId(int communityId);
 
     Block getAllByCommunityIdAndBlockName(Integer communityId, String blockName);
+
+    Block getByBlockId(int blockId);
 
 }

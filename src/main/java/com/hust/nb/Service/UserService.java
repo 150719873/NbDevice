@@ -12,6 +12,8 @@ import java.util.List;
 public interface UserService {
     Page<User> getUserPageByBlockId(int blockId, int page, int rows);
 
+    Page<User> findAllByCommunityId(int communityId, int page, int rows);
+
     List<String> getAddrsByBlockId(int blockId);
 
     List<User> getUserByNameAndEnprNo(String userName, String enprNo);
@@ -25,4 +27,6 @@ public interface UserService {
     List<User> findInfo();
 
     User findByUserNameAndUserAddrAAndUserTel(String userName, String userAddr, String userTel);
+
+    List<Integer> getUserIdsByBlockId(int blockId);
 }

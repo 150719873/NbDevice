@@ -3,6 +3,7 @@ package com.hust.nb.Controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.hust.nb.Config.Constants;
+import com.hust.nb.Dao.BlockDao;
 import com.hust.nb.Entity.*;
 import com.hust.nb.Service.*;
 import com.hust.nb.util.ImportExcel;
@@ -46,6 +47,9 @@ public class ImportExcelController {
 
     @Autowired
     DeviceService deviceService;
+
+    @Autowired
+    BlockDao blockDao;
 
 
     /**
@@ -204,10 +208,16 @@ public class ImportExcelController {
                                 userEntity.setUserPhone(cellList.get(4));
                             }
                             userEntity.setUserTel(userTel);
-                            userEntity.setBankAccount(cellList.get(5));
+                            if (!cellList.get(5).isEmpty()){
+                                userEntity.setBankAccount(cellList.get(5));
+                            }
                             userEntity.setUserAddr(cellList.get(9));
-                            userEntity.setBankOwner(cellList.get(6));
-                            userEntity.setBankAddr(cellList.get(7));
+                            if (!cellList.get(6).isEmpty()){
+                                userEntity.setBankOwner(cellList.get(6));
+                            }
+                            if (!cellList.get(7).isEmpty()){
+                                userEntity.setBankAddr(cellList.get(7));
+                            }
                             userEntity.setBlockId(block.getBlockId());
                             userEntity.setUserNo(cellList.get(16));
                             userEntity.setEnprNo(enprNo);
@@ -244,6 +254,8 @@ public class ImportExcelController {
                             Double f5 = Double.valueOf(cellList.get(12));
                             valve = (int) Math.ceil(f5);
                             deviceEntity.setValve(valve);
+                            deviceEntity.setState(2);
+                            deviceEntity.setReadValue(new BigDecimal(0));
                             deviceEntity.setEnprNo(enprNo);
                             deviceEntity.setDeviceVender(cellList.get(15));
                             deviceEntity.setDeviceType(Constants.DX_NB);
@@ -282,6 +294,7 @@ public class ImportExcelController {
         MultipartFile file = ((MultipartHttpServletRequest) request).getFile("file");
 //        Integer type = Integer.parseInt(params.getParameter("type"));
         String enprNo = params.getParameter("enprNo");
+        Integer communityId = Integer.parseInt(params.getParameter("communityId"));
         boolean isExcel2003 = true;
         String fileName = file.getOriginalFilename();
 
@@ -323,6 +336,8 @@ public class ImportExcelController {
             StringBuffer errstr = new StringBuffer();
             for (int i = 0; i < sheets.length; i++) {
                 List<List<String>> list = sheets[i];
+                String blockName = importExcel.blockName[i];
+                Block block = blockDao.getAllByCommunityIdAndBlockName(communityId, blockName);
                 for (int k = 2; k < list.size(); k++) {
                     List<String> cellList = list.get(k);
                     int j = 1 + k;
@@ -332,9 +347,10 @@ public class ImportExcelController {
                     if ("".equals(cellList.get(2))) {
                         errstr.append("序号为(" + j + ")这一行的用户类型为空，请检查excel！");
                     }
+
                     User user = userService.findByUserNameAndUserAddrAAndUserTel(cellList.get(1), cellList.get(9), cellList.get(3));
                     Device device = deviceService.findByDeviceNoAndImei(cellList.get(8), cellList.get(10));
-                    if (user != null && device != null){
+                    if (user != null && device != null&& user.getBlockId() == block.getBlockId()&& device.getUserId() == user.getUserId()){
                         if (cellList.get(3).equals(user.getUserTel())
                                 && cellList.get(5).equals(user.getBankAccount())
                                 && cellList.get(6).equals(user.getBankOwner())
@@ -344,6 +360,20 @@ public class ImportExcelController {
                             continue;
                         }
                     }
+                    if (user != null){
+                        if (!user.getEnprNo().equals(enprNo)){
+                            errstr.append("序号为(" + j + ")这一行的用户所属水司与已导入所属水司不符，请检查excel！");
+                        }
+
+                        if (user.getBlockId() != block.getBlockId()){
+                            errstr.append("序号为(" + j + ")这一行的用户所属楼栋与已导入所属楼栋不符，请检查excel！");
+                        }
+                        Block commnityId = blockDao.getByBlockId(user.getBlockId());
+                        if (commnityId.getCommunityId() != communityId){
+                            errstr.append("序号为(" + j + ")这一行的用户所属小区与已导入所属小区不符，请检查excel！");
+                        }
+                    }
+
                     if ("".equals(cellList.get(3))) {
                         errstr.append("序号为(" + j + ")这一行的用户电话为空，请检查excel！");
                     } else if (cellList.get(3).length() != 11 && cellList.get(3).length() < 4 && cellList.get(3).length() > 8) {
@@ -380,6 +410,7 @@ public class ImportExcelController {
                     if ("".equals(cellList.get(9))) {
                         errstr.append("序号为(" + j + ")这一行的用户住址为空，请检查excel！");
                     }
+
                     if ("".equals(cellList.get(10))) {
                         errstr.append("序号为(" + j + ")这一行的IMEI为空，请检查excel！");
                     }else if (!userImei.add(cellList.get(10))){

@@ -166,17 +166,17 @@ public class MonthScheduleJob implements Job {
                 monthcost.setDate(timestamp);
                 monthcost.setMonthAmount(userAmount);
                 int userType = user.getUserType();
-                if(userType == 0){//居民用水
-                    ChargeLevel chargelevel = chargeLevelDao.findChargeLevelByEnprNoAndType(enprNo, 0);
-                    monthcost = calculatePrice(userAmount,chargelevel,monthcost);
-                }else if(userType == 1){//商业用水
+                if(userType == 1){//居民用水
                     ChargeLevel chargelevel = chargeLevelDao.findChargeLevelByEnprNoAndType(enprNo, 1);
                     monthcost = calculatePrice(userAmount,chargelevel,monthcost);
-                }else if(userType == 2){//工业用水
+                }else if(userType == 2){//商业用水
+                    ChargeLevel chargelevel = chargeLevelDao.findChargeLevelByEnprNoAndType(enprNo, 4);
+                    monthcost = calculatePrice(userAmount,chargelevel,monthcost);
+                }else if(userType == 3){//工业用水
                     ChargeLevel chargelevel = chargeLevelDao.findChargeLevelByEnprNoAndType(enprNo, 2);
                     monthcost = calculatePrice(userAmount,chargelevel,monthcost);
                 }else{//特种行业用水
-                    ChargeLevel chargelevel = chargeLevelDao.findChargeLevelByEnprNoAndType(enprNo, 3);
+                    ChargeLevel chargelevel = chargeLevelDao.findChargeLevelByEnprNoAndType(enprNo, 5);
                     monthcost = calculatePrice(userAmount,chargelevel,monthcost);
                 }
                 monthcost.setAccountBalance(user.getAccountBalance().add(monthcost.getMoneyChange()));

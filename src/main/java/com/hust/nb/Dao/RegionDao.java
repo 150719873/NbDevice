@@ -14,5 +14,7 @@ import java.util.List;
 @Repository
 public interface RegionDao extends JpaRepository<Region,Region>,JpaSpecificationExecutor<Region> {
     List<Region> getAllByEnprNo(String enprNo);
+
+    Region findByRegionId(int regionId);
 }
 

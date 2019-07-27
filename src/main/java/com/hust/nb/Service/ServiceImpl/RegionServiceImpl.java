@@ -27,5 +27,10 @@ public class RegionServiceImpl implements RegionService {
     public void saveRegion(Region region){
         regionDao.save(region);
     }
+
+    @Override
+    public Region findByRegionId(int regionId){
+        return regionDao.findByRegionId(regionId);
+    }
 }
 

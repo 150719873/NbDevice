@@ -12,4 +12,6 @@ public interface CommunityService {
     List<Community> getByRegionId(int regionId);
 
     void saveCommunity(Community community);
+
+    Community getByCommunityNameAndEnprNo(String communityName, String enprNo);
 }

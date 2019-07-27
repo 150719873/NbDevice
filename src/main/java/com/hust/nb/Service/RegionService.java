@@ -13,4 +13,6 @@ public interface RegionService {
 
     void saveRegion(Region region);
 
+    Region findByRegionId(int regionId);
+
 }

@@ -28,4 +28,9 @@ public class CommunityServiceImpl implements CommunityService {
         communityDao.save(community);
     }
 
+    @Override
+    public Community getByCommunityNameAndEnprNo(String communityName, String enprNo){
+        return communityDao.getByCommunityNameAndEnprNo(communityName, enprNo);
+    }
+
 }

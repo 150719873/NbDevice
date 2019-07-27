@@ -3,6 +3,7 @@ package com.hust.nb.Service.ServiceImpl;
 import com.hust.nb.Dao.DeviceDao;
 import com.hust.nb.Entity.Device;
 import com.hust.nb.Service.DeviceService;
+import com.hust.nb.vo.DeviceOutputVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -44,6 +45,16 @@ public class DeviceServiceImpl implements DeviceService {
     }
 
     @Override
+    public List<Integer> findStateByUserId(int userId){
+        return deviceDao.findStateByUserId(userId);
+    }
+
+    @Override
+    public Page<DeviceOutputVO> getFailDeviceByCommunityId(int communityId, Pageable pageable){
+        return deviceDao.getFailDeviceByCommunityId(communityId, pageable);
+    }
+
+    @Override
     public void addDevice(Device device) {
         deviceDao.save(device);
     }
@@ -72,6 +83,16 @@ public class DeviceServiceImpl implements DeviceService {
     @Override
     public Device findByDeviceNoAndImei(String deviceNo, String imei){
         return deviceDao.findByDeviceNoAndImei(deviceNo, imei);
+    }
+
+    @Override
+    public Integer getCountByCommunityId(int communityId, String enprNo){
+        return deviceDao.getCountByCommunityId(communityId, enprNo);
+    }
+
+    @Override
+    public Integer getSucCountByCommunityId(int communityId, String enprNo){
+        return deviceDao.getSucCountByCommunityId(communityId, enprNo);
     }
 
 }

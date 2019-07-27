@@ -45,8 +45,17 @@ public class Community implements Serializable {
      *所属抄表类型
      */
     @Basic
-    @Column(name = "collectionType")
+    @Column(name = "collection_type")
     private Integer collectionType;
+
+    @Transient
+    private Integer deviceCount;
+
+    @Transient
+    private Integer sucessCount;
+
+    @Transient
+    private String regionName;
 
     public Integer getCommunityId() {
         return communityId;
@@ -86,5 +95,30 @@ public class Community implements Serializable {
 
     public void setCollectionType(Integer collectionType) {
         this.collectionType = collectionType;
+    }
+
+    public Integer getSucessCount() {
+        return sucessCount;
+    }
+
+    public void setSucessCount(Integer sucessCount) {
+        this.sucessCount = sucessCount;
+    }
+
+    public Integer getDeviceCount() {
+        return deviceCount;
+    }
+
+    public void setDeviceCount(Integer deviceCount) {
+        this.deviceCount = deviceCount;
+    }
+
+
+    public String getRegionName() {
+        return regionName;
+    }
+
+    public void setRegionName(String regionName) {
+        this.regionName = regionName;
     }
 }

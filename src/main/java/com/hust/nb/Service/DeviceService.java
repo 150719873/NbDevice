@@ -1,7 +1,9 @@
 package com.hust.nb.Service;
 
 import com.hust.nb.Entity.Device;
+import com.hust.nb.vo.DeviceOutputVO;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -18,6 +20,10 @@ public interface DeviceService {
 
     List<Device> getAllByUserId(int userId);
 
+    List<Integer> findStateByUserId(int userId);
+
+    Page<DeviceOutputVO> getFailDeviceByCommunityId(int communityId, Pageable pageable);
+
     void addDevice(Device device);
 
     void delDeviceByDeviceNoAndEnprNo(String deviceNo, String enprNo);
@@ -29,4 +35,8 @@ public interface DeviceService {
     List<String> findImei();
 
     Device findByDeviceNoAndImei(String deviceNo, String imei);
+
+    Integer getCountByCommunityId(int communityId, String enprNo);
+
+    Integer getSucCountByCommunityId(int communityId, String enprNo);
 }

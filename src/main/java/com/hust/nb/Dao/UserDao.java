@@ -41,4 +41,10 @@ public interface UserDao extends JpaRepository<User,User>,JpaSpecificationExecut
     List<User> findUserTelAndName();
 
     User findByUserNameAndUserAddrAndUserTel(String userName, String userAddr, String userTel);
+
+    @Query(nativeQuery = true, value = "select user_id from mixAll.dbo.nt_user where block_id = ?1")
+    List<Integer> getUserIdsByBlockId(int blockId);
+
+    @Query(nativeQuery = true, value = "select * FROM mixAll.dbo.nt_user WHERE block_id in (SELECT block_id FROM mixAll.dbo.nt_block WHERE community_id = ?1)")
+    Page<User> findAllByCommunityId(int communityId, Pageable pageable);
 }
