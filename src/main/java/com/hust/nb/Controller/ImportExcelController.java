@@ -17,6 +17,9 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -221,6 +224,7 @@ public class ImportExcelController {
                             userEntity.setBlockId(block.getBlockId());
                             userEntity.setUserNo(cellList.get(16));
                             userEntity.setEnprNo(enprNo);
+                            userEntity.setMonthExpense(new BigDecimal("0"));
 
                             userEntity.setAccountBalance(new BigDecimal("0"));
                             userNoList.add(cellList.get(16));
@@ -255,10 +259,24 @@ public class ImportExcelController {
                             valve = (int) Math.ceil(f5);
                             deviceEntity.setValve(valve);
                             deviceEntity.setState(2);
-                            deviceEntity.setReadValue(new BigDecimal(0));
+                            //todo 看下这个设置日水量，月水量，读数，读书日期，安装日期测试一下对不对
                             deviceEntity.setEnprNo(enprNo);
+                            deviceEntity.setDayAmount(new BigDecimal("0"));
+                            deviceEntity.setMonthAmount(new BigDecimal("0"));
                             deviceEntity.setDeviceVender(cellList.get(15));
                             deviceEntity.setDeviceType(Constants.DX_NB);
+                            deviceEntity.setReadValue(new BigDecimal(cellList.get(17)));
+                            SimpleDateFormat date = new SimpleDateFormat("yyyy-MM-dd");
+                            java.util.Date d = null;
+                            try {
+                                d = date.parse(cellList.get(14));
+                                java.sql.Date date1 = new java.sql.Date(d.getTime());
+                                deviceEntity.setInstallDate(date1);
+                                deviceEntity.setReadTime(Timestamp.valueOf(cellList.get(14)));
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+
                             try {
                                 importExcelService.saveImportedExcelDevice(deviceEntity);
                             } catch (Exception e) {
