@@ -22,6 +22,7 @@ public class QBTDeviceTmpGetter {
     public List getLatestRecord(String addr, String enprNo, String tableName) {
         String sql = "select top 1 * from " + tableName + " where addr = '" +addr + "'"
                 +" and enprNo = '" + enprNo + "'" + " order by readDate desc";
+        System.out.println(sql);
         Query query = entityManager.createNativeQuery(sql);
         query.unwrap(SQLQuery.class).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
         List res = query.getResultList();

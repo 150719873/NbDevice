@@ -1,6 +1,7 @@
 package com.hust.nb.Dao;
 
 import com.hust.nb.Entity.Historydata;
+import com.mysql.cj.xdevapi.TableImpl;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -8,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -34,6 +36,9 @@ public interface HistoryDao extends JpaRepository<Historydata,Historydata>,JpaSp
     @Query(nativeQuery = true,
             value = "SELECT * FROM mixAll.dbo.nt_historydata where DATEDIFF(month,read_time,GETDATE())=1 and imei = ?1")
     List<Historydata> getPreMonthData(String imei);
+
+    @Query(nativeQuery = true, value = "SELECT * FROM mixAll.dbo.nt_historydata WHERE imei  = ?1 and read_time BETWEEN ?2 AND ?3")
+    List<Historydata> getDataBetweenTime(String imei, Timestamp start, Timestamp end);
 
     @Query(nativeQuery = true, value = "SELECT top 1 * FROM mixAll.dbo.nt_historydata where imei = " +
             "(select imei from mixAll.dbo.nb_device where device_no = ?1 and enprNo = ?2) order by id desc")

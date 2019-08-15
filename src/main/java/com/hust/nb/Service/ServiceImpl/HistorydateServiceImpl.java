@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -42,6 +43,11 @@ public class HistorydateServiceImpl implements HistorydataService {
     @Override
     public List<Historydata> getPreMonthData(String imei) {
         return historyDao.getPreMonthData(imei);
+    }
+
+    @Override
+    public List<Historydata> getDataBetweenTime(String imei, Timestamp start, Timestamp end){
+        return historyDao.getDataBetweenTime(imei,start,end);
     }
 
     @Override

@@ -120,6 +120,16 @@
             <optional>true</optional>
         </dependency>
         <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>4.1.19</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.7</version>
@@ -163,6 +173,22 @@
             <artifactId>hutool-all</artifactId>
             <version>4.1.19</version>
         </dependency>
+
+        <!--&lt;!&ndash; https://mvnrepository.com/artifact/com.alipay.sdk/alipay-sdk-java &ndash;&gt;-->
+        <!--<dependency>-->
+            <!--<groupId>com.alipay.sdk</groupId>-->
+            <!--<artifactId>alipay-sdk-java</artifactId>-->
+            <!--<scope>system</scope>-->
+            <!--<systemPath>${basedir}/lib/alipay-sdk-java-3.3.4.ALL.jar</systemPath>-->
+            <!--<version>3.3.4.ALL</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>com.alipay</groupId>-->
+            <!--<artifactId>alipay-trade-sdk</artifactId>-->
+            <!--<scope>system</scope>-->
+            <!--<systemPath>${basedir}/lib/alipay-trade-sdk-1.0.0.jar</systemPath>-->
+            <!--<version>20161215</version>-->
+        <!--</dependency>-->
 
 
         <dependency>

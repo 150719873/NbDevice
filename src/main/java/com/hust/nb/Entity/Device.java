@@ -132,12 +132,86 @@ public class Device implements Serializable,Cloneable {
 
     /**
      * 用水类型
-     * 	1 居民生活用水 2 工业用水 3 行政事业单位用水 4 经营用水 5 特种行业用水
+     * 	1 居民生活用水 2 工业用水 3 行政事业单位用水 4 经营用水 5 特种行业用水 6 其他用水
      */
     @Basic
     @Column(name = "water_type")
     private Integer waterType;
 
+    /**
+     * 电池电量
+     */
+    @Basic
+    @Column(name = "battery_voltage")
+    private BigDecimal batteryVoltage;
+
+    /**
+     * CIMI
+     */
+    @Basic
+    @Column(name = "CIMI")
+    private String CIMI;
+
+    /**
+     * 模块电压
+     */
+    @Basic
+    @Column(name = "model_voltage")
+    private BigDecimal modelVoltage;
+
+    /**
+     * 信号强度
+     */
+    @Basic
+    @Column(name = "signal_strength")
+    private Integer signalStrength;
+
+    /**
+     * 电力状态
+     */
+    @Basic
+    @Column(name = "power_state")
+    private BigDecimal powerState;
+
+    public BigDecimal getBatteryVoltage() {
+        return batteryVoltage;
+    }
+
+    public void setBatteryVoltage(BigDecimal batteryVoltage) {
+        this.batteryVoltage = batteryVoltage;
+    }
+
+    public String getCIMI() {
+        return CIMI;
+    }
+
+    public void setCIMI(String CIMI) {
+        this.CIMI = CIMI;
+    }
+
+    public BigDecimal getModelVoltage() {
+        return modelVoltage;
+    }
+
+    public void setModelVoltage(BigDecimal modelVoltage) {
+        this.modelVoltage = modelVoltage;
+    }
+
+    public Integer getSignalStrength() {
+        return signalStrength;
+    }
+
+    public void setSignalStrength(Integer signalStrength) {
+        this.signalStrength = signalStrength;
+    }
+
+    public BigDecimal getPowerState() {
+        return powerState;
+    }
+
+    public void setPowerState(BigDecimal powerState) {
+        this.powerState = powerState;
+    }
 
     public Integer getId() {
         return id;

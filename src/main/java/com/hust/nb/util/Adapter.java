@@ -1,8 +1,11 @@
 package com.hust.nb.util;
 
+import com.hust.nb.Entity.BigDevice;
 import com.hust.nb.Entity.Historydata;
 import com.hust.nb.Entity.NBHistoryData;
 
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,4 +22,5 @@ public class Adapter {
         nbHistoryData.setReadTime(historydata.getReadTime());
         return nbHistoryData;
     }
+
 }

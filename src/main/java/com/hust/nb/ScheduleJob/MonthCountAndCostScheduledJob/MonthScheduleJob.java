@@ -175,8 +175,12 @@ public class MonthScheduleJob implements Job {
                 }else if(userType == 3){//工业用水
                     ChargeLevel chargelevel = chargeLevelDao.findChargeLevelByEnprNoAndType(enprNo, 2);
                     monthcost = calculatePrice(userAmount,chargelevel,monthcost);
-                }else{//特种行业用水
+                }else if (userType == 5){//特种行业用水
                     ChargeLevel chargelevel = chargeLevelDao.findChargeLevelByEnprNoAndType(enprNo, 5);
+                    monthcost = calculatePrice(userAmount,chargelevel,monthcost);
+                    //todo 新增其他用水
+                }else {//其他用水
+                    ChargeLevel chargelevel = chargeLevelDao.findChargeLevelByEnprNoAndType(enprNo, 6);
                     monthcost = calculatePrice(userAmount,chargelevel,monthcost);
                 }
                 monthcost.setAccountBalance(user.getAccountBalance().add(monthcost.getMoneyChange()));

@@ -165,6 +165,50 @@ public class DeviceController {
     }
 
     /**
+     * 查询表某一时间段得数据
+     */
+    @ResponseBody
+    @PostMapping("/GetDeviceInData")
+    public Object GetDeviceInData(@RequestBody String msg){
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        String deviceNo = jsonObject.getString("deviceNo");
+        String enprNo = jsonObject.getString("enprNo");
+        String startTime = jsonObject.getString("startTime");
+        String endTime = jsonObject.getString("endTime");
+        String start = startTime + " 00:00:00";
+        String end = startTime + " 23:59:59";
+        int rows = jsonObject.getInteger("rows");
+        int page = jsonObject.getInteger("page");
+        Object object = null;
+        Device device = deviceService.getByDeviceNoAndEnprNo(deviceNo, enprNo);
+        if (device != null && device.getImei() != null){
+            //NB水表
+            try {
+                Timestamp start1 = Timestamp.valueOf(start);
+                Timestamp end1 = Timestamp.valueOf(end);
+                Page<Daycount> res = daycountService.findPartDaycountPage(deviceNo,enprNo,start1,end1,rows,page);
+//                List<Historydata> res = historydataService.getDataBetweenTime(device.getImei(),start,end);
+//                List<NBHistoryData> ret = new ArrayList<>();
+//                for(Historydata historydata : res){
+//                    ret.add(Adapter.rawHisToNBHis(historydata));
+//                }
+                jsonMap.put("code", "200");
+                jsonMap.put("info", "查询成功");
+                jsonMap.put("data", res);
+            }catch (Exception e) {
+                e.printStackTrace();
+                jsonMap.put("code", "-1");
+                jsonMap.put("info", "查询失败");
+            }
+
+        }
+        object = JSONObject.toJSON(jsonMap);
+        return object;
+
+    }
+
+    /**
      * 方法功能描述:查询任一水表的当月或者上月历史纪录。
      */
     @ResponseBody
@@ -201,7 +245,7 @@ public class DeviceController {
             object = JSONObject.toJSON(jsonMap);
         } else {
             //该表为集中器水表
-            String qbttResult = HttpRequest.post("http://localhost:8080/QBTT/Device/QueryHistoryData")
+            String qbttResult = HttpRequest.post("http://localhost:8089/QBTT/Device/QueryHistoryData")
                     .body(jsonObject.toString())
                     .execute()
                     .body();

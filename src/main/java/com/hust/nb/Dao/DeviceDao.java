@@ -58,5 +58,8 @@ public interface DeviceDao extends JpaRepository<Device,Device>,JpaSpecification
 
     @Query(nativeQuery = true, value = "select count(id) from mixAll.dbo.nb_device where id in (select device_id from mixAll.dbo.nt_deviceRelation where community_id = ?1 and enprNo = ?2) and state = 0")
     Integer getSucCountByCommunityId(int communityId, String enprNo);
+
+    @Query(nativeQuery = true, value = "select * from mixAll.dbo.nb_device  where state != 0 and imei != ''")
+    List<Device> getFailDevice();
 }
 

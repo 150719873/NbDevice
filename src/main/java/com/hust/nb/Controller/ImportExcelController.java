@@ -259,7 +259,6 @@ public class ImportExcelController {
                             valve = (int) Math.ceil(f5);
                             deviceEntity.setValve(valve);
                             deviceEntity.setState(2);
-                            //todo 看下这个设置日水量，月水量，读数，读书日期，安装日期测试一下对不对
                             deviceEntity.setEnprNo(enprNo);
                             deviceEntity.setDayAmount(new BigDecimal("0"));
                             deviceEntity.setMonthAmount(new BigDecimal("0"));
@@ -280,6 +279,7 @@ public class ImportExcelController {
                             try {
                                 importExcelService.saveImportedExcelDevice(deviceEntity);
                             } catch (Exception e) {
+                                e.printStackTrace();
                                 jsonMap.put("code", "-1");
                                 jsonMap.put("info", "导入device表失败");
                             }
@@ -288,6 +288,7 @@ public class ImportExcelController {
                     jsonMap.put("code", "200");
                     jsonMap.put("info", "添加成功");
                 } catch (Exception e) {
+                    e.printStackTrace();
                     jsonMap.put("code", "-1");
                     jsonMap.put("info", "添加失败");
                 }
@@ -368,13 +369,19 @@ public class ImportExcelController {
 
                     User user = userService.findByUserNameAndUserAddrAAndUserTel(cellList.get(1), cellList.get(9), cellList.get(3));
                     Device device = deviceService.findByDeviceNoAndImei(cellList.get(8), cellList.get(10));
-                    if (user != null && device != null&& user.getBlockId() == block.getBlockId()&& device.getUserId() == user.getUserId()){
+                    if (user != null && user.getBlockId() == block.getBlockId()|| device != null && device.getUserId() == user.getUserId()){
                         if (cellList.get(3).equals(user.getUserTel())
-                                && cellList.get(5).equals(user.getBankAccount())
-                                && cellList.get(6).equals(user.getBankOwner())
-                                && cellList.get(7).equals(user.getBankAddr())
+                                && cellList.get(16).equals(user.getUserNo())
 //                                && cellList.get(13).equals(String.valueOf(device.getDeviceType()))
                                 ){
+                            if (cellList.get(5) != null && cellList.get(6) != null && cellList.get(7) != null){
+                                if (cellList.get(5).equals(user.getBankAccount())
+                                        && cellList.get(6).equals(user.getBankOwner())
+                                        && cellList.get(7).equals(user.getBankAddr())){
+                                    continue;
+                                }
+                            }
+
                             continue;
                         }
                     }

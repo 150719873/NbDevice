@@ -26,3 +26,7 @@ spring:
     database-platform: org.hibernate.dialect.SQLServer2008Dialect
 server:
   port: 8089
+
+system:
+  #第三方接口
+  bigDeviceUrl: http://www.siliancloud.com:8889/

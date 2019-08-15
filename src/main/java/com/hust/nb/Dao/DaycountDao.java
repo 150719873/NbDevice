@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
+
 /**
  * Description:nb
  * Created by Administrator on 2019/5/20
@@ -23,5 +25,8 @@ public interface DaycountDao extends JpaRepository<Daycount,Daycount>,JpaSpecifi
     Daycount findOldestDaycountRecord(String deviceNo, String enprNo);
 
     Page<Daycount> findByDeviceNoAndEnprNo(String deviceNo, String enprNo, Pageable pageable);
+
+    @Query(nativeQuery = true,value = "select * from mixAll.dbo.nt_daycount where device_no = ?1 and enprNo = ?2 and start_time > ?3 AND end_time < ?4")
+    Page<Daycount> findPartDaycountPage(String deviceNo, String enprNo, Timestamp start, Timestamp end, Pageable pageable);
 
 }

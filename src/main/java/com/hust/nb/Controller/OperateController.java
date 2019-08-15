@@ -416,6 +416,8 @@ public class OperateController {
         detailMap.put("userName", userName);
         detailMap.put("monthExpense", user.getMonthExpense());
         detailMap.put("accountBalance", user.getAccountBalance());
+        detailMap.put("accountBalance", user.getAccountBalance());
+        detailMap.put("userType", user.getUserType());
 
         List<Device> deviceList = deviceService.getAllByUserId(userId);
         List<Object> deviceDetailList = new ArrayList<>();

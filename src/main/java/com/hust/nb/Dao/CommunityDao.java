@@ -19,4 +19,6 @@ public interface CommunityDao extends JpaRepository<Community,Community>,JpaSpec
     List<Community> getAllByRegionId(int regionId);
 
     Community getByCommunityNameAndEnprNo(String communityName, String enprNo);
+
+    Community getByCommunityId(int communityId);
 }

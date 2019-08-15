@@ -2,13 +2,11 @@ package com.hust.nb.Controller;
 
 import ch.qos.logback.core.pattern.color.BlackCompositeConverter;
 import com.alibaba.fastjson.JSONObject;
-import com.hust.nb.Dao.BlockDao;
-import com.hust.nb.Dao.DeviceDao;
-import com.hust.nb.Dao.DeviceRelationDao;
-import com.hust.nb.Dao.OperatorDao;
+import com.hust.nb.Dao.*;
 import com.hust.nb.Entity.*;
 import com.hust.nb.Service.*;
 import com.hust.nb.util.Adapter;
+import com.hust.nb.util.GetDate;
 import com.hust.nb.vo.DeviceOutputVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -20,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,6 +52,9 @@ public class CenterController {
 
     @Autowired
     DeviceDao deviceDao;
+
+    @Autowired
+    WarningDao warningDao;
 
     /**
      *
@@ -311,6 +313,37 @@ public class CenterController {
             jsonMap.put("info", "查询失败");
         }
         Object o = JSONObject.toJSON(jsonMap);
+        return o;
+    }
+    /**
+     * 显示小区故障表
+     */
+    @CrossOrigin
+    @ResponseBody
+    @PostMapping("/getWarningDevice")
+    public Object getWarningDevice(@RequestBody String msg){
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        String enprNo = jsonObject.getString("enprNo");
+        int flag = jsonObject.getInteger("flag");//标识字段，0则代表查询小区故障表，1则代表水司故障表
+        List<Warning> warnings = new ArrayList<>();
+        Timestamp cur = GetDate.getCurrentDay();
+        if (flag == 1){
+            String communityName = jsonObject.getString("communityName");
+            warnings = warningDao.findByEnprNoAndCommunityNameAndWarningDate(enprNo, communityName, cur);
+        }else {
+            warnings = warningDao.findByEnprNoAndWarningDate(enprNo,cur);
+        }
+        try {
+            jsonMap.put("code","200");
+            jsonMap.put("info","成功");
+            jsonMap.put("data", warnings);
+        }catch (Exception e){
+            e.printStackTrace();
+            jsonMap.put("code","-1");
+            jsonMap.put("info", "失败");
+        }
+        Object o= JSONObject.toJSON(jsonMap);
         return o;
     }
 
