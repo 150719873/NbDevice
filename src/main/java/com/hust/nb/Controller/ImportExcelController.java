@@ -195,9 +195,10 @@ public class ImportExcelController {
                     for (int i = 2; i < dataList.size(); i++) {//循环每一行，即对应单个用户，sheet表的第一行是填写注释，所以从1开始
                         //插入User表
                         List<String> cellList = dataList.get(i);
+
+
                         if (!userNoList.contains(cellList.get(16))) {
                             User userEntity = new User();
-                            Device deviceEntity = new Device();
 
                             userName = cellList.get(1);
                             userTel = cellList.get(3);
@@ -236,54 +237,61 @@ public class ImportExcelController {
                                 jsonMap.put("code", "-1");
                                 jsonMap.put("info", "导入user表失败");
                             }
-
-                            //插入device表
-                            try {
-                                userNo = importExcelService.findUserByUserNameAndUserTelAndAddr(userName, userTel,userEntity.getUserAddr());
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                                System.out.println("根据姓名和电话查找User失败");
-                            }
-
-                            deviceEntity.setUserId(userNo);
-                            deviceEntity.setDeviceNo(cellList.get(8));
-                            deviceEntity.setImei(cellList.get(10));
-                            Double f2 = Double.valueOf(cellList.get(13));
-                            deviceType = (int) Math.ceil(f2);
-                            deviceEntity.setWaterType(deviceType);
-                            Double f4 = Double.valueOf(cellList.get(11));
-                            size = (int) Math.ceil(f4);
-                            deviceEntity.setCaliber(size);
-
-                            Double f5 = Double.valueOf(cellList.get(12));
-                            valve = (int) Math.ceil(f5);
-                            deviceEntity.setValve(valve);
-                            deviceEntity.setState(2);
-                            deviceEntity.setEnprNo(enprNo);
-                            deviceEntity.setDayAmount(new BigDecimal("0"));
-                            deviceEntity.setMonthAmount(new BigDecimal("0"));
-                            deviceEntity.setDeviceVender(cellList.get(15));
-                            deviceEntity.setDeviceType(Constants.DX_NB);
-                            deviceEntity.setReadValue(new BigDecimal(cellList.get(17)));
-                            SimpleDateFormat date = new SimpleDateFormat("yyyy-MM-dd");
-                            java.util.Date d = null;
-                            try {
-                                d = date.parse(cellList.get(14));
-                                java.sql.Date date1 = new java.sql.Date(d.getTime());
-                                deviceEntity.setInstallDate(date1);
-                                deviceEntity.setReadTime(Timestamp.valueOf(cellList.get(14)));
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-
-                            try {
-                                importExcelService.saveImportedExcelDevice(deviceEntity);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                                jsonMap.put("code", "-1");
-                                jsonMap.put("info", "导入device表失败");
-                            }
                         }
+                            //插入device表
+                            Device device = deviceService.getByDeviceNoAndEnprNo(cellList.get(8),enprNo);
+                            if(device == null){
+                                Device deviceEntity = new Device();
+                                try {
+                                    String addr = cellList.get(9);
+                                    System.out.println(addr);
+                                    userNo = importExcelService.findUserByUserNameAndUserTelAndAddr(cellList.get(1), cellList.get(3),addr);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    System.out.println("根据姓名和电话查找User失败");
+                                }
+
+                                deviceEntity.setUserId(userNo);
+                                deviceEntity.setDeviceNo(cellList.get(8));
+                                deviceEntity.setImei(cellList.get(10));
+                                Double f2 = Double.valueOf(cellList.get(13));
+                                deviceType = (int) Math.ceil(f2);
+                                deviceEntity.setWaterType(deviceType);
+                                Double f4 = Double.valueOf(cellList.get(11));
+                                size = (int) Math.ceil(f4);
+                                deviceEntity.setCaliber(size);
+
+                                Double f5 = Double.valueOf(cellList.get(12));
+                                valve = (int) Math.ceil(f5);
+                                deviceEntity.setValve(valve);
+                                deviceEntity.setState(2);
+                                deviceEntity.setEnprNo(enprNo);
+                                deviceEntity.setDayAmount(new BigDecimal("0"));
+                                deviceEntity.setMonthAmount(new BigDecimal("0"));
+                                deviceEntity.setDeviceVender(cellList.get(15));
+                                deviceEntity.setDeviceType(Constants.DX_NB);
+                                deviceEntity.setReadValue(new BigDecimal(cellList.get(17)));
+                                SimpleDateFormat date = new SimpleDateFormat("yyyy-MM-dd");
+                                java.util.Date d = null;
+                                try {
+                                    d = date.parse(cellList.get(14));
+                                    java.sql.Date date1 = new java.sql.Date(d.getTime());
+                                    deviceEntity.setInstallDate(date1);
+                                    deviceEntity.setReadTime(Timestamp.valueOf(cellList.get(14)));
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+
+                                try {
+                                    importExcelService.saveImportedExcelDevice(deviceEntity);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    jsonMap.put("code", "-1");
+                                    jsonMap.put("info", "导入device表失败");
+                                }
+                            }
+
+
                     }
                     jsonMap.put("code", "200");
                     jsonMap.put("info", "添加成功");
@@ -369,23 +377,35 @@ public class ImportExcelController {
 
                     User user = userService.findByUserNameAndUserAddrAAndUserTel(cellList.get(1), cellList.get(9), cellList.get(3));
                     Device device = deviceService.findByDeviceNoAndImei(cellList.get(8), cellList.get(10));
-                    if (user != null && user.getBlockId() == block.getBlockId()|| device != null && device.getUserId() == user.getUserId()){
-                        if (cellList.get(3).equals(user.getUserTel())
-                                && cellList.get(16).equals(user.getUserNo())
+                    if (user != null && device != null){
+                        boolean isBlockId = user.getBlockId()==block.getBlockId();
+                        System.out.println(isBlockId);
+                        boolean isUserId = device.getUserId().equals(user.getUserId());
+                        System.out.println(isUserId);
+                        if (isBlockId && isUserId){
+                            if (cellList.get(3).equals(user.getUserTel())
+                                    && cellList.get(16).equals(user.getUserNo())
 //                                && cellList.get(13).equals(String.valueOf(device.getDeviceType()))
-                                ){
-                            if (cellList.get(5) != null && cellList.get(6) != null && cellList.get(7) != null){
-                                if (cellList.get(5).equals(user.getBankAccount())
-                                        && cellList.get(6).equals(user.getBankOwner())
-                                        && cellList.get(7).equals(user.getBankAddr())){
-                                    continue;
+                            ){
+                                if (cellList.get(5) != null && cellList.get(6) != null && cellList.get(7) != null){
+                                    if (cellList.get(5).equals(user.getBankAccount())
+                                            && cellList.get(6).equals(user.getBankOwner())
+                                            && cellList.get(7).equals(user.getBankAddr())){
+                                        continue;
+                                    }
                                 }
-                            }
 
-                            continue;
+                                continue;
+                            }
                         }
                     }
-                    if (user != null){
+
+
+
+                    if(block == null){
+                        errstr.append("序号为(" + j + ")这一行的用户所属小区与已导入所属小区不符，请检查excel！");
+                    }
+                    if (user != null && block != null){
                         if (!user.getEnprNo().equals(enprNo)){
                             errstr.append("序号为(" + j + ")这一行的用户所属水司与已导入所属水司不符，请检查excel！");
                         }
@@ -457,11 +477,18 @@ public class ImportExcelController {
                     }
                     if ("".equals(cellList.get(16))) {
                         errstr.append("序号为(" + j + ")这一行的用户编号为空，请检查excel！");
-                    }else if (!userNo.add(cellList.get(16))){
-                        errstr.append("序号为(" + j + ")这一行的用户编号已存在，请检查excel！");
-                    }else {
-                        userNo.add(cellList.get(16));
                     }
+                    if (user != null && !user.getUserNo().equals(cellList.get(16))){
+                        errstr.append("序号为(" + j + ")这一行的用户已存在但用户编号与已存在用户编号不同，请检查excel！");
+                    }
+                    if (user == null){
+                       if (!userNo.add(cellList.get(16))){
+                            errstr.append("序号为(" + j + ")这一行的用户编号已存在，请检查excel！");
+                        }else {
+                            userNo.add(cellList.get(16));
+                        }
+                    }
+
                 }
             }
 
@@ -474,6 +501,7 @@ public class ImportExcelController {
                 jsonMap.put("info", errstr);
             }
         }catch (Exception e){
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "检测失败");
         }

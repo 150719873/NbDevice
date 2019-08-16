@@ -117,7 +117,7 @@ public class ImportExcel {
         this.totalRows = sheet.getPhysicalNumberOfRows();
         //得到当前表的列数
         if(totalRows>0 && sheet.getRow(0)!=null){
-            this.totalCells = sheet.getRow(0).getPhysicalNumberOfCells();
+            this.totalCells = sheet.getRow(1).getPhysicalNumberOfCells();
         }
         //两个for循环遍历每一行的每一个Cell
         for(int r = 0;r < sheet.getPhysicalNumberOfRows();r++){
