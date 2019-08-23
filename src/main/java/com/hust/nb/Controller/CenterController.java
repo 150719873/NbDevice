@@ -189,12 +189,6 @@ public class CenterController {
         try {
             if (communityId != 0 && blockName == null){
                 //更新device表读数
-                try {
-                    deviceController.getSZNBdevice(map);
-                    jsonMap.put("info", "数据更新成功");
-                }catch (Exception e){
-                    jsonMap.put("info2", "数据更新失败");
-                }
 
                 //根据小区ID查询表
                 Pageable pageable = PageRequest.of(page - 1, rows);
