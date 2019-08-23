@@ -1,9 +1,11 @@
 package com.hust.nb.Controller;
 
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.hust.nb.Config.Constants;
 import com.hust.nb.Dao.BlockDao;
+import com.hust.nb.Dao.DeviceCheckDao;
 import com.hust.nb.Entity.*;
 import com.hust.nb.Service.*;
 import com.hust.nb.util.ImportExcel;
@@ -54,6 +56,8 @@ public class ImportExcelController {
     @Autowired
     BlockDao blockDao;
 
+    @Autowired
+    DeviceCheckDao deviceCheckDao;
 
     /**
      * @param msg 创建区域
@@ -240,7 +244,7 @@ public class ImportExcelController {
                         }
                             //插入device表
                             Device device = deviceService.getByDeviceNoAndEnprNo(cellList.get(8),enprNo);
-                            if(device == null){
+                            if(device == null ){
                                 Device deviceEntity = new Device();
                                 try {
                                     String addr = cellList.get(9);
@@ -310,6 +314,138 @@ public class ImportExcelController {
     }
 
     /**
+     * NB导入出厂表
+     */
+    @ResponseBody
+    @PostMapping("/importNewDevice")
+    public Object importNewDevice(HttpServletRequest request){
+        Map<String, Object> jsonMap = new HashMap<>();
+        MultipartHttpServletRequest params = ((MultipartHttpServletRequest) request);
+        MultipartFile file = ((MultipartHttpServletRequest) request).getFile("file");
+        String enprNo = params.getParameter("enprNo");
+        boolean isExcel2003 = true;
+        String fileName = file.getOriginalFilename();
+
+        if (WDWUtil.isExcel2007(fileName)) {
+            isExcel2003 = false;
+        }
+        InputStream is = null;
+        try {
+            is = file.getInputStream();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        List<List<String>>[] sheets = importExcel.readSheets(is, isExcel2003);//读取整个EXCEL文件
+        try {
+            for (int i =0; i< sheets.length; i++){
+                List<List<String>> lists = sheets[i];
+                for (int j = 2; j <lists.size(); j++){
+                    List<String> cellList = lists.get(j);
+                    DeviceCheck device = deviceCheckDao.findByImeiAndDeviceNo(cellList.get(10),cellList.get(8));
+                    if (device == null){
+                        DeviceCheck d = new DeviceCheck();
+                        d.setImei(cellList.get(10));
+                        d.setDeviceNo(cellList.get(8));
+                        d.setEnprNo(enprNo);
+                        try {
+                            deviceCheckDao.save(d);
+
+                        }catch (Exception e){
+                            e.printStackTrace();
+
+                        }
+                    }
+                }
+            }
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "添加成功");
+        }catch (Exception e){
+            e.printStackTrace();
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "添加失败");
+        }
+        Object o = JSONObject.toJSON(jsonMap);
+        return o;
+    }
+    /**
+     * NB表出厂导入检测
+     */
+    @CrossOrigin
+    @ResponseBody
+    @PostMapping("/checkNBDevice")
+    public Object checkNBDevice(HttpServletRequest request) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        MultipartHttpServletRequest params = ((MultipartHttpServletRequest) request);
+        MultipartFile file = ((MultipartHttpServletRequest) request).getFile("file");
+        String enprNo = params.getParameter("enprNo");
+        boolean isExcel2003 = true;
+        String fileName = file.getOriginalFilename();
+
+        if (WDWUtil.isExcel2007(fileName)) {
+            isExcel2003 = false;
+        }
+        InputStream is = null;
+        try {
+            is = file.getInputStream();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        List<List<String>>[] sheets = importExcel.readSheets(is, isExcel2003);//读取整个EXCEL文件
+        StringBuffer errstr = new StringBuffer();
+        try {
+            Set<String> imeis = new HashSet<>();
+            Set<String> deviceNos = new HashSet<>();
+        List<DeviceCheck> deviceList = deviceCheckDao.findByEnprNo(enprNo);
+        if (!deviceList.isEmpty()){
+            for (DeviceCheck deviceCheck : deviceList){
+                imeis.add(deviceCheck.getImei());
+                imeis.add(deviceCheck.getDeviceNo());
+            }
+        }
+        for (int i = 0; i < sheets.length;i++){
+            List<List<String>> lists = sheets[i];
+            for (int j = 2; j < lists.size(); j++) {
+
+
+                    int k = j+1;
+                    List<String> cellList = lists.get(j);
+                    if (cellList.get(8).equals(deviceCheckDao.findByImeiAndDeviceNo(cellList.get(10),cellList.get(8)).getDeviceNo())){
+                        continue;
+                    }
+                    if ("".equals(cellList.get(10))) {
+                        errstr.append("序号为(" + k + ")这一行的IMEI为空，请检查excel！");
+                    } else if (!imeis.add(cellList.get(10))) {
+                        errstr.append("序号为(" + k + ")这一行的IMEI号已存在，请检查excel！");
+                    } else {
+                        imeis.add(cellList.get(10));
+                    }
+                    if ("".equals(cellList.get(8))) {
+                        errstr.append("序号为(" + k + ")这一行的表地址为空，请检查excel！");
+                    }else if (!deviceNos.add(cellList.get(8))){
+                        errstr.append("序号为(" + k + ")这一行的表地址已存在，请检查excel！");
+                    }else {
+                        deviceNos.add(cellList.get(8));
+                    }
+
+            }
+        }
+            if ("".equals(errstr.toString())){
+                errstr.append( "恭喜，资料符合要求");
+                jsonMap.put("code", "200");
+                jsonMap.put("info", errstr);
+            }else {
+                jsonMap.put("code", "-1");
+                jsonMap.put("info", errstr);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "导入检测失败");
+        }
+        Object o = JSONArray.toJSON(jsonMap);
+        return o;
+    }
+    /**
      * NB导入检测
      */
     @CrossOrigin
@@ -319,7 +455,6 @@ public class ImportExcelController {
         Map<String, Object> jsonMap = new HashMap<>();
         MultipartHttpServletRequest params = ((MultipartHttpServletRequest) request);
         MultipartFile file = ((MultipartHttpServletRequest) request).getFile("file");
-//        Integer type = Integer.parseInt(params.getParameter("type"));
         String enprNo = params.getParameter("enprNo");
         Integer communityId = Integer.parseInt(params.getParameter("communityId"));
         boolean isExcel2003 = true;

@@ -14,19 +14,7 @@ import java.sql.Timestamp;
 @Table(name = "nt_historydata",schema= "dbo",catalog = "mixAll")
 public class Historydata implements Serializable {
 
-    /**
-     * 表状态
-     */
-    @Basic
-    @Column(name = "device_state")
-    private String deviceState;
 
-    /**
-     * 设备平台id
-     */
-    @Basic
-    @Column(name = "device_id")
-    private String deviceId;
 
     /**
      * 抄表时间
@@ -70,22 +58,6 @@ public class Historydata implements Serializable {
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
-    public String getDeviceState() {
-        return deviceState;
-    }
-
-    public void setDeviceState(String deviceState) {
-        this.deviceState = deviceState;
-    }
-
-    public String getDeviceId() {
-        return deviceId;
-    }
-
-    public void setDeviceId(String deviceId) {
-        this.deviceId = deviceId;
-    }
 
     public Timestamp getReadTime() {
         return readTime;

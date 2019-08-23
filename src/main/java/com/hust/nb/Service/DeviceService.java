@@ -14,6 +14,9 @@ import java.util.List;
 public interface DeviceService {
     Device getByDeviceNoAndEnprNo(String deviceNo, String enprNo);
 
+    Device findByImei(String imei);
+
+
     Page<Device> getDevicePageByDeviceNoAndEnprNo(String deviceNo, String enprNo, int page, int rows);
 
     void updateDevice(Device device);

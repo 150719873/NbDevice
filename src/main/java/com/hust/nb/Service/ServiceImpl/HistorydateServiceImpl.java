@@ -54,5 +54,10 @@ public class HistorydateServiceImpl implements HistorydataService {
     public Historydata getLatestRecord(String deviceNo, String enprNo) {
         return historyDao.getLatestRecord(deviceNo, enprNo);
     }
+
+    @Override
+    public void save(Historydata historydata){
+        historyDao.save(historydata);
+    }
 }
 

@@ -103,7 +103,7 @@ public class Device implements Serializable,Cloneable {
     private java.sql.Date installDate;
 
     /**
-     * 阀门
+     * 阀门状态（0：关 1：不定或没阀，2：开
      */
     @Basic
     @Column(name = "valve")
@@ -143,74 +143,78 @@ public class Device implements Serializable,Cloneable {
      */
     @Basic
     @Column(name = "battery_voltage")
-    private BigDecimal batteryVoltage;
+    private String batteryVoltage;
+
 
     /**
-     * CIMI
+     * 信号值
      */
     @Basic
-    @Column(name = "CIMI")
-    private String CIMI;
+    @Column(name = "rssi")
+    private String rssi;
 
     /**
-     * 模块电压
+     * nb设备地址
      */
     @Basic
-    @Column(name = "model_voltage")
-    private BigDecimal modelVoltage;
+    @Column(name = "mac_addr")
+    private String macAddr;
+
 
     /**
-     * 信号强度
+     * nb表类型
      */
     @Basic
-    @Column(name = "signal_strength")
-    private Integer signalStrength;
+    @Column(name = "nb_device_type")
+    private Integer nbDeviceType;
 
     /**
-     * 电力状态
+     * 干簧管状态（0-7
      */
     @Basic
-    @Column(name = "power_state")
-    private BigDecimal powerState;
+    @Column(name = "pin_status")
+    private Integer pinStatus;
 
-    public BigDecimal getBatteryVoltage() {
+    public String getBatteryVoltage() {
         return batteryVoltage;
     }
 
-    public void setBatteryVoltage(BigDecimal batteryVoltage) {
+    public void setBatteryVoltage(String batteryVoltage) {
         this.batteryVoltage = batteryVoltage;
     }
 
-    public String getCIMI() {
-        return CIMI;
+
+    public String getRssi() {
+        return rssi;
     }
 
-    public void setCIMI(String CIMI) {
-        this.CIMI = CIMI;
+    public void setRssi(String rssi) {
+        this.rssi = rssi;
     }
 
-    public BigDecimal getModelVoltage() {
-        return modelVoltage;
+    public String getMacAddr() {
+        return macAddr;
     }
 
-    public void setModelVoltage(BigDecimal modelVoltage) {
-        this.modelVoltage = modelVoltage;
+    public void setMacAddr(String macAddr) {
+        this.macAddr = macAddr;
     }
 
-    public Integer getSignalStrength() {
-        return signalStrength;
+
+    public Integer getNbDeviceType() {
+        return nbDeviceType;
     }
 
-    public void setSignalStrength(Integer signalStrength) {
-        this.signalStrength = signalStrength;
+    public void setNbDeviceType(Integer nbDeviceType) {
+        this.nbDeviceType = nbDeviceType;
     }
 
-    public BigDecimal getPowerState() {
-        return powerState;
+    public Integer getPinStatus() {
+        return pinStatus;
     }
 
-    public void setPowerState(BigDecimal powerState) {
-        this.powerState = powerState;
+    public void setPinStatus(Integer pinStatus) {
+        this.pinStatus = pinStatus;
     }
 
     public Integer getId() {
@@ -340,4 +344,5 @@ public class Device implements Serializable,Cloneable {
     public void setWaterType(Integer waterType) {
         this.waterType = waterType;
     }
+
 }

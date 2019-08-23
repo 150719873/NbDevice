@@ -22,4 +22,6 @@ public interface HistorydataService {
     List<Historydata> getDataBetweenTime(String imei, Timestamp start, Timestamp end);
 
     Historydata getLatestRecord(String deviceNo, String enprNo);
+
+    void save(Historydata historydata);
 }

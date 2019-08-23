@@ -1,10 +1,12 @@
 spring:
   datasource:
-    url: jdbc:sqlserver://47.106.131.190:1433;DatebaseName=mixAll
+    url: jdbc:sqlserver://47.111.144.250:1433;DatebaseName=mixAll
+#    url: jdbc:sqlserver://47.106.131.190:1433;DatebaseName=mixAll
 #    url: jdbc:sqlserver://222.20.80.142:1433;DatebaseName=mixAll
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
     username: sa
-    password: Root123456
+    password: BYzhsw123
+#    password: Root123456
 #    password: 19960731sxy
     initial-size: 1
     min-idle: 1
@@ -30,3 +32,5 @@ server:
 system:
   #第三方接口
   bigDeviceUrl: http://www.siliancloud.com:8889/
+  nbDeviceUrl: http://118.25.217.87/emac_android_connect/
+

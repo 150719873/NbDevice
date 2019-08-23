@@ -21,6 +21,9 @@ public interface DeviceDao extends JpaRepository<Device,Device>,JpaSpecification
 
     Device findByDeviceNoAndEnprNo(String deviceNo, String enprNo);
 
+
+    Device findByImei(String imei);
+
     Page<Device> findAllByDeviceNoAndEnprNo(String deviceNo, String enprNo, Pageable pageable);
 
     @Query(nativeQuery = true, value = "select state from mixAll.dbo.nb_device where user_id = ?1")

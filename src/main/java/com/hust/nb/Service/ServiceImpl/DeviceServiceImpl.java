@@ -28,6 +28,11 @@ public class DeviceServiceImpl implements DeviceService {
     }
 
     @Override
+    public Device findByImei(String imei){
+        return deviceDao.findByImei(imei);
+    }
+
+    @Override
     public Page<Device> getDevicePageByDeviceNoAndEnprNo(String deviceNo, String enprNo, int page, int rows) {
         Pageable pageable = PageRequest.of(page - 1, rows);
         Page<Device> pageList = deviceDao.findAllByDeviceNoAndEnprNo(deviceNo, enprNo, pageable);

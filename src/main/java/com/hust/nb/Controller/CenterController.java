@@ -56,6 +56,13 @@ public class CenterController {
     @Autowired
     WarningDao warningDao;
 
+    @Autowired
+    DeviceCheckDao deviceCheckDao;
+
+    @Autowired
+     DeviceController deviceController;
+
+
     /**
      *
      *  列出小区超表界面
@@ -172,8 +179,23 @@ public class CenterController {
         String enprNo = jsonObject.getString("enprNo");
         int rows = jsonObject.getInteger("rows");
         int page = Integer.parseInt(jsonObject.getString("page"));
+        int flag = 0;
+        String position = "0";
+        Map<String, Object> map = new HashMap<>();
+        map.put("flag",flag);
+        map.put("position",position);
+        map.put("count",500);
+        map.put("check",0);
         try {
             if (communityId != 0 && blockName == null){
+                //更新device表读数
+                try {
+                    deviceController.getSZNBdevice(map);
+                    jsonMap.put("info", "数据更新成功");
+                }catch (Exception e){
+                    jsonMap.put("info2", "数据更新失败");
+                }
+
                 //根据小区ID查询表
                 Pageable pageable = PageRequest.of(page - 1, rows);
                 Page<DeviceOutputVO> userDetailList = deviceDao.getDeviceByCommunityId(communityId, pageable);
@@ -190,6 +212,7 @@ public class CenterController {
                 long total = userDetailList.getTotalElements();
                 jsonMap.put("total", total);
                 jsonMap.put("data", userDetailList);
+
             }
             jsonMap.put("code", "200");
             jsonMap.put("info", "查询成功");
@@ -205,6 +228,53 @@ public class CenterController {
         return object;
     }
 
+    //todo 查看该水司下所有表
+    /**
+     * 查看水司下所有表,水表出厂检测
+     */
+    @ResponseBody
+    @PostMapping("/getAllDevice")
+    public Object getAllDevice(@RequestBody String msg){
+        Map<String ,Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        String enprNo = jsonObject.getString("enprNo");
+        int rows = jsonObject.getInteger("rows");
+        int page = Integer.parseInt(jsonObject.getString("page"));
+        int sort = jsonObject.getInteger("sort");//如果为0，查看全部表，为1 查看成功表，2查看失败表
+        String position = "0";
+        Map<String, Object> map = new HashMap<>();
+        map.put("flag",0);
+        map.put("position",position);
+        map.put("count",500);
+        map.put("check",1);
+        try {
+//            deviceController.getSZNBdevice(map);
+            System.out.println("getAllDevice");
+            Pageable pageable = PageRequest.of(page - 1, rows);
+            if (sort == 0){
+                Page<DeviceCheck> deviceCheckList = deviceCheckDao.findByEnprNo(enprNo,pageable);
+                Integer counts = deviceCheckDao.selectCounts(enprNo);
+                Integer success = deviceCheckDao.selectSuccessCounts(enprNo,GetDate.getCurrentDay(),GetDate.getTomorrowDay());
+                jsonMap.put("data", deviceCheckList);
+                jsonMap.put("counts", counts);
+                jsonMap.put("success", success);
+            }else if (sort == 1){
+                Page<DeviceCheck> deviceCheckList = deviceCheckDao.findSuccessByEnprNo(enprNo,GetDate.getCurrentDay(),GetDate.getTomorrowDay(),pageable);
+                jsonMap.put("data", deviceCheckList);
+            }else if (sort == 2){
+                Page<DeviceCheck> deviceCheckList = deviceCheckDao.findfailedByEnprNo(enprNo,GetDate.getCurrentDay(),pageable);
+                jsonMap.put("data", deviceCheckList);
+            }
+            jsonMap.put("code", "200");
+
+        }catch (Exception e){
+            e.printStackTrace();
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "查找失败");
+        }
+        Object o = JSONObject.toJSON(jsonMap);
+        return o;
+    }
     /**
      * 查看失败表
      */

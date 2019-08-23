@@ -42,6 +42,7 @@ public class BigDeviceController {
     /**
      * 授权  获取第三方token
      */
+    @ResponseBody
     @PostMapping("/bigDevice")
     public Object getBigDeviceToken() {
         //把第三方账号密码封装到map
@@ -80,6 +81,7 @@ public class BigDeviceController {
     /**
      * 获取设备列表
      */
+    @ResponseBody
     @PostMapping("/getBigDevice")
     public Object getBigDevice(@RequestBody String msg){
         Map<String, Object> paramMap = new HashMap<>();
@@ -101,76 +103,79 @@ public class BigDeviceController {
             //得到数据，插入数据库
             ArrayList<BigDevice> list = new ArrayList<>();
             JSONArray data = object.getJSONArray("List");
-            for (int i =0; i < data.size(); i++){
-                BigDevice verify = bigDeviceDao.findByMPipeDn(data.getJSONObject(i).get("M_PipeDn").toString());
-                if (verify == null ){
-                    BigDevice bigDevice = new BigDevice();
-                    bigDevice.setMPipeDn(data.getJSONObject(i).get("M_PipeDn").toString());
-                    if (data.getJSONObject(i).get("M_Tag")!= null){
-                        bigDevice.setMTag(data.getJSONObject(i).get("M_Tag").toString());
-                    }
-                    bigDevice.setParentListId(data.getJSONObject(i).get("ParentListId").toString());
-                    bigDevice.setMUserType(data.getJSONObject(i).get("M_UserType").toString());
-                    if (data.getJSONObject(i).get("M_DoorNo") != null){
-                        bigDevice.setMDoorNo(data.getJSONObject(i).get("M_DoorNo").toString());
-                    }
-                    if (data.getJSONObject(i).get("OrgName")!=null){
-                        bigDevice.setOrgName(data.getJSONObject(i).get("OrgName").toString());
-                    }
+            if (data.size() != 0){
+                for (int i =0; i < data.size(); i++){
+                    BigDevice verify = bigDeviceDao.findByMPipeDn(data.getJSONObject(i).get("M_PipeDn").toString());
+                    if (verify == null ){
+                        BigDevice bigDevice = new BigDevice();
+                        bigDevice.setMPipeDn(data.getJSONObject(i).get("M_PipeDn").toString());
+                        if (data.getJSONObject(i).get("M_Tag")!= null){
+                            bigDevice.setMTag(data.getJSONObject(i).get("M_Tag").toString());
+                        }
+                        bigDevice.setParentListId(data.getJSONObject(i).get("ParentListId").toString());
+                        bigDevice.setMUserType(data.getJSONObject(i).get("M_UserType").toString());
+                        if (data.getJSONObject(i).get("M_DoorNo") != null){
+                            bigDevice.setMDoorNo(data.getJSONObject(i).get("M_DoorNo").toString());
+                        }
+                        if (data.getJSONObject(i).get("OrgName")!=null){
+                            bigDevice.setOrgName(data.getJSONObject(i).get("OrgName").toString());
+                        }
 
-                    bigDevice.setAddressCode(data.getJSONObject(i).get("AddressCode").toString());
-                    if (data.getJSONObject(i).get("M_Type")!=null){
-                        bigDevice.setMType(data.getJSONObject(i).get("M_Type").toString());
+                        bigDevice.setAddressCode(data.getJSONObject(i).get("AddressCode").toString());
+                        if (data.getJSONObject(i).get("M_Type")!=null){
+                            bigDevice.setMType(data.getJSONObject(i).get("M_Type").toString());
+                        }
+                        if (data.getJSONObject(i).get("M_InstallAddress") != null){
+                            bigDevice.setMInstallAddress(data.getJSONObject(i).get("M_InstallAddress").toString());
+                        }
+                        if (data.getJSONObject(i).get("MeterName")!= null){
+                            bigDevice.setMeterName(data.getJSONObject(i).get("MeterName").toString());
+                        }
+                        if (data.getJSONObject(i).get("WarnStatus")!= null){
+                            bigDevice.setWarnStatus(data.getJSONObject(i).get("WarnStatus").toString());
+                        }
+                        bigDevice.setMMaterial(data.getJSONObject(i).get("M_Material").toString());
+                        bigDevice.setPhoneNo(data.getJSONObject(i).get("PhoneNo").toString());
+                        if (data.getJSONObject(i).get("CurStatus")!=null){
+                            bigDevice.setCurStatus(data.getJSONObject(i).get("CurStatus").toString());
+                        }
+                        bigDevice.setMeterId(data.getJSONObject(i).get("MeterId").toString());
+                        bigDevice.setOrganizeId(data.getJSONObject(i).get("OrganizeId").toString());
+                        bigDevice.setOrganizeId(data.getJSONObject(i).get("OrganizeId").toString());
+                        String date1 = data.getJSONObject(i).get("CreateTime").toString();
+                        String[] date2 = date1.split("T");
+                        String date = date2[0]+" "+date2[1];
+                        bigDevice.setCreateTime(Timestamp.valueOf(date));
+                        bigDevice.setRealValue(new BigDecimal(data.getJSONObject(i).get("RealValue").toString()));
+                        if (data.getJSONObject(i).get("ToValue")!=null){
+                            bigDevice.setToValue(new BigDecimal(data.getJSONObject(i).get("ToValue").toString()));
+                        }
+                        bigDevice.setRevValue(new BigDecimal(data.getJSONObject(i).get("RevValue").toString()));
+                        bigDevice.setPressValue(new BigDecimal(data.getJSONObject(i).get("PressValue").toString()));
+                        bigDevice.setForValue(new BigDecimal(data.getJSONObject(i).get("ForValue").toString()));
+                        bigDevice.setMSortCode(Integer.parseInt(data.getJSONObject(i).get("M_SortCode").toString()));
+                        bigDevice.setCelVal(new BigDecimal(data.getJSONObject(i).get("CelVal").toString()));
+                        list.add(bigDevice);
                     }
-                    if (data.getJSONObject(i).get("M_InstallAddress") != null){
-                        bigDevice.setMInstallAddress(data.getJSONObject(i).get("M_InstallAddress").toString());
-                    }
-                    if (data.getJSONObject(i).get("MeterName")!= null){
-                        bigDevice.setMeterName(data.getJSONObject(i).get("MeterName").toString());
-                    }
-                    if (data.getJSONObject(i).get("WarnStatus")!= null){
-                        bigDevice.setWarnStatus(data.getJSONObject(i).get("WarnStatus").toString());
-                    }
-                    bigDevice.setMMaterial(data.getJSONObject(i).get("M_Material").toString());
-                    bigDevice.setPhoneNo(data.getJSONObject(i).get("PhoneNo").toString());
-                    if (data.getJSONObject(i).get("CurStatus")!=null){
-                        bigDevice.setCurStatus(data.getJSONObject(i).get("CurStatus").toString());
-                    }
-                    bigDevice.setMeterId(data.getJSONObject(i).get("MeterId").toString());
-                    bigDevice.setOrganizeId(data.getJSONObject(i).get("OrganizeId").toString());
-                    bigDevice.setOrganizeId(data.getJSONObject(i).get("OrganizeId").toString());
-                    String date1 = data.getJSONObject(i).get("CreateTime").toString();
-                    String[] date2 = date1.split("T");
-                    String date = date2[0]+" "+date2[1];
-                    bigDevice.setCreateTime(Timestamp.valueOf(date));
-                    bigDevice.setRealValue(new BigDecimal(data.getJSONObject(i).get("RealValue").toString()));
-                    if (data.getJSONObject(i).get("ToValue")!=null){
-                        bigDevice.setToValue(new BigDecimal(data.getJSONObject(i).get("ToValue").toString()));
-                    }
-                    bigDevice.setRevValue(new BigDecimal(data.getJSONObject(i).get("RevValue").toString()));
-                    bigDevice.setPressValue(new BigDecimal(data.getJSONObject(i).get("PressValue").toString()));
-                    bigDevice.setForValue(new BigDecimal(data.getJSONObject(i).get("ForValue").toString()));
-                    bigDevice.setMSortCode(Integer.parseInt(data.getJSONObject(i).get("M_SortCode").toString()));
-                    bigDevice.setCelVal(new BigDecimal(data.getJSONObject(i).get("CelVal").toString()));
-                    list.add(bigDevice);
-                }
-                if (verify!= null &&!data.getJSONObject(i).get("RealValue").toString().equals(verify.getRealValue())) {
-                    verify.setRealValue(new BigDecimal(data.getJSONObject(i).get("RealValue").toString()));
-                    if (data.getJSONObject(i).get("ToValue")!=null){
-                        verify.setToValue(new BigDecimal(data.getJSONObject(i).get("ToValue").toString()));
-                    }
+                    if (verify!= null &&!data.getJSONObject(i).get("RealValue").toString().equals(verify.getRealValue())) {
+                        verify.setRealValue(new BigDecimal(data.getJSONObject(i).get("RealValue").toString()));
+                        if (data.getJSONObject(i).get("ToValue")!=null){
+                            verify.setToValue(new BigDecimal(data.getJSONObject(i).get("ToValue").toString()));
+                        }
                         verify.setRevValue(new BigDecimal(data.getJSONObject(i).get("RevValue").toString()));
                         verify.setPressValue(new BigDecimal(data.getJSONObject(i).get("PressValue").toString()));
                         verify.setForValue(new BigDecimal(data.getJSONObject(i).get("ForValue").toString()));
                         verify.setCelVal(new BigDecimal(data.getJSONObject(i).get("CelVal").toString()));
 
-                            list.add(verify);
+                        list.add(verify);
 
 
+
+                    }
 
                 }
-
             }
+
             try {
                 bigDeviceDao.saveAll(list);
                 object.put("code","200");
@@ -191,6 +196,7 @@ public class BigDeviceController {
     /**
      * 获取单位列表
      */
+    @ResponseBody
     @PostMapping("/getOrganizeList")
     public Object getOrganizeList(@RequestBody String token){
         String url = bigDevicePropUtil.getBigDeviceUrl()+"api/Organize/GetOrganizeList";
@@ -215,6 +221,7 @@ public class BigDeviceController {
     /**
      * 获取设备实时数据
      */
+    @ResponseBody
     @PostMapping("/getRealData")
     public Object getRealData(@RequestBody String msg){
         String url = bigDevicePropUtil.getBigDeviceUrl()+"api/RealData/GetRealData";
@@ -244,6 +251,7 @@ public class BigDeviceController {
     /**
      * 日用量统计
      */
+    @ResponseBody
     @PostMapping("/dayAnalysis")
     public Object dayAnalysis(@RequestBody String msg) throws Exception{
         String url = bigDevicePropUtil.getBigDeviceUrl()+"api/Analyze/DayAnalysis";
@@ -279,6 +287,7 @@ public class BigDeviceController {
     /**
      * 月用量统计
      */
+    @ResponseBody
     @PostMapping("/monthAnalysis")
     public Object monthAnalysis(@RequestBody String msg) throws Exception{
         String url = bigDevicePropUtil.getBigDeviceUrl()+"api/Analyze/MonthAnalysis";
@@ -313,6 +322,7 @@ public class BigDeviceController {
     /**
      * 获取通信日志
      */
+    @ResponseBody
     @PostMapping("/getCommLogList")
     public Object getCommLogList (@RequestBody String msg) throws Exception{
         String url = bigDevicePropUtil.getBigDeviceUrl()+"api/CommLog/GetCommLogList";
@@ -351,6 +361,7 @@ public class BigDeviceController {
     /**
      * 根据设备地址码获取设备历史数据列表
      */
+    @ResponseBody
     @PostMapping("/getHistoryDataList")
     public Object getHistoryDataList (@RequestBody String msg) throws Exception{
         String url = bigDevicePropUtil.getBigDeviceUrl()+"api/HistoryData/GetHistoryDataList";
@@ -389,6 +400,7 @@ public class BigDeviceController {
     /**
      * 发送命令
      */
+    @ResponseBody
     @PostMapping("/commandQueue")
     public Object readNowData (@RequestBody String msg){
         JSONObject jsonObject = JSONObject.parseObject(msg);
