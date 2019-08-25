@@ -28,7 +28,7 @@ public class GetDate {
     public static String getYesterday() {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DATE, -1);
-        String yesterday = new SimpleDateFormat("yyyyMMdd ").format(cal.getTime());
+        String yesterday = new SimpleDateFormat("yyyyMMdd").format(cal.getTime());
         return yesterday;
     }
 

@@ -43,7 +43,7 @@ public class EntityFactory {
     }
 
     public static Daycount daycountFactory(String deviceNo, Timestamp startTime, BigDecimal startValue, Timestamp endTime
-    , BigDecimal endValue, BigDecimal dayAmount, int date, int state)
+    , BigDecimal endValue, BigDecimal dayAmount, String date, int state)
     {
         Daycount daycount = new Daycount();
         daycount.setDeviceNo(deviceNo);

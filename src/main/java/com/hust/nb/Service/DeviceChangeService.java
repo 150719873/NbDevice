@@ -11,5 +11,5 @@ import com.hust.nb.Entity.DeviceChange;
 public interface DeviceChangeService {
     void addDevicechange(DeviceChange devicechange);
 
-    void changeDevice(Device device, DeviceChange deviceChange, String oldNo, String enprNo, Daycount daycount, Daycount daycount2);
+    void changeDevice(Device oldDevice, Device newDevice, DeviceChange deviceChange);
 }

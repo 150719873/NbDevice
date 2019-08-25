@@ -2,6 +2,7 @@ package com.hust.nb.Service.ServiceImpl;
 
 import com.hust.nb.Dao.DaycountDao;
 import com.hust.nb.Dao.DeviceChangeDao;
+import com.hust.nb.Dao.DeviceDao;
 import com.hust.nb.Entity.Daycount;
 import com.hust.nb.Entity.Device;
 import com.hust.nb.Entity.DeviceChange;
@@ -30,6 +31,9 @@ public class DeviceChangeServiceImpl implements DeviceChangeService {
     @Autowired
     DaycountDao daycountDao;
 
+    @Autowired
+    DeviceDao deviceDao;
+
     @Override
     public void addDevicechange(DeviceChange devicechange) {
         deviceChangeDao.save(devicechange);
@@ -37,12 +41,10 @@ public class DeviceChangeServiceImpl implements DeviceChangeService {
 
     @Transactional
     @Override
-    public void changeDevice(Device device, DeviceChange deviceChange, String oldNo, String enprNo, Daycount daycount, Daycount daycount2) {
-        deviceService.addDevice(device);
+    public void changeDevice(Device oldDevice, Device newDevice, DeviceChange deviceChange) {
+        deviceDao.save(oldDevice);
+        deviceDao.save(newDevice);
         deviceChangeService.addDevicechange(deviceChange);
-        deviceService.delDeviceByDeviceNoAndEnprNo(oldNo, enprNo);
-        daycountDao.save(daycount);
-        daycountDao.save(daycount2);
     }
 
 
