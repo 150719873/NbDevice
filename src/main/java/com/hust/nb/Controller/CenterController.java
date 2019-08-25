@@ -1,6 +1,7 @@
 package com.hust.nb.Controller;
 
 import ch.qos.logback.core.pattern.color.BlackCompositeConverter;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.hust.nb.Dao.*;
 import com.hust.nb.Entity.*;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.client.RestTemplate;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -162,6 +164,109 @@ public class CenterController {
         }
         Object o = JSONObject.toJSON(jsonMap);
         return o;
+    }
+
+    /**
+     *删除初始化水表
+     *
+     */
+    @ResponseBody
+    @PostMapping("delectDeviceInit")
+    public Object delectDeviceInit(@RequestBody String msg){
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        String enprNo = jsonObject.getString("enprNo");
+        Integer flag = jsonObject.getInteger("flag");//0为删除水司所有表，1为删除某一块表
+        if (flag == 0){
+            try {
+                deviceCheckDao.deleteByEnprNo(enprNo);
+                jsonMap.put("code","200");
+                jsonMap.put("info","删除成功");
+            }catch (Exception e){
+                jsonMap.put("code","-1");
+                jsonMap.put("info","删除失败");
+            }
+        }else {
+            try {
+            String imei = jsonObject.getString("imei");
+            deviceCheckDao.deleteByImeiAndEnprNo(imei, enprNo);
+            jsonMap.put("code","200");
+            jsonMap.put("info","删除成功");
+        }catch (Exception e){
+                e.printStackTrace();
+            jsonMap.put("code","-1");
+            jsonMap.put("info","删除失败");
+        }
+        }
+        Object o = JSONObject.toJSON(jsonMap);
+        return o;
+    }
+
+    /**
+     * 更新数据按钮
+     */
+    @ResponseBody
+    @PostMapping("/updataNBDevice")
+    public Object updataNBDevice(@RequestBody String msg){
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        Integer check = jsonObject.getInteger("check");
+        Integer flag = jsonObject.getInteger("flag");//0为获得全部设备信息，1为根据地址获得表信息，2单独更新阀门
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("flag",flag);
+        map.put("position","0");
+        map.put("count",500);
+        map.put("check",check);
+        try {
+            if (flag == 0){
+                deviceController.getSZNBdevice(map);
+            }else if (flag == 2){
+                //更新某一表阀门状态
+                String macAddr = jsonObject.getString("macAddr");
+                JSONObject paramMap = new JSONObject();
+                String companyalias = "hbhxzn03";
+                String loginname = "YWRtaW5oYmh4em4wMw==";
+                String password = "YWRtaW5oYmh4em4wMw==";
+                paramMap.put("companyalias", companyalias);
+                paramMap.put("loginname", loginname);
+                paramMap.put("password", password);
+                paramMap.put("mac_addr", macAddr);
+                RestTemplate restTemplate = new RestTemplate();
+                Integer value01 = jsonObject.getInteger("value01");
+                paramMap.put("operatecmd","switchtip");
+                paramMap.put("value01",value01);
+                //更新阀门状态
+                String url1 = "http://118.25.217.87/emac_android_connect/get_hbhxznas_all_data.php";
+                paramMap.put("operatecmd","getdatabyaddr");
+                String res1 = restTemplate.postForEntity(url1, paramMap, String.class).getBody();
+                JSONObject object1 = JSONObject.parseObject(res1);
+                JSONArray data = object1.getJSONArray("message");
+                try {
+                    DeviceCheck device = deviceCheckDao.findByImei(data.getJSONObject(0).get("imei").toString());
+                    if (device != null){
+                        device.setValve(Integer.valueOf(data.getJSONObject(0).get("switch_status").toString()));
+                        deviceCheckDao.save(device);
+                    }
+                    Device device1 = deviceService.findByImei(data.getJSONObject(0).get("imei").toString());
+                    if (device1!= null){
+                        device1.setValve(Integer.valueOf(data.getJSONObject(0).get("switch_status").toString()));
+                        deviceService.updateDevice(device1);
+                    }
+                    System.out.println("更新成功");
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "更新成功");
+        }catch (Exception e){
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "更新失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
     }
 
     /**

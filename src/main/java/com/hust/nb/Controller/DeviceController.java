@@ -589,4 +589,8 @@ public class DeviceController {
         return o;
 
     }
+
+    public void updataSwitch(){
+
+    }
 }

@@ -6,7 +6,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.beans.Transient;
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -35,4 +37,10 @@ public interface DeviceCheckDao extends JpaRepository<DeviceCheck,DeviceCheck>, 
 
     @Query(nativeQuery = true, value = "SELECT COUNT(*) FROM mixAll.dbo.nb_deviceCheck WHERE enprNo = ?1 AND read_time BETWEEN ?2 AND ?3")
     Integer selectSuccessCounts(String enprNo , Timestamp data, Timestamp date);
+
+    @Transactional
+    void deleteByEnprNo(String enprNo);
+
+    @Transactional
+    void deleteByImeiAndEnprNo(String imei, String enprNo);
 }
