@@ -2,22 +2,18 @@ package com.hust.nb.ScheduleJob;
 
 import com.hust.nb.Dao.*;
 import com.hust.nb.Entity.*;
-import com.hust.nb.Service.RegionService;
+import com.hust.nb.Service.ServiceImpl.DaycostService;
 import com.hust.nb.util.GetDate;
 import com.hust.nb.util.QBTDeviceTmpGetter;
-import net.bytebuddy.asm.Advice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Description:nb
@@ -61,13 +57,16 @@ public class DayCountScheduledJob {
     @Autowired
     ChargeLevelDao chargeLevelDao;
 
-//    @Value("${com.QBTT.dbPrefix}")
-//    private String dbPrefix;
+    @Autowired
+    DaycostDao daycostDao;
+
+    @Autowired
+    DaycostService daycostService;
 
     /**
-     * 每天零点十分更新所有水司  dayCount dayCost
+     * 每天六点更新所有水表  device 针对每一个水表插入dayCount
      */
-    @Scheduled(cron = "0 10 0 * * ?")
+    @Scheduled(cron = "0 0 6 * * ?")
     public void update() {
         logger.info("====================日水量统计====================");
         List<Device> deviceList = deviceDao.findAll();
@@ -75,16 +74,13 @@ public class DayCountScheduledJob {
         BigDecimal zero = new BigDecimal(0);
         Calendar calendar = Calendar.getInstance();
         for (Device device : deviceList) {
-            String deviceNo = device.getDeviceNo();
-            String enprNo = device.getEnprNo();
-            String imei = device.getImei();
-            if (imei != null) {
+            if (device.getImei() != null) {
                 Daycount daycount = new Daycount();
                 daycount.setDeviceNo(device.getDeviceNo());
                 daycount.setEnprNo(device.getEnprNo());
                 daycount.setEndTime(device.getReadTime());
                 daycount.setEndValue(device.getReadValue());
-                daycount.setDate(calendar.get(Calendar.DATE) - 1);
+                daycount.setDate(GetDate.getYesterday());
                 daycount.setDayAmount(device.getReadValue().subtract(device.getPreReadValue()));
                 if (daycount.getStartTime() == daycount.getEndTime()) {
                     daycount.setState(2);
@@ -95,69 +91,18 @@ public class DayCountScheduledJob {
                 } else {
                     daycount.setState(0);
                 }
-
                 device.setPreReadValue(device.getReadValue());
                 device.setPreReadTime(device.getReadTime());
-                int today = calendar.get(Calendar.DATE);
-                //当月最后一天数据不加入计算
-                if (today == 1) {
-                    device.setMonthAmount(new BigDecimal("0"));
-                } else {
-                    device.setMonthAmount(device.getDayAmount().add(daycount.getDayAmount()));
-                }
-                deviceDao.save(device);
-                daycountDao.save(daycount);
+                device.setMonthAmount(device.getMonthAmount().add(daycount.getDayAmount()));
+                daycostService.updateDeviceAndDaycount(device, daycount);
             }
-//            else {
-//                //说明此水表是集中器水表，需要调接口
-//                //查询出此水表的最新读数
-////                String tableName = dbPrefix + GetDate.getCurrentMonth();
-//                String tableName = "mixAll.dbo.t_deviceTmp" + GetDate.getCurrentMonth();
-//                List queryRes = deviceTmpGetter.getLatestRecord(deviceNo, enprNo, tableName);
-//                Map map = (Map) queryRes.get(0);
-//                Timestamp endTime = (Timestamp)map.get("readTime");
-//                BigDecimal showValue = (BigDecimal) map.get("showValue");
-//                daycount.setDeviceNo(device.getDeviceNo());
-//                daycount.setEnprNo(device.getEnprNo());
-//                daycount.setEndTime(endTime);
-//                daycount.setEndValue(showValue);
-//                daycount.setDate(calendar.get(Calendar.DATE));
-//                if (preDaycount != null) {
-//                    daycount.setStartTime(preDaycount.getEndTime());
-//                    daycount.setStartValue(preDaycount.getEndValue());
-//                    daycount.setDayAmount(showValue.subtract(preDaycount.getEndValue()));
-//                    if(daycount.getStartTime()==daycount.getEndTime()){
-//                        daycount.setState(2);
-//                    }else if(daycount.getDayAmount().compareTo(limit)==1){
-//                        daycount.setState(3);
-//                    }else if(daycount.getDayAmount().compareTo(zero)==-1){
-//                        daycount.setState(1);
-//                    }else {
-//                        daycount.setState(0);
-//                    }
-//                } else {
-//                    daycount.setDayAmount(showValue);
-//                    daycount.setState(0);
-//                }
-//                /**
-//                 * 需要采集在插入tmp表的同时更新t_device表的数据
-//                 * 以保持t_device表的数据也是实时更新的
-//                 * 如果没有此功能，那么只能在页面点击查看所有表的时候才会更新数据
-//                 */
-//                daycountDao.save(daycount);
-//                device.setReadTime(endTime);
-//                device.setReadValue(showValue);
-//                device.setDayAmount(daycount.getDayAmount());
-//                device.setState(daycount.getState());
-//                deviceDao.save(device);
-//            }
         }
     }
 
     /**
-     * 每天两点计算前一天用户水费
+     * 每天七点计算用户水费
      */
-    @Scheduled(cron = "0 0 2 * * ?")
+    @Scheduled(cron = "0 0 7 * * ?")
     public void calculate() {
         logger.info("====================日水费统计====================");
         Calendar calendar = Calendar.getInstance();
@@ -166,101 +111,129 @@ public class DayCountScheduledJob {
             String enprNo = enterprise.getEnprNo();
             List<User> userList = userDao.findAllByEnprNo(enprNo);
             for (User user : userList) {
-                Daycost daycost = new Daycost();
-                List<Device> deviceList = deviceDao.findAllByUserId(user.getUserId());
-                BigDecimal userAmount = new BigDecimal("0");
-                for (Device device : deviceList) {
-                    Daycount daycount = daycountDao.findLatestRecord(
-                            device.getDeviceNo(), device.getEnprNo(), calendar.get(Calendar.DATE) - 1);
-                    BigDecimal dayAmount = daycount == null ? new BigDecimal("0") : daycount.getDayAmount();
-                    userAmount = userAmount.add(dayAmount);
-                }
-                int userType = user.getUserType();
-                if (userType == 1) {//居民用水
-                    ChargeLevel chargelevel = chargeLevelDao.findChargeLevelByEnprNoAndType(enprNo, 1);
-                    calculatePrice(userAmount, chargelevel, daycost);
-                } else if (userType == 2) {//商业用水
-                    ChargeLevel chargelevel = chargeLevelDao.findChargeLevelByEnprNoAndType(enprNo, 4);
-                    calculatePrice(userAmount, chargelevel, daycost);
-                } else if (userType == 3) {//工业用水
-                    ChargeLevel chargelevel = chargeLevelDao.findChargeLevelByEnprNoAndType(enprNo, 2);
-                    calculatePrice(userAmount, chargelevel, daycost);
-                } else if (userType == 5) {//特种行业用水
-                    ChargeLevel chargelevel = chargeLevelDao.findChargeLevelByEnprNoAndType(enprNo, 5);
-                    calculatePrice(userAmount, chargelevel, daycost);
-                    //todo 新增其他用水
-                } else {//其他用水
-                    ChargeLevel chargelevel = chargeLevelDao.findChargeLevelByEnprNoAndType(enprNo, 6);
-                    calculatePrice(userAmount, chargelevel, daycost);
-                }
+                userProcess(calendar, enprNo, user);
             }
-
         }
-
     }
 
-    private Daycost calculatePrice(BigDecimal userAmount, ChargeLevel chargelevel, Daycost daycost) {
+    /**
+     * 根据用户的月水量计算水费插入daycost表，并且检查用户余额，不足发短信
+     *
+     * @param calendar
+     * @param enprNo
+     * @param user
+     */
+    public void userProcess(Calendar calendar, String enprNo, User user) {
+        Daycost daycost = new Daycost();
+        List<Device> deviceList = deviceDao.findAllByUserId(user.getUserId());
+        BigDecimal userDayAmount = new BigDecimal("0");
+        BigDecimal userMonthAmount = new BigDecimal("0");
+        for (Device device : deviceList) {
+            Daycount daycount = daycountDao.findLatestRecord(
+                    device.getDeviceNo(), device.getEnprNo(), GetDate.getYesterday()
+            );
+            BigDecimal deviceDayAmount = daycount == null ? new BigDecimal("0") : daycount.getDayAmount();
+            userDayAmount = userDayAmount.add(deviceDayAmount);
+            userMonthAmount = userMonthAmount.add(device.getMonthAmount());
+        }
+        int userType = user.getUserType();
+        ChargeLevel chargelevel = chargeLevelDao.findChargeLevelByEnprNoAndType(enprNo, userType);
+        calculatePrice(userDayAmount, userMonthAmount, chargelevel, daycost, calendar.get(Calendar.DATE));
+        if (calendar.get(Calendar.DATE) == 1) {
+            //每月第一天核查完上月水费后清空device的月用水量
+            daycostService.userProcessAndDeviceRefresh(user, daycost, deviceList);
+        } else {
+            daycostService.userProcess(user, daycost);//
+        }
+    }
+
+    /**
+     * 阶梯水价:  * minCharge * firstEdge * secondEdge * thirdEdge * fourthEdge * fifthEdge * sixthEdge
+     * <p>
+     * 阶梯水量:  0 -------- min ------ first ------ second ---- third ------ fourth ---- fifth --------->
+     */
+    private void calculatePrice(BigDecimal userDayAmount, BigDecimal userMonthAmount, ChargeLevel chargelevel, Daycost daycost, int date) {
         BigDecimal min = chargelevel.getMin();
         BigDecimal minCharge = chargelevel.getMinCharge();
-        BigDecimal first = chargelevel.getFirst();//一级阶梯截止，二级阶梯起始
-        BigDecimal second = chargelevel.getSecond();//二级阶梯截止，三级阶梯起始
-        BigDecimal third = chargelevel.getThird();//三级阶梯截止，四级阶梯起始
-        BigDecimal fourth = chargelevel.getFourth();//四级阶梯截止，五级阶梯起始
-        BigDecimal fifth = chargelevel.getFifth();//五级阶梯截止，六级阶梯起始
+        BigDecimal first = chargelevel.getFirst();
+        BigDecimal second = chargelevel.getSecond();
+        BigDecimal third = chargelevel.getThird();
+        BigDecimal fourth = chargelevel.getFourth();
+        BigDecimal fifth = chargelevel.getFifth();
         BigDecimal firstEdge = chargelevel.getFirstEdge();
         BigDecimal secondEdge = chargelevel.getSecondEdge();
         BigDecimal thirdEdge = chargelevel.getThirdEdge();
         BigDecimal fourthEdge = chargelevel.getFourthEdge();
         BigDecimal fifthEdge = chargelevel.getFifthEdge();
         BigDecimal sixthEdge = chargelevel.getSixthEdge();
-        if (sixthEdge != null && userAmount.compareTo(fifth) != -1) {//用户水量大于等于第五阶梯
-            BigDecimal fiveRest = userAmount.subtract(fifth).multiply(sixthEdge);
-            BigDecimal four = fifth.subtract(fourth).multiply(fifthEdge);
-            BigDecimal three = fourth.subtract(third).multiply(fourthEdge);
-            BigDecimal two = third.subtract(second).multiply(thirdEdge);
-            BigDecimal one = second.subtract(first).multiply(secondEdge);
-            BigDecimal zero = first.multiply(firstEdge);
-            fiveRest = fiveRest.add(four).add(three).add(two).add(one).add(zero);
-            daycost.setCostMoney(fiveRest.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
-        } else if (fifthEdge != null && userAmount.compareTo(fourth) != -1 && userAmount.compareTo(fifth) == -1) {
-            //用户水量大于第四阶梯并且小于第五阶梯
-            BigDecimal fourRest = userAmount.subtract(fourth).multiply(fifthEdge);
-            BigDecimal three = fourth.subtract(third).multiply(fourthEdge);
-            BigDecimal two = third.subtract(second).multiply(thirdEdge);
-            BigDecimal one = second.subtract(first).multiply(secondEdge);
-            BigDecimal zero = first.multiply(firstEdge);
-            fourRest = fourRest.add(three).add(two).add(one).add(zero);
-            daycost.setCostMoney(fourRest.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
-        } else if (fourthEdge != null && userAmount.compareTo(third) != -1 && userAmount.compareTo(fourth) == -1) {
-            //用户水量大于第三阶梯并且小于第四阶梯
-            BigDecimal threeRest = userAmount.subtract(third).multiply(fourthEdge);
-            BigDecimal two = third.subtract(second).multiply(thirdEdge);
-            BigDecimal one = second.subtract(first).multiply(secondEdge);
-            BigDecimal zero = first.multiply(firstEdge);
-            threeRest = threeRest.add(two).add(one).add(zero);
-            daycost.setCostMoney(threeRest.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
-        } else if (thirdEdge != null && userAmount.compareTo(second) != -1 && userAmount.compareTo(third) == -1) {
-            //用户水量大于第二阶梯并且小于第三阶梯
-            BigDecimal twoRest = userAmount.subtract(second).multiply(thirdEdge);
-            BigDecimal one = second.subtract(first).multiply(secondEdge);
-            BigDecimal zero = first.multiply(firstEdge);
-            twoRest = twoRest.add(one).add(zero);
-            daycost.setCostMoney(twoRest.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
-        } else if (secondEdge != null && userAmount.compareTo(first) != -1 && userAmount.compareTo(second) == -1) {
-            //用户水量大于第一阶梯并且小于第二阶梯
-            BigDecimal oneRest = userAmount.subtract(first).multiply(secondEdge);
-            BigDecimal zero = first.multiply(firstEdge);
-            oneRest = oneRest.add(zero);
-            daycost.setCostMoney(oneRest.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
-        } else if (firstEdge != null && userAmount.compareTo(first) == -1 && userAmount.compareTo(min) == 1) {
-            //用户水量小于第一阶梯并且大于门槛水量
-            BigDecimal one = userAmount.multiply(firstEdge);
-            daycost.setCostMoney(one.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+        if (fifth != null && userMonthAmount.compareTo(fifth) != -1) {
+            BigDecimal cost = sixthEdge.multiply(userDayAmount);
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+        } else if (fifth != null && userMonthAmount.compareTo(fifth) == -1 && userMonthAmount.add(userDayAmount).compareTo(fifth) != -1) {
+            BigDecimal total = userDayAmount.add(userMonthAmount);
+            BigDecimal beyond = total.subtract(fifth);
+            BigDecimal higher = beyond.multiply(sixthEdge);
+            BigDecimal lower = userDayAmount.subtract(beyond).multiply(fifthEdge);
+            BigDecimal cost = higher.add(lower);
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+        } else if (fourth != null && userMonthAmount.compareTo(fourth) != -1) {
+            BigDecimal cost = fifthEdge.multiply(userDayAmount);
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+        } else if (fourth != null && userMonthAmount.compareTo(fourth) == -1 && userMonthAmount.add(userDayAmount).compareTo(fourth) != -1) {
+            BigDecimal total = userDayAmount.add(userMonthAmount);
+            BigDecimal beyond = total.subtract(fourth);
+            BigDecimal higher = beyond.multiply(fifthEdge);
+            BigDecimal lower = userDayAmount.subtract(beyond).multiply(fourthEdge);
+            BigDecimal cost = higher.add(lower);
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+        } else if (third != null && userMonthAmount.compareTo(third) != -1) {
+            BigDecimal cost = fourthEdge.multiply(userDayAmount);
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+        } else if (third != null && userMonthAmount.compareTo(third) == -1 && userMonthAmount.add(userDayAmount).compareTo(third) != -1) {
+            BigDecimal total = userDayAmount.add(userMonthAmount);
+            BigDecimal beyond = total.subtract(third);
+            BigDecimal higher = beyond.multiply(fourthEdge);
+            BigDecimal lower = userDayAmount.subtract(beyond).multiply(thirdEdge);
+            BigDecimal cost = higher.add(lower);
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+        } else if (second != null && userMonthAmount.compareTo(second) != -1) {
+            BigDecimal cost = thirdEdge.multiply(userDayAmount);
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+        } else if (second != null && userMonthAmount.compareTo(second) == -1 && userMonthAmount.add(userDayAmount).compareTo(second) != -1) {
+            BigDecimal total = userDayAmount.add(userMonthAmount);
+            BigDecimal beyond = total.subtract(second);
+            BigDecimal higher = beyond.multiply(thirdEdge);
+            BigDecimal lower = userDayAmount.subtract(beyond).multiply(secondEdge);
+            BigDecimal cost = higher.add(lower);
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+        } else if (first != null && userMonthAmount.compareTo(first) != -1) {
+            BigDecimal cost = secondEdge.multiply(userDayAmount);
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+        } else if (first != null && userMonthAmount.compareTo(first) == -1 && userMonthAmount.add(userDayAmount).compareTo(first) != -1) {
+            BigDecimal total = userDayAmount.add(userMonthAmount);
+            BigDecimal beyond = total.subtract(first);
+            BigDecimal higher = beyond.multiply(secondEdge);
+            BigDecimal lower = userDayAmount.subtract(beyond).multiply(firstEdge);
+            BigDecimal cost = higher.add(lower);
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+        } else if (min != null && userMonthAmount.compareTo(min) != -1) {
+            BigDecimal cost = firstEdge.multiply(userDayAmount);
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+        } else if (min != null && userMonthAmount.compareTo(min) == -1 && userMonthAmount.add(userDayAmount).compareTo(min) != -1) {
+            BigDecimal total = userDayAmount.add(userMonthAmount);
+            BigDecimal beyond = total.subtract(min);
+            BigDecimal higher = beyond.multiply(firstEdge);
+            BigDecimal cost = higher.add(minCharge);
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
         } else {
-            //用户水量小于门槛水量
-            daycost.setCostMoney(minCharge.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+            //凌晨计算前一天水费，如果是一号代表上个月用水量未超过最低限额，扣费
+            //其余日期(直到月底计算前)不扣费
+            if (date == 1) {
+                daycost.setCostMoney(minCharge);
+            } else {
+                daycost.setCostMoney(new BigDecimal("0"));
+            }
         }
-        return daycost;
     }
 
 

@@ -69,7 +69,7 @@ public class Daycount implements Serializable {
      */
     @Basic
     @Column(name = "date")
-    private Integer date;
+    private String date;
 
     /**
      * 状态
@@ -134,11 +134,11 @@ public class Daycount implements Serializable {
         this.dayAmount = dayAmount;
     }
 
-    public Integer getDate() {
+    public String getDate() {
         return date;
     }
 
-    public void setDate(Integer date) {
+    public void setDate(String date) {
         this.date = date;
     }
 
