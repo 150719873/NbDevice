@@ -413,6 +413,7 @@ public class DeviceController {
                                 device.setValve(Integer.valueOf(data.getJSONObject(i).get("switch_status").toString()));
                                 deviceService.addDevice(device);
                                 //插入historyData表
+                                // todo 修改
                                 Historydata h = new Historydata();
                                 h.setDeviceNo(device.getDeviceNo());
                                 h.setDeviceValue(new BigDecimal(data.getJSONObject(i).get("ton").toString()));

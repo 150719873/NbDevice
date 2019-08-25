@@ -29,4 +29,7 @@ public interface DaycountDao extends JpaRepository<Daycount,Daycount>,JpaSpecifi
     @Query(nativeQuery = true,value = "select * from mixAll.dbo.nt_daycount where device_no = ?1 and enprNo = ?2 and start_time > ?3 AND end_time < ?4")
     Page<Daycount> findPartDaycountPage(String deviceNo, String enprNo, Timestamp start, Timestamp end, Pageable pageable);
 
+    @Query(nativeQuery = true, value = "select * from mixAll.dbo.nt_daycount where device_no = ?1 and enprNo = ?2 and date = ?3")
+    Daycount findLatestRecord(String deviceNo, String enprNo, int date);
+
 }

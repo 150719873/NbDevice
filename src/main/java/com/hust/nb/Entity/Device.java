@@ -175,6 +175,20 @@ public class Device implements Serializable,Cloneable {
     @Column(name = "pin_status")
     private Integer pinStatus;
 
+    /**
+     * 前一天读取时间
+     */
+    @Basic
+    @Column(name = "pre_read_time")
+    private Timestamp preReadTime;
+
+    /**
+     * 前一天读数
+     */
+    @Basic
+    @Column(name = "pre_read_value")
+    private BigDecimal preReadValue;
+
     public String getBatteryVoltage() {
         return batteryVoltage;
     }
@@ -345,4 +359,19 @@ public class Device implements Serializable,Cloneable {
         this.waterType = waterType;
     }
 
+    public Timestamp getPreReadTime() {
+        return preReadTime;
+    }
+
+    public void setPreReadTime(Timestamp preReadTime) {
+        this.preReadTime = preReadTime;
+    }
+
+    public BigDecimal getPreReadValue() {
+        return preReadValue;
+    }
+
+    public void setPreReadValue(BigDecimal preReadValue) {
+        this.preReadValue = preReadValue;
+    }
 }
