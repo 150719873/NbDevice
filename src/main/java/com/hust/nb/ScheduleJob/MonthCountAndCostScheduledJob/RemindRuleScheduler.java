@@ -1,3 +1,4 @@
+/*
 package com.hust.nb.ScheduleJob.MonthCountAndCostScheduledJob;
 
 import com.hust.nb.Dao.EnterpriseDao;
@@ -13,16 +14,20 @@ import org.springframework.stereotype.Component;
 import java.text.MessageFormat;
 import java.util.List;
 
+*/
 /**
  * Description:nbqbtt
  * Created by hyJoo on 2019/06/6
- */
+ *//*
+
 
 @Component
 public class RemindRuleScheduler {
-    /**
+    */
+/**
      * 日志
-     */
+     *//*
+
     private final Logger log = LoggerFactory.getLogger(RemindRuleScheduler.class);
 
     private final String REMINDRULE = "REMINDRULE";
@@ -30,10 +35,12 @@ public class RemindRuleScheduler {
     @Autowired
     private EnterpriseDao enterpriseDao;
 
-    /**
+    */
+/**
      * 开始执行所有任务
      * 从数据库查询定时提醒任务,进行更新任务.
-     */
+     *//*
+
     public void initStartJob() throws SchedulerException {
         //从数据库中查到所有提醒
         ApplicationContext applicationContext = SpringUtil.getApplicationContext();
@@ -90,3 +97,4 @@ public class RemindRuleScheduler {
         }
     }
 }
+*/

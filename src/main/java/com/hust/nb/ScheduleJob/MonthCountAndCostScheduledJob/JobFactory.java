@@ -1,4 +1,4 @@
-package com.hust.nb.ScheduleJob.MonthCountAndCostScheduledJob;
+/*package com.hust.nb.ScheduleJob.MonthCountAndCostScheduledJob;
 
 import org.quartz.spi.TriggerFiredBundle;
 import org.slf4j.Logger;
@@ -8,10 +8,10 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.scheduling.quartz.AdaptableJobFactory;
 import org.springframework.stereotype.Component;
 
-/**
+*//**
  * Description:nb
  * Created by Administrator on 2019/5/24
- */
+ *//*
 @Component
 public class JobFactory extends AdaptableJobFactory {
 
@@ -29,4 +29,4 @@ public class JobFactory extends AdaptableJobFactory {
         capableBeanFactory.autowireBean(jobInstance);
         return jobInstance;
     }
-}
+}*/

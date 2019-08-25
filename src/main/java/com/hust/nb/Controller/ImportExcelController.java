@@ -199,49 +199,48 @@ public class ImportExcelController {
                     for (int i = 2; i < dataList.size(); i++) {//循环每一行，即对应单个用户，sheet表的第一行是填写注释，所以从1开始
                         //插入User表
                         List<String> cellList = dataList.get(i);
+                        if (cellList.get(0)!= null && cellList.get(10)!= null){
+                            if (!userNoList.contains(cellList.get(16))) {
+                                User userEntity = new User();
 
+                                userName = cellList.get(1);
+                                userTel = cellList.get(3);
+                                userEntity.setUserName(userName);
 
-                        if (!userNoList.contains(cellList.get(16))) {
-                            User userEntity = new User();
+                                Double f = Double.valueOf(cellList.get(2));
+                                userType = (int) Math.ceil(f);
+                                userEntity.setUserType(userType);
 
-                            userName = cellList.get(1);
-                            userTel = cellList.get(3);
-                            userEntity.setUserName(userName);
+                                if (cellList.get(4) != null) {
+                                    userEntity.setUserPhone(cellList.get(4));
+                                }
+                                userEntity.setUserTel(userTel);
+                                if (!cellList.get(5).isEmpty()){
+                                    userEntity.setBankAccount(cellList.get(5));
+                                }
+                                userEntity.setUserAddr(cellList.get(9));
+                                if (!cellList.get(6).isEmpty()){
+                                    userEntity.setBankOwner(cellList.get(6));
+                                }
+                                if (!cellList.get(7).isEmpty()){
+                                    userEntity.setBankAddr(cellList.get(7));
+                                }
+                                userEntity.setBlockId(block.getBlockId());
+                                userEntity.setUserNo(cellList.get(16));
+                                userEntity.setEnprNo(enprNo);
+                                userEntity.setMonthExpense(new BigDecimal("0"));
 
-                            Double f = Double.valueOf(cellList.get(2));
-                            userType = (int) Math.ceil(f);
-                            userEntity.setUserType(userType);
-
-                            if (cellList.get(4) != null) {
-                                userEntity.setUserPhone(cellList.get(4));
+                                userEntity.setAccountBalance(new BigDecimal("0"));
+                                userNoList.add(cellList.get(16));
+                                try {
+                                    importExcelService.saveImportedExcel(userEntity);
+                                    //对于user表，数据库设计的是用户名和block_id,.addr在一起的联合索引，即三个都一样的话就插不进去
+                                    //如果插不进去则说明已经存在这个用户，为保证重复批量导入时不会导入同一个用户多次
+                                } catch (Exception e) {
+                                    jsonMap.put("code", "-1");
+                                    jsonMap.put("info", "导入user表失败");
+                                }
                             }
-                            userEntity.setUserTel(userTel);
-                            if (!cellList.get(5).isEmpty()){
-                                userEntity.setBankAccount(cellList.get(5));
-                            }
-                            userEntity.setUserAddr(cellList.get(9));
-                            if (!cellList.get(6).isEmpty()){
-                                userEntity.setBankOwner(cellList.get(6));
-                            }
-                            if (!cellList.get(7).isEmpty()){
-                                userEntity.setBankAddr(cellList.get(7));
-                            }
-                            userEntity.setBlockId(block.getBlockId());
-                            userEntity.setUserNo(cellList.get(16));
-                            userEntity.setEnprNo(enprNo);
-                            userEntity.setMonthExpense(new BigDecimal("0"));
-
-                            userEntity.setAccountBalance(new BigDecimal("0"));
-                            userNoList.add(cellList.get(16));
-                            try {
-                                importExcelService.saveImportedExcel(userEntity);
-                                //对于user表，数据库设计的是用户名和block_id,.addr在一起的联合索引，即三个都一样的话就插不进去
-                                //如果插不进去则说明已经存在这个用户，为保证重复批量导入时不会导入同一个用户多次
-                            } catch (Exception e) {
-                                jsonMap.put("code", "-1");
-                                jsonMap.put("info", "导入user表失败");
-                            }
-                        }
                             //插入device表
                             Device device = deviceService.getByDeviceNoAndEnprNo(cellList.get(8),enprNo);
                             if(device == null ){
@@ -294,6 +293,9 @@ public class ImportExcelController {
                                     jsonMap.put("info", "导入device表失败");
                                 }
                             }
+                        }
+
+
 
 
                     }
@@ -342,7 +344,7 @@ public class ImportExcelController {
                 for (int j = 2; j <lists.size(); j++){
                     List<String> cellList = lists.get(j);
                     DeviceCheck device = deviceCheckDao.findByImeiAndDeviceNo(cellList.get(10),cellList.get(8));
-                    if (device == null){
+                    if (device == null && cellList.get(8) != null){
                         DeviceCheck d = new DeviceCheck();
                         d.setImei(cellList.get(10));
                         d.setDeviceNo(cellList.get(8));
@@ -409,9 +411,13 @@ public class ImportExcelController {
 
                     int k = j+1;
                     List<String> cellList = lists.get(j);
-                    if (cellList.get(8).equals(deviceCheckDao.findByImeiAndDeviceNo(cellList.get(10),cellList.get(8)).getDeviceNo())){
-                        continue;
+                    DeviceCheck deviceName = deviceCheckDao.findByImeiAndDeviceNo(cellList.get(10),cellList.get(8));
+                    if (deviceName!= null){
+                        if (cellList.get(8).equals(deviceName.getDeviceNo())){
+                            continue;
+                        }
                     }
+
                     if ("".equals(cellList.get(10))) {
                         errstr.append("序号为(" + k + ")这一行的IMEI为空，请检查excel！");
                     } else if (!imeis.add(cellList.get(10))) {

@@ -1,3 +1,4 @@
+/*
 package com.hust.nb.ScheduleJob.MonthCountAndCostScheduledJob;
 
 import org.springframework.beans.BeansException;
@@ -5,10 +6,12 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
+*/
 /**
  * Description:nb
  * Created by Administrator on 2019/5/24
- */
+ *//*
+
 @Component
 public class SpringUtil implements ApplicationContextAware {
 
@@ -45,3 +48,4 @@ public class SpringUtil implements ApplicationContextAware {
         return getApplicationContext().getBean(name, clazz);
     }
 }
+*/

@@ -1,3 +1,4 @@
+/*
 package com.hust.nb.ScheduleJob.MonthCountAndCostScheduledJob;
 
 import org.quartz.SchedulerException;
@@ -9,23 +10,29 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+*/
 /**
  * Description:nb
  * Created by Administrator on 2019/5/24
- */
+ *//*
+
 @Configurable
 @Component
 @EnableScheduling
 public class RemindTask {
-    /**
+    */
+/**
      * 日志
-     */
+     *//*
+
     private final Logger log = LoggerFactory.getLogger(RemindTask.class);
-    /**
+    */
+/**
      * 初始化动态创建定期任务
      *
      * 创建的一个定时任务,每天会执行一遍,代替1中的onApplicationEvent方法
-     */
+     *//*
+
     @Autowired
     private RemindRuleScheduler remindRuleScheduler;
 
@@ -42,3 +49,4 @@ public class RemindTask {
         log.debug("RemindTask end...");
     }
 }
+*/

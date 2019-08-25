@@ -1,3 +1,4 @@
+/*
 package com.hust.nb.ScheduleJob.MonthCountAndCostScheduledJob;
 
 import org.slf4j.Logger;
@@ -12,9 +13,11 @@ import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 @Configuration
 public class InitRemindRuleScheduler implements ApplicationListener<ContextRefreshedEvent> {
 
-    /**
+    */
+/**
      * 日志
-     */
+     *//*
+
     private final Logger log = LoggerFactory.getLogger(InitRemindRuleScheduler.class);
 
     @Autowired
@@ -32,9 +35,11 @@ public class InitRemindRuleScheduler implements ApplicationListener<ContextRefre
         return bean;
     }
 
-    /**
+    */
+/**
      * 项目初始化的时候启动quartz
-     */
+     *//*
+
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
 //        log.debug("执行onApplicationEvent..");
@@ -46,3 +51,4 @@ public class InitRemindRuleScheduler implements ApplicationListener<ContextRefre
 //        }
     }
 }
+*/

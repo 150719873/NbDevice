@@ -1,3 +1,4 @@
+/*
 package com.hust.nb.ScheduleJob.MonthCountAndCostScheduledJob;
 
 import com.hust.nb.Dao.*;
@@ -17,10 +18,12 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
+*/
 /**
  * Description:nb
  * Created by Administrator on 2019/5/24
- */
+ *//*
+
 @Slf4j
 public class MonthScheduleJob implements Job {
 
@@ -66,9 +69,11 @@ public class MonthScheduleJob implements Job {
             List<Device> deviceList = deviceDao.findAllByEnprNo(enprNo);
             Date date = new Date();
             Timestamp timestamp = new Timestamp(date.getTime());
-            /**
+            */
+/**
              * 遍历水司下的所有水表，更新这些水表的月用水量以及向月用水量表插入数据
-             */
+             *//*
+
             for (Device device : deviceList) {
                 String deviceNo = device.getDeviceNo();
                 DeviceChange devicechange = devicechangeDao.findByEnprNoAndNewNo(enprNo, deviceNo);
@@ -79,10 +84,12 @@ public class MonthScheduleJob implements Job {
 
                 } else {
                     //nb水表
-                    /**
+                    */
+/**
                      * 经历过换表
                      * while循环解决一月换多次表
-                     */
+                     *//*
+
                     if(devicechange != null){
                         BigDecimal total = new BigDecimal("0");
                         Monthcount newMonCnt = new Monthcount();
@@ -128,9 +135,11 @@ public class MonthScheduleJob implements Job {
                             e.printStackTrace();
                         }
                     } else {
-                        /**
+                        */
+/**
                          * 未经历换表
-                         */
+                         *//*
+
                         Monthcount monthcount = monthcountService.findLatestRecordByDeviceNoAndEnprNo(deviceNo, enprNo);
                         Monthcount newMonCnt = new Monthcount();
                         BigDecimal newest = deviceDao.findByDeviceNoAndEnprNo(deviceNo, enprNo).getReadValue();
@@ -151,9 +160,11 @@ public class MonthScheduleJob implements Job {
                 }
 
             }
-            /**
+            */
+/**
              * 计算用户月水费插入到Monthcost当中
-             */
+             *//*
+
             List<User> userList = userDao.findAllByEnprNo(enprNo);
             for (User user : userList) {
                 List<Device> deviceList1 = deviceDao.findAllByUserId(user.getUserId());
@@ -195,9 +206,11 @@ public class MonthScheduleJob implements Job {
     }
 
 
-    /**
+    */
+/**
      * 根据用水性质，用水总量计算水费并加到表里面
-     */
+     *//*
+
     private static Monthcost calculatePrice(BigDecimal userAmount, ChargeLevel chargelevel, Monthcost monthcost) {
         BigDecimal min = chargelevel.getMin();
         BigDecimal minCharge = chargelevel.getMinCharge();
@@ -262,3 +275,4 @@ public class MonthScheduleJob implements Job {
         return monthcost;
     }
 }
+*/
