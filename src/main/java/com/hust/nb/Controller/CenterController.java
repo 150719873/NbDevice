@@ -49,8 +49,6 @@ public class CenterController {
     @Autowired
     OperatorDao operatorDao;
 
-    @Autowired
-    DeviceRelationDao deviceRelationDao;
 
     @Autowired
     DeviceDao deviceDao;
@@ -207,21 +205,25 @@ public class CenterController {
      */
     @ResponseBody
     @PostMapping("/updataNBDevice")
-    public Object updataNBDevice(@RequestBody String msg){
+    public Object updataNBDevice(@RequestBody String msg) {
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
-        Integer check = jsonObject.getInteger("check");
+        Integer check = jsonObject.getInteger("check");//更新出厂检测表数据，为1，更新正式使用表为0
         Integer flag = jsonObject.getInteger("flag");//0为获得全部设备信息，1为根据地址获得表信息，2单独更新阀门
 
         Map<String, Object> map = new HashMap<>();
-        map.put("flag",flag);
-        map.put("position","0");
-        map.put("count",500);
-        map.put("check",check);
+        map.put("flag", flag);
+        map.put("position", "0");
+        map.put("count", 500);
+        map.put("check", check);
         try {
-            if (flag == 0){
+            if (flag == 0) {
                 deviceController.getSZNBdevice(map);
-            }else if (flag == 2){
+            } else if (flag == 1) {
+                String macAddr = jsonObject.getString("macAddr");
+                map.put("macAddr", macAddr);
+                deviceController.getSZNBdevice(map);
+            } else if (flag == 2) {
                 //更新某一表阀门状态
                 String macAddr = jsonObject.getString("macAddr");
                 JSONObject paramMap = new JSONObject();
@@ -234,39 +236,39 @@ public class CenterController {
                 paramMap.put("mac_addr", macAddr);
                 RestTemplate restTemplate = new RestTemplate();
                 Integer value01 = jsonObject.getInteger("value01");
-                paramMap.put("operatecmd","switchtip");
-                paramMap.put("value01",value01);
+                paramMap.put("operatecmd", "switchtip");
+                paramMap.put("value01", value01);
                 //更新阀门状态
                 String url1 = "http://118.25.217.87/emac_android_connect/get_hbhxznas_all_data.php";
-                paramMap.put("operatecmd","getdatabyaddr");
+                paramMap.put("operatecmd", "getdatabyaddr");
                 String res1 = restTemplate.postForEntity(url1, paramMap, String.class).getBody();
                 JSONObject object1 = JSONObject.parseObject(res1);
                 JSONArray data = object1.getJSONArray("message");
                 try {
                     DeviceCheck device = deviceCheckDao.findByImei(data.getJSONObject(0).get("imei").toString());
-                    if (device != null){
+                    if (device != null) {
                         device.setValve(Integer.valueOf(data.getJSONObject(0).get("switch_status").toString()));
                         deviceCheckDao.save(device);
                     }
                     Device device1 = deviceService.findByImei(data.getJSONObject(0).get("imei").toString());
-                    if (device1!= null){
+                    if (device1 != null) {
                         device1.setValve(Integer.valueOf(data.getJSONObject(0).get("switch_status").toString()));
                         deviceService.updateDevice(device1);
                     }
                     System.out.println("更新成功");
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
 
             jsonMap.put("code", "200");
             jsonMap.put("info", "更新成功");
-        }catch (Exception e){
+        } catch (Exception e) {
             jsonMap.put("code", "-1");
             jsonMap.put("info", "更新失败");
         }
-        Object object = JSONObject.toJSON(jsonMap);
-        return object;
+        Object o =JSONObject.toJSON(jsonMap);
+        return o;
     }
 
     /**
