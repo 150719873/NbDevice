@@ -169,7 +169,7 @@ public class CenterController {
      *
      */
     @ResponseBody
-    @PostMapping("delectDeviceInit")
+    @PostMapping("/delectDeviceInit")
     public Object delectDeviceInit(@RequestBody String msg){
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
@@ -191,7 +191,7 @@ public class CenterController {
             jsonMap.put("code","200");
             jsonMap.put("info","删除成功");
         }catch (Exception e){
-                e.printStackTrace();
+             e.printStackTrace();
             jsonMap.put("code","-1");
             jsonMap.put("info","删除失败");
         }

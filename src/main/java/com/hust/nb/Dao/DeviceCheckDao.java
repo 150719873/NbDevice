@@ -6,13 +6,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.beans.Transient;
 import java.sql.Timestamp;
 import java.util.List;
 
-
+@Repository
 public interface DeviceCheckDao extends JpaRepository<DeviceCheck,DeviceCheck>, JpaSpecificationExecutor<DeviceCheck> {
 
     Page<DeviceCheck> findByEnprNo(String enprNo, Pageable pageable);
@@ -42,5 +42,5 @@ public interface DeviceCheckDao extends JpaRepository<DeviceCheck,DeviceCheck>, 
     void deleteByEnprNo(String enprNo);
 
     @Transactional
-    void deleteByImeiAndEnprNo(String imei, String enprNo);
+    void deleteByImeiAndEnprNo(String imei,String enprNo);
 }
