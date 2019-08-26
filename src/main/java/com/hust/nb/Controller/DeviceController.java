@@ -438,6 +438,23 @@ public class DeviceController {
                     Device device = deviceService.findByImei(data.getJSONObject(i).get("imei").toString());
                     if (device != null){
                         if (device.getBatteryVoltage() != null){
+                            if (!device.getReadTime().equals(Timestamp.valueOf(data.getJSONObject(i).get("node_updatetime").toString()))
+                                    ||device.getValve() != (Integer.valueOf(data.getJSONObject(i).get("switch_status").toString()))){
+                                //插入historyData表
+                                Historydata h = new Historydata();
+                                h.setDeviceNo(device.getDeviceNo());
+                                h.setDeviceValue(new BigDecimal(data.getJSONObject(i).get("ton").toString()));
+                                h.setImei(device.getImei());
+                                h.setReadTime(Timestamp.valueOf(data.getJSONObject(i).get("node_updatetime").toString()));
+                                if (data.getJSONObject(i).get("rssi")!= null){
+                                    h.setSignalQuality(Integer.parseInt(data.getJSONObject(i).get("rssi").toString()));
+                                }
+                                try {
+                                    historydataService.save(h);
+                                }catch (Exception e){
+                                    e.printStackTrace();
+                                }
+                            }
                             if ((!device.getReadTime().equals(Timestamp.valueOf(data.getJSONObject(i).get("node_updatetime").toString()))
                                     ||device.getValve() != (Integer.valueOf(data.getJSONObject(i).get("switch_status").toString()))
                                     ||!device.getBatteryVoltage().equals(data.getJSONObject(i).get("batteryval").toString()))
@@ -453,22 +470,6 @@ public class DeviceController {
                                 device.setReadTime(Timestamp.valueOf(data.getJSONObject(i).get("node_updatetime").toString()));
                                 device.setValve(Integer.valueOf(data.getJSONObject(i).get("switch_status").toString()));
                                 deviceService.addDevice(device);
-                                //插入historyData表
-                                // todo 修改
-                                Historydata h = new Historydata();
-                                h.setDeviceNo(device.getDeviceNo());
-                                h.setDeviceValue(new BigDecimal(data.getJSONObject(i).get("ton").toString()));
-                                h.setImei(device.getImei());
-                                h.setReadTime(Timestamp.valueOf(data.getJSONObject(i).get("node_updatetime").toString()));
-                                if (data.getJSONObject(i).get("rssi")!= null){
-                                    h.setSignalQuality(Integer.parseInt(data.getJSONObject(i).get("rssi").toString()));
-                                }
-                                try {
-                                    historydataService.save(h);
-                                }catch (Exception e){
-                                    e.printStackTrace();
-                                }
-
                             }
                         }else if (device.getBatteryVoltage() == null && data.getJSONObject(i).get("batteryval").toString() != null){
                             device.setBatteryVoltage(data.getJSONObject(i).get("batteryval").toString());
