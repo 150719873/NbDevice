@@ -50,6 +50,9 @@ public class CenterController {
     OperatorDao operatorDao;
 
     @Autowired
+    DeviceRelationDao deviceRelationDao;
+
+    @Autowired
     DeviceDao deviceDao;
 
     @Autowired
@@ -207,7 +210,7 @@ public class CenterController {
     public Object updataNBDevice(@RequestBody String msg){
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
-        Integer check = jsonObject.getInteger("check");//更新出厂检测表数据，为1，更新正式使用表为0
+        Integer check = jsonObject.getInteger("check");
         Integer flag = jsonObject.getInteger("flag");//0为获得全部设备信息，1为根据地址获得表信息，2单独更新阀门
 
         Map<String, Object> map = new HashMap<>();
@@ -218,12 +221,7 @@ public class CenterController {
         try {
             if (flag == 0){
                 deviceController.getSZNBdevice(map);
-            }else if(flag == 1){
-                String macAddr = jsonObject.getString("macAddr");
-                map.put("macAddr",macAddr);
-                deviceController.getSZNBdevice(map);
-            }
-            else if (flag == 2){
+            }else if (flag == 2){
                 //更新某一表阀门状态
                 String macAddr = jsonObject.getString("macAddr");
                 JSONObject paramMap = new JSONObject();
