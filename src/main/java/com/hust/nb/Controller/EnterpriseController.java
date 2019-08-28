@@ -80,6 +80,11 @@ public class EnterpriseController {
         String enprNo = changeEntity.getEnprNo();
         int type = changeEntity.getType();
         ChargeLevel chargeLevelEntity = chargeLevelService.getByEnprNoAndType(enprNo, type);
+        if (chargeLevelEntity == null){
+             chargeLevelEntity = new ChargeLevel();
+        }
+        chargeLevelEntity.setType(changeEntity.getType());
+        chargeLevelEntity.setEnprNo(enprNo);
         chargeLevelEntity.setMin(changeEntity.getMin());
         chargeLevelEntity.setMinCharge(changeEntity.getMinCharge());
         chargeLevelEntity.setFirst(changeEntity.getFirst());
