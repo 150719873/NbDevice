@@ -33,7 +33,6 @@ import java.util.*;
 public class DeviceController {
 
 
-
     @Autowired
     DeviceService deviceService;
 
@@ -71,11 +70,11 @@ public class DeviceController {
         String enprNo = jsonObject.getString("enprNo");
         int flag = jsonObject.getInteger("flag");//0查询运营中的表数据，1查询初装表数据
         try {
-            if (flag == 0){
+            if (flag == 0) {
                 Device device = deviceService.getByDeviceNoAndEnprNo(deviceNo, enprNo);
                 jsonMap.put("data", device);
-            }else if (flag == 1){
-                DeviceCheck d = deviceCheckDao.findByEnprNoAndDeviceNo(enprNo,deviceNo);
+            } else if (flag == 1) {
+                DeviceCheck d = deviceCheckDao.findByEnprNoAndDeviceNo(enprNo, deviceNo);
                 jsonMap.put("data", d);
             }
 
@@ -367,22 +366,18 @@ public class DeviceController {
      * 定时功能，更新
      */
     @Scheduled(cron = "0 0 0/1 * * ? ")
-    public void updateNBDevice(){
+    public void updateNBDevice() {
         Map<String, Object> map = new HashMap<>();
-        map.put("flag",0);
-        map.put("position",0);
-        map.put("count",500);
-        map.put("check",1);
+        map.put("flag", 0);
+        map.put("position", 0);
+        map.put("count", 500);
+        map.put("check", 1);
         try {
             getSZNBdevice(map);
-            map.put("check",0);
-            getSZNBdevice(map);
             System.out.println("更新成功");
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
-
-
     }
 
 
@@ -439,29 +434,29 @@ public class DeviceController {
                     if (device != null){
                         if (device.getBatteryVoltage() != null){
                             if (!device.getReadTime().equals(Timestamp.valueOf(data.getJSONObject(i).get("node_updatetime").toString()))
-                                    ||device.getValve() != (Integer.valueOf(data.getJSONObject(i).get("switch_status").toString()))){
+                                    || device.getValve() != (Integer.valueOf(data.getJSONObject(i).get("switch_status").toString()))) {
                                 //插入historyData表
                                 Historydata h = new Historydata();
                                 h.setDeviceNo(device.getDeviceNo());
                                 h.setDeviceValue(new BigDecimal(data.getJSONObject(i).get("ton").toString()));
                                 h.setImei(device.getImei());
                                 h.setReadTime(Timestamp.valueOf(data.getJSONObject(i).get("node_updatetime").toString()));
-                                if (data.getJSONObject(i).get("rssi")!= null){
+                                if (data.getJSONObject(i).get("rssi") != null) {
                                     h.setSignalQuality(Integer.parseInt(data.getJSONObject(i).get("rssi").toString()));
                                 }
                                 try {
                                     historydataService.save(h);
-                                }catch (Exception e){
+                                } catch (Exception e) {
                                     e.printStackTrace();
                                 }
                             }
                             if ((!device.getReadTime().equals(Timestamp.valueOf(data.getJSONObject(i).get("node_updatetime").toString()))
-                                    ||device.getValve() != (Integer.valueOf(data.getJSONObject(i).get("switch_status").toString()))
-                                    ||!device.getBatteryVoltage().equals(data.getJSONObject(i).get("batteryval").toString()))
-                                    &&data.getJSONObject(i).get("batteryval").toString() != null){
+                                    || device.getValve() != (Integer.valueOf(data.getJSONObject(i).get("switch_status").toString()))
+                                    || !device.getBatteryVoltage().equals(data.getJSONObject(i).get("batteryval").toString()))
+                                    && data.getJSONObject(i).get("batteryval").toString() != null) {
                                 device.setBatteryVoltage(data.getJSONObject(i).get("batteryval").toString());
                                 device.setReadValue(new BigDecimal(data.getJSONObject(i).get("ton").toString()));
-                                if (data.getJSONObject(i).get("rssi")!= null){
+                                if (data.getJSONObject(i).get("rssi") != null) {
                                     device.setRssi(data.getJSONObject(i).get("rssi").toString());
                                 }
                                 device.setMacAddr(data.getJSONObject(i).get("mac_addr").toString());
@@ -471,10 +466,10 @@ public class DeviceController {
                                 device.setValve(Integer.valueOf(data.getJSONObject(i).get("switch_status").toString()));
                                 deviceService.addDevice(device);
                             }
-                        }else if (device.getBatteryVoltage() == null && data.getJSONObject(i).get("batteryval").toString() != null){
+                        } else if (device.getBatteryVoltage() == null && data.getJSONObject(i).get("batteryval").toString() != null) {
                             device.setBatteryVoltage(data.getJSONObject(i).get("batteryval").toString());
                             device.setReadValue(new BigDecimal(data.getJSONObject(i).get("ton").toString()));
-                            if (data.getJSONObject(i).get("rssi")!= null){
+                            if (data.getJSONObject(i).get("rssi") != null) {
                                 device.setRssi(data.getJSONObject(i).get("rssi").toString());
                             }
                             device.setMacAddr(data.getJSONObject(i).get("mac_addr").toString());
@@ -489,28 +484,28 @@ public class DeviceController {
                             h.setDeviceValue(new BigDecimal(data.getJSONObject(i).get("ton").toString()));
                             h.setImei(device.getImei());
                             h.setReadTime(Timestamp.valueOf(data.getJSONObject(i).get("node_updatetime").toString()));
-                            if (data.getJSONObject(i).get("rssi")!= null){
+                            if (data.getJSONObject(i).get("rssi") != null) {
                                 h.setSignalQuality(Integer.parseInt(data.getJSONObject(i).get("rssi").toString()));
                             }
                             try {
                                 historydataService.save(h);
-                            }catch (Exception e){
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
                         }
                     }
 
 
-            }
+                }
 
-            }else if (check == 1){
+            } else if (check == 1) {
                 JSONArray data = object.getJSONArray("message");
-                for (int i = 0; i < data.size(); i++){
+                for (int i = 0; i < data.size(); i++) {
                     String imei = data.getJSONObject(i).get("imei").toString();
                     DeviceCheck device = deviceCheckDao.findByImei(imei);
 //                    System.out.println(data.getJSONObject(i).get("batteryval").toString());
-                    if (device !=null){
-                        if (device.getBatteryVoltage() == null && data.getJSONObject(i).get("batteryval").toString() != null){
+                    if (device != null) {
+                        if (device.getBatteryVoltage() == null && data.getJSONObject(i).get("batteryval").toString() != null) {
                             device.setBatteryVoltage(data.getJSONObject(i).get("batteryval").toString());
                             device.setReadValue(new BigDecimal(data.getJSONObject(i).get("ton").toString()));
                             if (data.getJSONObject(i).get("rssi") != null) {
@@ -522,12 +517,11 @@ public class DeviceController {
                             device.setReadTime(Timestamp.valueOf(data.getJSONObject(i).get("node_updatetime").toString()));
                             device.setValve(Integer.valueOf(data.getJSONObject(i).get("switch_status").toString()));
                             deviceCheckDao.save(device);
-                        }else
-                        if (device.getBatteryVoltage() != null){
+                        } else if (device.getBatteryVoltage() != null) {
                             if ((!device.getReadTime().equals(Timestamp.valueOf(data.getJSONObject(i).get("node_updatetime").toString()))
-                                    ||device.getValve() != (Integer.valueOf(data.getJSONObject(i).get("switch_status").toString()))
-                                    ||!device.getBatteryVoltage().equals(data.getJSONObject(i).get("batteryval").toString()))
-                                    &&data.getJSONObject(i).get("batteryval").toString() != null) {
+                                    || device.getValve() != (Integer.valueOf(data.getJSONObject(i).get("switch_status").toString()))
+                                    || !device.getBatteryVoltage().equals(data.getJSONObject(i).get("batteryval").toString()))
+                                    && data.getJSONObject(i).get("batteryval").toString() != null) {
                                 device.setBatteryVoltage(data.getJSONObject(i).get("batteryval").toString());
                                 device.setReadValue(new BigDecimal(data.getJSONObject(i).get("ton").toString()));
                                 if (data.getJSONObject(i).get("rssi") != null) {
@@ -546,7 +540,7 @@ public class DeviceController {
 
                 }
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 //        Object o = JSONObject.toJSON(object);
@@ -559,7 +553,7 @@ public class DeviceController {
      */
     @ResponseBody
     @PostMapping("/getCommandToDevice")
-    public Object getCommandToDevice(@RequestBody String msg){
+    public Object getCommandToDevice(@RequestBody String msg) {
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
         Integer command = jsonObject.getInteger("command");//命令0代表从设备获取数据，1代表初始化底数 2代表阀门控制，1，2需要给参数value01即底数参数或状态参数
@@ -577,63 +571,63 @@ public class DeviceController {
         String res = "";
         JSONObject object = new JSONObject();
         try {
-            if (command == 0){
+            if (command == 0) {
                 paramMap.put("operatecmd", "getton");
-                res = restTemplate.postForEntity(url,paramMap,String.class).getBody();
+                res = restTemplate.postForEntity(url, paramMap, String.class).getBody();
                 object = JSONObject.parseObject(res);
                 System.out.println("getton");
-            }else if (command == 1){
+            } else if (command == 1) {
                 Integer value01 = jsonObject.getInteger("value01");
 //                String value02 = jsonObject.getString("value02");//备用
-                paramMap.put("operatecmd","initton");
-                paramMap.put("value01",value01);
-                res = restTemplate.postForEntity(url,paramMap,String.class).getBody();
+                paramMap.put("operatecmd", "initton");
+                paramMap.put("value01", value01);
+                res = restTemplate.postForEntity(url, paramMap, String.class).getBody();
                 object = JSONObject.parseObject(res);
                 System.out.println("initton");
-            }else if (command == 2){
+            } else if (command == 2) {
                 Integer value01 = jsonObject.getInteger("value01");
-                paramMap.put("operatecmd","switchtip");
-                paramMap.put("value01",value01);
-                res = restTemplate.postForEntity(url,paramMap,String.class).getBody();
+                paramMap.put("operatecmd", "switchtip");
+                paramMap.put("value01", value01);
+                res = restTemplate.postForEntity(url, paramMap, String.class).getBody();
                 object = JSONObject.parseObject(res);
                 //更新阀门状态
                 String url1 = "http://118.25.217.87/emac_android_connect/get_hbhxznas_all_data.php";
-                paramMap.put("operatecmd","getdatabyaddr");
+                paramMap.put("operatecmd", "getdatabyaddr");
                 String res1 = restTemplate.postForEntity(url1, paramMap, String.class).getBody();
                 JSONObject object1 = JSONObject.parseObject(res1);
                 JSONArray data = object1.getJSONArray("message");
                 try {
                     DeviceCheck device = deviceCheckDao.findByImei(data.getJSONObject(0).get("imei").toString());
-                    if (device != null){
+                    if (device != null) {
                         device.setValve(Integer.valueOf(data.getJSONObject(0).get("switch_status").toString()));
                         deviceCheckDao.save(device);
                     }
                     Device device1 = deviceService.findByImei(data.getJSONObject(0).get("imei").toString());
-                    if (device1!= null){
+                    if (device1 != null) {
                         device1.setValve(Integer.valueOf(data.getJSONObject(0).get("switch_status").toString()));
                         deviceService.updateDevice(device1);
                     }
                     System.out.println("更新成功");
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 
 
                 System.out.println("switchtip");
             }
-            jsonMap.put("code","200");
-            jsonMap.put("info","命令成功");
-            jsonMap.put("data",object);
-        }catch (Exception e){
-            jsonMap.put("code","-1");
-            jsonMap.put("info","命令失败");
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "命令成功");
+            jsonMap.put("data", object);
+        } catch (Exception e) {
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "命令失败");
         }
-        Object o =JSONObject.toJSON(jsonMap);
+        Object o = JSONObject.toJSON(jsonMap);
         return o;
 
     }
 
-    public void updataSwitch(){
+    public void updataSwitch() {
 
     }
 }
