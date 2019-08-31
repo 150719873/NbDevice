@@ -627,7 +627,4 @@ public class DeviceController {
 
     }
 
-    public void updataSwitch() {
-
-    }
 }
