@@ -245,15 +245,18 @@ public class CenterController {
                 JSONObject object1 = JSONObject.parseObject(res1);
                 JSONArray data = object1.getJSONArray("message");
                 try {
-                    DeviceCheck device = deviceCheckDao.findByImei(data.getJSONObject(0).get("imei").toString());
-                    if (device != null) {
-                        device.setValve(Integer.valueOf(data.getJSONObject(0).get("switch_status").toString()));
-                        deviceCheckDao.save(device);
-                    }
-                    Device device1 = deviceService.findByImei(data.getJSONObject(0).get("imei").toString());
-                    if (device1 != null) {
-                        device1.setValve(Integer.valueOf(data.getJSONObject(0).get("switch_status").toString()));
-                        deviceService.updateDevice(device1);
+                    if (check == 1){
+                        DeviceCheck device = deviceCheckDao.findByImei(data.getJSONObject(0).get("imei").toString());
+                        if (device != null) {
+                            device.setValve(Integer.valueOf(data.getJSONObject(0).get("switch_status").toString()));
+                            deviceCheckDao.save(device);
+                        }
+                    }else {
+                        Device device1 = deviceService.findByImei(data.getJSONObject(0).get("imei").toString());
+                        if (device1 != null) {
+                            device1.setValve(Integer.valueOf(data.getJSONObject(0).get("switch_status").toString()));
+                            deviceService.updateDevice(device1);
+                        }
                     }
                     System.out.println("更新成功");
                 } catch (Exception e) {
