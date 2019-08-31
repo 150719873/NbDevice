@@ -10,6 +10,8 @@ import com.hust.nb.Entity.Operator;
 import com.hust.nb.Service.ChargeLevelService;
 import com.hust.nb.Service.EnterpriseCollectionService;
 import com.hust.nb.Service.EnterpriseService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
@@ -43,6 +45,8 @@ public class EnterpriseController {
     @Autowired
     OperatorDao operatorDao;
 
+    private static Logger logger = LoggerFactory.getLogger(EnterpriseController.class);
+
     /**
      * 获取该水司下的所有阶梯水价
      */
@@ -59,7 +63,7 @@ public class EnterpriseController {
             jsonMap.put("info", "获取成功");
             jsonMap.put("data", levelList);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
             jsonMap.put("code", "-1");
             jsonMap.put("info", "获取失败");
         }
@@ -103,7 +107,7 @@ public class EnterpriseController {
             jsonMap.put("code", "200");
             jsonMap.put("info", "修改成功");
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
             jsonMap.put("code", "-1");
             jsonMap.put("info", "修改失败");
         }
@@ -140,6 +144,7 @@ public class EnterpriseController {
             jsonMap.put("code", "200");
             jsonMap.put("info", "设置修改成功");
         }catch (Exception e){
+            logger.error(e.getMessage());
             jsonMap.put("code", "-1");
             jsonMap.put("info", "设置修改失败");
         }
@@ -179,10 +184,12 @@ public class EnterpriseController {
                 jsonMap.put("info", "查询成功");
                 jsonMap.put("data", mapList);
             } else {
+                logger.warn("无水司");
                 jsonMap.put("code", "-2");
                 jsonMap.put("info", "无水司");
             }
         } else {
+            logger.warn("权限不足");
             jsonMap.put("code", "-1");
             jsonMap.put("info", "权限不足");
         }
@@ -238,7 +245,7 @@ public class EnterpriseController {
                     operatorDao.save(operator);
                     operatorDao.save(operator2);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.error(e.getMessage());
                     jsonMap.put("code", "-2");
                     jsonMap.put("info", "添加失败");
                 }
@@ -265,6 +272,7 @@ public class EnterpriseController {
                 jsonMap.put("info", "修改成功");
             }
         } else {
+            logger.warn("权限不足");
             jsonMap.put("code", "-1");
             jsonMap.put("info", "权限不足");
         }

@@ -74,27 +74,31 @@ public class DayCountScheduledJob {
         BigDecimal zero = new BigDecimal(0);
         Calendar calendar = Calendar.getInstance();
         for (Device device : deviceList) {
-            if (device.getImei() != null) {
-                Daycount daycount = new Daycount();
-                daycount.setDeviceNo(device.getDeviceNo());
-                daycount.setEnprNo(device.getEnprNo());
-                daycount.setEndTime(device.getReadTime());
-                daycount.setEndValue(device.getReadValue());
-                daycount.setDate(GetDate.getYesterday());
-                daycount.setDayAmount(device.getReadValue().subtract(device.getPreReadValue()));
-                if (daycount.getStartTime() == daycount.getEndTime()) {
-                    daycount.setState(2);
-                } else if (daycount.getDayAmount().compareTo(limit) == 1) {
-                    daycount.setState(3);
-                } else if (daycount.getDayAmount().compareTo(zero) == -1) {
-                    daycount.setState(1);
-                } else {
-                    daycount.setState(0);
+            try{
+                if (device.getImei() != null) {
+                    Daycount daycount = new Daycount();
+                    daycount.setDeviceNo(device.getDeviceNo());
+                    daycount.setEnprNo(device.getEnprNo());
+                    daycount.setEndTime(device.getReadTime());
+                    daycount.setEndValue(device.getReadValue());
+                    daycount.setDate(GetDate.getYesterday());
+                    daycount.setDayAmount(device.getReadValue().subtract(device.getPreReadValue()));
+                    if (daycount.getStartTime() == daycount.getEndTime()) {
+                        daycount.setState(2);
+                    } else if (daycount.getDayAmount().compareTo(limit) == 1) {
+                        daycount.setState(3);
+                    } else if (daycount.getDayAmount().compareTo(zero) == -1) {
+                        daycount.setState(1);
+                    } else {
+                        daycount.setState(0);
+                    }
+                    device.setPreReadValue(device.getReadValue());
+                    device.setPreReadTime(device.getReadTime());
+                    device.setMonthAmount(device.getMonthAmount().add(daycount.getDayAmount()));
+                    daycostService.updateDeviceAndDaycount(device, daycount);
                 }
-                device.setPreReadValue(device.getReadValue());
-                device.setPreReadTime(device.getReadTime());
-                device.setMonthAmount(device.getMonthAmount().add(daycount.getDayAmount()));
-                daycostService.updateDeviceAndDaycount(device, daycount);
+            } catch (Exception e){
+                logger.error(e.getMessage());
             }
         }
     }
@@ -111,7 +115,11 @@ public class DayCountScheduledJob {
             String enprNo = enterprise.getEnprNo();
             List<User> userList = userDao.findAllByEnprNo(enprNo);
             for (User user : userList) {
-                userProcess(calendar, enprNo, user);
+                try{
+                    userProcess(calendar, enprNo, user);
+                } catch (Exception e){
+                    logger.error(e.getMessage());
+                }
             }
         }
     }
@@ -123,7 +131,7 @@ public class DayCountScheduledJob {
      * @param enprNo
      * @param user
      */
-    public void userProcess(Calendar calendar, String enprNo, User user) {
+    public void userProcess(Calendar calendar, String enprNo, User user) throws Exception{
         Daycost daycost = new Daycost();
         List<Device> deviceList = deviceDao.findAllByUserId(user.getUserId());
         BigDecimal userDayAmount = new BigDecimal("0");
@@ -267,7 +275,7 @@ public class DayCountScheduledJob {
                 try {
                     warningDao.save(warning);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.error(e.getMessage());
                 }
             }
         }

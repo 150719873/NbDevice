@@ -6,6 +6,8 @@ import com.hust.nb.Entity.Monthcost;
 import com.hust.nb.Entity.User;
 import com.hust.nb.Service.MonthcostService;
 import com.hust.nb.Service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
@@ -29,6 +31,8 @@ public class UserController {
     @Autowired
     MonthcostService monthcostService;
 
+    private static Logger logger = LoggerFactory.getLogger(UserController.class);
+
 
     /**
      * 方法功能描述:更改单个用户详细信息
@@ -44,6 +48,7 @@ public class UserController {
             jsonMap.put("code", "200");
             jsonMap.put("info", "编辑成功");
         } catch (Exception e) {
+            logger.error(e.getMessage());
             jsonMap.put("code", "-1");
             jsonMap.put("info", "编辑失败");
         }
@@ -67,7 +72,7 @@ public class UserController {
             jsonMap.put("info", "查询成功");
             jsonMap.put("data", user);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
@@ -92,6 +97,7 @@ public class UserController {
             jsonMap.put("info", "查询成功");
             jsonMap.put("data", monthcosts);
         } catch (Exception e){
+            logger.error(e.getMessage());
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
@@ -116,7 +122,7 @@ public class UserController {
             jsonMap.put("info", "查询成功");
             jsonMap.put("data", monthcosts);
         } catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getMessage());
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
@@ -152,6 +158,7 @@ public class UserController {
             jsonMap.put("code", "200");
             jsonMap.put("info", "编辑成功");
         } catch (Exception e) {
+            logger.error(e.getMessage());
             jsonMap.put("code", "-1");
             jsonMap.put("info", "编辑失败");
         }

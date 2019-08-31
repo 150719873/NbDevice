@@ -2,25 +2,20 @@ package com.hust.nb.Controller;
 
 import cn.hutool.http.Header;
 import cn.hutool.http.HttpRequest;
-import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.hust.nb.Dao.BigDeviceDao;
 import com.hust.nb.Entity.BigDevice;
 import com.hust.nb.util.BigDevicePropUtil;
-import com.hust.nb.util.GetDate;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
-import sun.net.www.http.HttpClient;
 
-import javax.swing.text.EditorKit;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -39,6 +34,8 @@ public class BigDeviceController {
     @Autowired
     private BigDeviceDao bigDeviceDao;
 
+    private static Logger logger = LoggerFactory.getLogger(BigDeviceController.class);
+
     /**
      * 授权  获取第三方token
      */
@@ -55,10 +52,8 @@ public class BigDeviceController {
         //获取第三方token
         try {
             tokenStr = HttpRequest.post(url).header(Header.ACCEPT,"text/json").form(paramsMap).execute().body();
-
         }catch (Exception e){
-            e.printStackTrace();
-            System.out.println("登录接口异常");
+            logger.error("第三方token获取异常: " + e.getMessage());
         }
         //fastjson 解析，返回
         try {
@@ -70,9 +65,9 @@ public class BigDeviceController {
             jsonMap.put("code","200");
             jsonMap.put("info",token);
         }catch (Exception e){
+            logger.error("第三方token读取异常: " + e.getMessage());
             jsonMap.put("code","-1");
             jsonMap.put("info","读取失败");
-
         }
         Object o =JSONObject.toJSON(jsonMap);
         return o;
@@ -166,22 +161,17 @@ public class BigDeviceController {
                         verify.setPressValue(new BigDecimal(data.getJSONObject(i).get("PressValue").toString()));
                         verify.setForValue(new BigDecimal(data.getJSONObject(i).get("ForValue").toString()));
                         verify.setCelVal(new BigDecimal(data.getJSONObject(i).get("CelVal").toString()));
-
                         list.add(verify);
-
-
-
                     }
 
                 }
             }
-
             try {
                 bigDeviceDao.saveAll(list);
                 object.put("code","200");
                 object.put("info","数据库保存成功");
             }catch (Exception e){
-                e.printStackTrace();
+                logger.error(e.getMessage());
                 object.put("code","-2");
                 object.put("info","保存至本地数据库失败");
             }
@@ -210,7 +200,7 @@ public class BigDeviceController {
             object.put("code","200");
             object.put("info","查询成功");
         }catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getMessage());
             object.put("code","-1");
             object.put("info","查询失败");
         }
@@ -240,7 +230,7 @@ public class BigDeviceController {
             object.put("code","200");
             object.put("info","查询成功");
         }catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getMessage());
             object.put("code","-1");
             object.put("info","查询失败");
         }
@@ -262,8 +252,7 @@ public class BigDeviceController {
         String day = jsonObject.getString("day");
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = format.parse(day);
-        System.out.println(date);
-
+        logger.info("date is : " + date);
         paramMap.put("PhoneNumber",phoneNumber);
         paramMap.put("AddressCode",addressCode);
         paramMap.put("AnalysisDate",format.format(date));
@@ -276,12 +265,19 @@ public class BigDeviceController {
             object.put("code","200");
             object.put("info","查询成功");
         }catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getMessage());
             object.put("code","-1");
             object.put("info","查询失败");
         }
         Object o = JSONObject.toJSON(object);
         return o;
+    }
+
+    @ResponseBody
+    @PostMapping("/testLog")
+    public Object testLog() throws Exception{
+        logger.error("come");
+        return null;
     }
 
     /**
@@ -298,7 +294,7 @@ public class BigDeviceController {
         String month = jsonObject.getString("month");
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM");
         Date date = format.parse(month);
-        System.out.println(date);
+        logger.info("date is : " + date);
         paramMap.put("PhoneNumber",phoneNumber);
         paramMap.put("AddressCode",addressCode);
         paramMap.put("AnalysisDate",date);
@@ -311,7 +307,7 @@ public class BigDeviceController {
             object.put("code","200");
             object.put("info","查询成功");
         }catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getMessage());
             object.put("code","-1");
             object.put("info","查询失败");
         }
@@ -335,8 +331,8 @@ public class BigDeviceController {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date start = sdf.parse(startTime);
         Date end = sdf.parse(endTime);
-        System.out.println(start);
-        System.out.println(end);
+        logger.info("start is :" + start);
+        logger.info("end is :" + end);
         paramMap.put("Page",page);
         paramMap.put("AddressCode",addressCode);
         paramMap.put("AnalysisDate",start);
@@ -350,7 +346,7 @@ public class BigDeviceController {
             object.put("code","200");
             object.put("info","查询成功");
         }catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getMessage());
             object.put("code","-1");
             object.put("info","查询失败");
         }
@@ -374,8 +370,8 @@ public class BigDeviceController {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date start = sdf.parse(startTime);
         Date end = sdf.parse(endTime);
-        System.out.println(start);
-        System.out.println(end);
+        logger.info("start is :" + start);
+        logger.info("end is :" + end);
         paramMap.put("Page",page);
         paramMap.put("AddressCode",addressCode);
         paramMap.put("AnalysisDate",start);
@@ -389,7 +385,7 @@ public class BigDeviceController {
             object.put("code","200");
             object.put("info","查询成功");
         }catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getMessage());
             object.put("code","-1");
             object.put("info","查询失败");
         }
@@ -412,15 +408,15 @@ public class BigDeviceController {
         if (flag == 1){
             //发送读取实时数据命令
             url = bigDevicePropUtil.getBigDeviceUrl()+"api/Remote/ReadNowData";
-            System.out.println(url);
+            logger.info("url is :" + url);
         }else if (flag == 2){
             //发送校正时间命令
             url = bigDevicePropUtil.getBigDeviceUrl()+"api/Remote/CorrectionTime";
-            System.out.println(url);
+            logger.info("url is :" + url);
         }else if (flag == 3){
             //设置采集和上报周期
             url = bigDevicePropUtil.getBigDeviceUrl()+"api/Remote/SetSTPITV";
-            System.out.println(url);
+            logger.info("url is :" + url);
             Integer TPITV = jsonObject.getInteger("TPITV");//采集周期 s
             Integer SPITV = jsonObject.getInteger("SPITV");//上报周期 m
             paramMap.put("TPITV",TPITV);
@@ -437,7 +433,7 @@ public class BigDeviceController {
             object.put("code","200");
             object.put("info","发送成功，具体查看flag字段，1成功，2失败");
         }catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getMessage());
         }
         Object o = JSONObject.toJSON(object);
         return o;

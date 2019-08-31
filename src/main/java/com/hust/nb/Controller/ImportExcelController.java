@@ -10,6 +10,8 @@ import com.hust.nb.Entity.*;
 import com.hust.nb.Service.*;
 import com.hust.nb.util.ImportExcel;
 import com.hust.nb.util.WDWUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -59,6 +61,9 @@ public class ImportExcelController {
     @Autowired
     DeviceCheckDao deviceCheckDao;
 
+    private static Logger logger = LoggerFactory.getLogger(ImportExcelController.class);
+
+
     /**
      * @param msg 创建区域
      */
@@ -96,6 +101,7 @@ public class ImportExcelController {
             jsonMap.put("code", "200");
             jsonMap.put("info", "导入成功");
         } catch (Exception e) {
+            logger.error(e.getMessage());
             jsonMap.put("code", "-1");
             jsonMap.put("info", "导入失败");
         }
@@ -135,6 +141,7 @@ public class ImportExcelController {
             jsonMap.put("code", "200");
             jsonMap.put("info", "导入成功");
         } catch (Exception e) {
+            logger.error(e.getMessage());
             jsonMap.put("code", "-1");
             jsonMap.put("info", "导入失败");
         }
@@ -172,6 +179,7 @@ public class ImportExcelController {
             try {
                 is = file.getInputStream();
             } catch (IOException e) {
+                logger.error(e.getMessage());
                 e.printStackTrace();
             }
             List<List<String>>[] sheets = importExcel.readSheets(is, isExcel2003);//读取整个EXCEL文件
@@ -190,6 +198,7 @@ public class ImportExcelController {
                     try {
                         importExcelService.saveBlock(blockEntity);
                     } catch (Exception e) {
+                        logger.error(e.getMessage());
                         jsonMap.put("code", "-1");
                         jsonMap.put("info", "导入楼栋失败");
                     }
@@ -237,6 +246,7 @@ public class ImportExcelController {
                                     //对于user表，数据库设计的是用户名和block_id,.addr在一起的联合索引，即三个都一样的话就插不进去
                                     //如果插不进去则说明已经存在这个用户，为保证重复批量导入时不会导入同一个用户多次
                                 } catch (Exception e) {
+                                    logger.error(e.getMessage());
                                     jsonMap.put("code", "-1");
                                     jsonMap.put("info", "导入user表失败");
                                 }
@@ -247,11 +257,10 @@ public class ImportExcelController {
                                 Device deviceEntity = new Device();
                                 try {
                                     String addr = cellList.get(9);
-                                    System.out.println(addr);
+                                    logger.info("addr is : " + addr);
                                     userNo = importExcelService.findUserByUserNameAndUserTelAndAddr(cellList.get(1), cellList.get(3),addr);
                                 } catch (Exception e) {
-                                    e.printStackTrace();
-                                    System.out.println("根据姓名和电话查找User失败");
+                                    logger.error("根据姓名和电话查找User失败" + e.getMessage());
                                 }
 
                                 deviceEntity.setUserId(userNo);
@@ -282,13 +291,13 @@ public class ImportExcelController {
                                     deviceEntity.setInstallDate(date1);
                                     deviceEntity.setReadTime(Timestamp.valueOf(cellList.get(14)));
                                 } catch (Exception e) {
-                                    e.printStackTrace();
+                                    logger.error(e.getMessage());
                                 }
 
                                 try {
                                     importExcelService.saveImportedExcelDevice(deviceEntity);
                                 } catch (Exception e) {
-                                    e.printStackTrace();
+                                    logger.error(e.getMessage());
                                     jsonMap.put("code", "-1");
                                     jsonMap.put("info", "导入device表失败");
                                 }
@@ -302,7 +311,7 @@ public class ImportExcelController {
                     jsonMap.put("code", "200");
                     jsonMap.put("info", "添加成功");
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.error(e.getMessage());
                     jsonMap.put("code", "-1");
                     jsonMap.put("info", "添加失败");
                 }
@@ -335,7 +344,7 @@ public class ImportExcelController {
         try {
             is = file.getInputStream();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
         }
         List<List<String>>[] sheets = importExcel.readSheets(is, isExcel2003);//读取整个EXCEL文件
         try {
@@ -353,8 +362,7 @@ public class ImportExcelController {
                             deviceCheckDao.save(d);
 
                         }catch (Exception e){
-                            e.printStackTrace();
-
+                            logger.error(e.getMessage());
                         }
                     }
                 }
@@ -362,7 +370,7 @@ public class ImportExcelController {
             jsonMap.put("code", "200");
             jsonMap.put("info", "添加成功");
         }catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getMessage());
             jsonMap.put("code", "-1");
             jsonMap.put("info", "添加失败");
         }
@@ -390,7 +398,7 @@ public class ImportExcelController {
         try {
             is = file.getInputStream();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
         }
         List<List<String>>[] sheets = importExcel.readSheets(is, isExcel2003);//读取整个EXCEL文件
         StringBuffer errstr = new StringBuffer();
@@ -407,8 +415,6 @@ public class ImportExcelController {
         for (int i = 0; i < sheets.length;i++){
             List<List<String>> lists = sheets[i];
             for (int j = 2; j < lists.size(); j++) {
-
-
                     int k = j+1;
                     List<String> cellList = lists.get(j);
                     DeviceCheck deviceName = deviceCheckDao.findByImeiAndDeviceNo(cellList.get(10),cellList.get(8));
@@ -444,7 +450,7 @@ public class ImportExcelController {
                 jsonMap.put("info", errstr);
             }
         }catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getMessage());
             jsonMap.put("code", "-1");
             jsonMap.put("info", "导入检测失败");
         }
@@ -473,7 +479,7 @@ public class ImportExcelController {
         try {
             is = file.getInputStream();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
         }
         List<List<String>>[] sheets = importExcel.readSheets(is, isExcel2003);//读取整个EXCEL文件
         try {
@@ -642,7 +648,7 @@ public class ImportExcelController {
                 jsonMap.put("info", errstr);
             }
         }catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getMessage());
             jsonMap.put("code", "-1");
             jsonMap.put("info", "检测失败");
         }

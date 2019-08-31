@@ -12,6 +12,8 @@ import com.hust.nb.util.Adapter;
 import com.hust.nb.util.BigDevicePropUtil;
 import com.hust.nb.util.EntityFactory;
 import com.hust.nb.util.GetDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -58,6 +60,9 @@ public class DeviceController {
     @Autowired
     DeviceCheckDao deviceCheckDao;
 
+    private static Logger logger = LoggerFactory.getLogger(DeviceController.class);
+
+
     /**
      * 方法功能描述:获取水表详细信息
      */
@@ -82,7 +87,7 @@ public class DeviceController {
             jsonMap.put("info", "查询成功");
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
             jsonMap.put("data", "");
@@ -105,6 +110,7 @@ public class DeviceController {
             jsonMap.put("code", "200");
             jsonMap.put("info", "更新成功");
         } catch (Exception e) {
+            logger.error(e.getMessage());
             jsonMap.put("code", "-1");
             jsonMap.put("info", "更新失败");
         }
@@ -213,7 +219,7 @@ public class DeviceController {
                 jsonMap.put("code", "200");
                 jsonMap.put("info", "更换水表成功");
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error(e.getMessage());
                 jsonMap.put("code", "-1");
                 jsonMap.put("info", "更换水表失败");
             }
@@ -253,7 +259,7 @@ public class DeviceController {
                 jsonMap.put("info", "查询成功");
                 jsonMap.put("data", res);
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error(e.getMessage());
                 jsonMap.put("code", "-1");
                 jsonMap.put("info", "查询失败");
             }
@@ -295,6 +301,7 @@ public class DeviceController {
                 jsonMap.put("info", "查询成功");
                 jsonMap.put("data", ret);
             } catch (Exception e) {
+                logger.error(e.getMessage());
                 jsonMap.put("code", "-1");
                 jsonMap.put("info", "查询失败");
             }
@@ -305,7 +312,7 @@ public class DeviceController {
                     .body(jsonObject.toString())
                     .execute()
                     .body();
-            System.out.println(qbttResult);
+            logger.info("集中器水表" + qbttResult);
             object = qbttResult;
         }
         return object;
@@ -329,6 +336,7 @@ public class DeviceController {
             jsonMap.put("info", "查询成功");
             jsonMap.put("data", pageList);
         } catch (Exception e) {
+            logger.error(e.getMessage());
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
@@ -354,6 +362,7 @@ public class DeviceController {
             jsonMap.put("info", "查询成功");
             jsonMap.put("data", pageList);
         } catch (Exception e) {
+            logger.error(e.getMessage());
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
@@ -374,9 +383,8 @@ public class DeviceController {
         map.put("check", 1);
         try {
             getSZNBdevice(map);
-            System.out.println("更新成功");
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
         }
     }
 
@@ -447,7 +455,7 @@ public class DeviceController {
                                 try {
                                     historydataService.save(h);
                                 } catch (Exception e) {
-                                    e.printStackTrace();
+                                    logger.error(e.getMessage());
                                 }
                             }
                             if ((!device.getReadTime().equals(Timestamp.valueOf(data.getJSONObject(i).get("node_updatetime").toString()))
@@ -490,7 +498,7 @@ public class DeviceController {
                             try {
                                 historydataService.save(h);
                             } catch (Exception e) {
-                                e.printStackTrace();
+                                logger.error(e.getMessage());
                             }
                         }
                     }
@@ -501,27 +509,12 @@ public class DeviceController {
             } else if (check == 1) {
                 JSONArray data = object.getJSONArray("message");
                 for (int i = 0; i < data.size(); i++) {
-                    String imei = data.getJSONObject(i).get("imei").toString();
-                    DeviceCheck device = deviceCheckDao.findByImei(imei);
+                    try{
+                        String imei = data.getJSONObject(i).get("imei").toString();
+                        DeviceCheck device = deviceCheckDao.findByImei(imei);
 //                    System.out.println(data.getJSONObject(i).get("batteryval").toString());
-                    if (device != null) {
-                        if (device.getBatteryVoltage() == null && data.getJSONObject(i).get("batteryval").toString() != null) {
-                            device.setBatteryVoltage(data.getJSONObject(i).get("batteryval").toString());
-                            device.setReadValue(new BigDecimal(data.getJSONObject(i).get("ton").toString()));
-                            if (data.getJSONObject(i).get("rssi") != null) {
-                                device.setRssi(data.getJSONObject(i).get("rssi").toString());
-                            }
-                            device.setMacAddr(data.getJSONObject(i).get("mac_addr").toString());
-                            device.setNbDeviceType(Integer.parseInt(data.getJSONObject(i).get("devicetype").toString()));
-                            device.setPinStatus(Integer.parseInt(data.getJSONObject(i).get("pin_status").toString()));
-                            device.setReadTime(Timestamp.valueOf(data.getJSONObject(i).get("node_updatetime").toString()));
-                            device.setValve(Integer.valueOf(data.getJSONObject(i).get("switch_status").toString()));
-                            deviceCheckDao.save(device);
-                        } else if (device.getBatteryVoltage() != null) {
-                            if ((!device.getReadTime().equals(Timestamp.valueOf(data.getJSONObject(i).get("node_updatetime").toString()))
-                                    || device.getValve() != (Integer.valueOf(data.getJSONObject(i).get("switch_status").toString()))
-                                    || !device.getBatteryVoltage().equals(data.getJSONObject(i).get("batteryval").toString()))
-                                    && data.getJSONObject(i).get("batteryval").toString() != null) {
+                        if (device != null) {
+                            if (device.getBatteryVoltage() == null && data.getJSONObject(i).get("batteryval").toString() != null) {
                                 device.setBatteryVoltage(data.getJSONObject(i).get("batteryval").toString());
                                 device.setReadValue(new BigDecimal(data.getJSONObject(i).get("ton").toString()));
                                 if (data.getJSONObject(i).get("rssi") != null) {
@@ -533,18 +526,33 @@ public class DeviceController {
                                 device.setReadTime(Timestamp.valueOf(data.getJSONObject(i).get("node_updatetime").toString()));
                                 device.setValve(Integer.valueOf(data.getJSONObject(i).get("switch_status").toString()));
                                 deviceCheckDao.save(device);
+                            } else if (device.getBatteryVoltage() != null) {
+                                if ((!device.getReadTime().equals(Timestamp.valueOf(data.getJSONObject(i).get("node_updatetime").toString()))
+                                        || device.getValve() != (Integer.valueOf(data.getJSONObject(i).get("switch_status").toString()))
+                                        || !device.getBatteryVoltage().equals(data.getJSONObject(i).get("batteryval").toString()))
+                                        && data.getJSONObject(i).get("batteryval").toString() != null) {
+                                    device.setBatteryVoltage(data.getJSONObject(i).get("batteryval").toString());
+                                    device.setReadValue(new BigDecimal(data.getJSONObject(i).get("ton").toString()));
+                                    if (data.getJSONObject(i).get("rssi") != null) {
+                                        device.setRssi(data.getJSONObject(i).get("rssi").toString());
+                                    }
+                                    device.setMacAddr(data.getJSONObject(i).get("mac_addr").toString());
+                                    device.setNbDeviceType(Integer.parseInt(data.getJSONObject(i).get("devicetype").toString()));
+                                    device.setPinStatus(Integer.parseInt(data.getJSONObject(i).get("pin_status").toString()));
+                                    device.setReadTime(Timestamp.valueOf(data.getJSONObject(i).get("node_updatetime").toString()));
+                                    device.setValve(Integer.valueOf(data.getJSONObject(i).get("switch_status").toString()));
+                                    deviceCheckDao.save(device);
+                                }
                             }
                         }
+                    } catch (Exception e){
+                        logger.error(e.getMessage());
                     }
-
-
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
         }
-//        Object o = JSONObject.toJSON(object);
-//        return o;
     }
 
 
@@ -575,7 +583,7 @@ public class DeviceController {
                 paramMap.put("operatecmd", "getton");
                 res = restTemplate.postForEntity(url, paramMap, String.class).getBody();
                 object = JSONObject.parseObject(res);
-                System.out.println("getton");
+                logger.info("getton");
             } else if (command == 1) {
                 Integer value01 = jsonObject.getInteger("value01");
 //                String value02 = jsonObject.getString("value02");//备用
@@ -583,7 +591,7 @@ public class DeviceController {
                 paramMap.put("value01", value01);
                 res = restTemplate.postForEntity(url, paramMap, String.class).getBody();
                 object = JSONObject.parseObject(res);
-                System.out.println("initton");
+                logger.info("initton");
             } else if (command == 2) {
                 Integer value01 = jsonObject.getInteger("value01");
                 paramMap.put("operatecmd", "switchtip");
@@ -609,16 +617,15 @@ public class DeviceController {
                     }
                     System.out.println("更新成功");
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.error(e.getMessage());
                 }
-
-
-                System.out.println("switchtip");
+                logger.info("switchtip");
             }
             jsonMap.put("code", "200");
             jsonMap.put("info", "命令成功");
             jsonMap.put("data", object);
         } catch (Exception e) {
+            logger.error(e.getMessage());
             jsonMap.put("code", "-1");
             jsonMap.put("info", "命令失败");
         }
