@@ -1,5 +1,7 @@
 package com.hust.nb.Config;
 
+import org.springframework.util.ClassUtils;
+
 /**
  * Description:nb
  * Created by Administrator on 2019/5/21

@@ -371,22 +371,7 @@ public class DeviceController {
     }
 
 
-    /**
-     * 定时功能，更新
-     */
-    @Scheduled(cron = "0 0 0/1 * * ? ")
-    public void updateNBDevice() {
-        Map<String, Object> map = new HashMap<>();
-        map.put("flag", 0);
-        map.put("position", 0);
-        map.put("count", 500);
-        map.put("check", 1);
-        try {
-            getSZNBdevice(map);
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-        }
-    }
+
 
 
     /**
@@ -526,11 +511,11 @@ public class DeviceController {
                                 device.setReadTime(Timestamp.valueOf(data.getJSONObject(i).get("node_updatetime").toString()));
                                 device.setValve(Integer.valueOf(data.getJSONObject(i).get("switch_status").toString()));
                                 deviceCheckDao.save(device);
-                            } else if (device.getBatteryVoltage() != null) {
+                            } else if (device.getBatteryVoltage() != null  && data.getJSONObject(i).get("batteryval").toString() != null) {
                                 if ((!device.getReadTime().equals(Timestamp.valueOf(data.getJSONObject(i).get("node_updatetime").toString()))
                                         || device.getValve() != (Integer.valueOf(data.getJSONObject(i).get("switch_status").toString()))
                                         || !device.getBatteryVoltage().equals(data.getJSONObject(i).get("batteryval").toString()))
-                                        && data.getJSONObject(i).get("batteryval").toString() != null) {
+                                       ) {
                                     device.setBatteryVoltage(data.getJSONObject(i).get("batteryval").toString());
                                     device.setReadValue(new BigDecimal(data.getJSONObject(i).get("ton").toString()));
                                     if (data.getJSONObject(i).get("rssi") != null) {

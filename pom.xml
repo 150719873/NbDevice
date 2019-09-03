@@ -153,21 +153,53 @@
             <version>4.1.19</version>
         </dependency>
 
-        <!--&lt;!&ndash; https://mvnrepository.com/artifact/com.alipay.sdk/alipay-sdk-java &ndash;&gt;-->
-        <!--<dependency>-->
-            <!--<groupId>com.alipay.sdk</groupId>-->
-            <!--<artifactId>alipay-sdk-java</artifactId>-->
-            <!--<scope>system</scope>-->
-            <!--<systemPath>${basedir}/lib/alipay-sdk-java-3.3.4.ALL.jar</systemPath>-->
-            <!--<version>3.3.4.ALL</version>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>com.alipay</groupId>-->
-            <!--<artifactId>alipay-trade-sdk</artifactId>-->
-            <!--<scope>system</scope>-->
-            <!--<systemPath>${basedir}/lib/alipay-trade-sdk-1.0.0.jar</systemPath>-->
-            <!--<version>20161215</version>-->
-        <!--</dependency>-->
+        <!-- https://mvnrepository.com/artifact/com.alipay.sdk/alipay-sdk-java -->
+        <!--<dependency>
+            <groupId>com.alipay.sdk</groupId>
+            <artifactId>alipay-sdk-java</artifactId>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/alipay-sdk-java-3.3.4.ALL.jar</systemPath>
+            <version>3.3.4.ALL</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alipay</groupId>
+            <artifactId>alipay-trade-sdk</artifactId>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/alipay-trade-sdk-1.0.0.jar</systemPath>
+            <version>20161215</version>
+        </dependency>-->
+
+        <dependency>
+            <groupId>com.alipay</groupId>
+            <artifactId>alipay-trade-sdk</artifactId>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/alipay-trade-sdk-1.0.0.jar</systemPath>
+            <version>20161215</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alipay.sdk</groupId>
+            <artifactId>alipay-sdk-java</artifactId>
+            <version>3.7.4.ALL</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-configuration</groupId>
+            <artifactId>commons-configuration</artifactId>
+            <version>1.10</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>3.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
 
 
         <dependency>

@@ -1,5 +1,6 @@
 package com.hust.nb.ScheduleJob;
 
+import com.hust.nb.Controller.DeviceController;
 import com.hust.nb.Dao.*;
 import com.hust.nb.Entity.*;
 import com.hust.nb.Service.ServiceImpl.DaycostService;
@@ -13,7 +14,9 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Description:nb
@@ -63,6 +66,9 @@ public class DayCountScheduledJob {
     @Autowired
     DaycostService daycostService;
 
+    @Autowired
+    DeviceController deviceController;
+
     /**
      * 每天六点更新所有水表  device 针对每一个水表插入dayCount
      */
@@ -100,6 +106,23 @@ public class DayCountScheduledJob {
             } catch (Exception e){
                 logger.error(e.getMessage());
             }
+        }
+    }
+
+    /**
+     * 定时功能，更新
+     */
+    @Scheduled(cron = "0 0 0/3 * * ?")
+    public void updateNBDevice() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("flag", 0);
+        map.put("position", 0);
+        map.put("count", 500);
+        map.put("check", 1);
+        try {
+            deviceController.getSZNBdevice(map);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
         }
     }
 
