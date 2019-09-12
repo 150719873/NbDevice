@@ -433,7 +433,7 @@ public class BigDeviceController {
             object.put("code","200");
             object.put("info","发送成功，具体查看flag字段，1成功，2失败");
         }catch (Exception e){
-            logger.error(e.getMessage());
+            logger.error(e.toString());
         }
         Object o = JSONObject.toJSON(object);
         return o;
