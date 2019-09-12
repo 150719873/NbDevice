@@ -515,6 +515,9 @@ public class ImportExcelController {
                 for (int k = 2; k < list.size(); k++) {
                     List<String> cellList = list.get(k);
                     int j = 1 + k;
+                    if (cellList.get(0) == null){
+                        continue;
+                    }
                     if ("".equals(cellList.get(1))) {
                         errstr.append("序号为(" + j + ")这一行的用户名为空，请检查excel！");
                     }
@@ -648,6 +651,7 @@ public class ImportExcelController {
                 jsonMap.put("info", errstr);
             }
         }catch (Exception e){
+            e.printStackTrace();
             logger.error(e.getMessage());
             jsonMap.put("code", "-1");
             jsonMap.put("info", "检测失败");
