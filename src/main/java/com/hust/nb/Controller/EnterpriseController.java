@@ -3,13 +3,12 @@ package com.hust.nb.Controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.hust.nb.Dao.OperatorDao;
-import com.hust.nb.Entity.ChargeLevel;
-import com.hust.nb.Entity.EnterCollectType;
-import com.hust.nb.Entity.Enterprise;
-import com.hust.nb.Entity.Operator;
+import com.hust.nb.Entity.*;
 import com.hust.nb.Service.ChargeLevelService;
 import com.hust.nb.Service.EnterpriseCollectionService;
 import com.hust.nb.Service.EnterpriseService;
+import com.hust.nb.Service.WxService;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +43,9 @@ public class EnterpriseController {
 
     @Autowired
     OperatorDao operatorDao;
+
+    @Autowired
+    WxService wxService;
 
     private static Logger logger = LoggerFactory.getLogger(EnterpriseController.class);
 
@@ -275,6 +277,52 @@ public class EnterpriseController {
             logger.warn("权限不足");
             jsonMap.put("code", "-1");
             jsonMap.put("info", "权限不足");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+    /**
+     * 设置水司微信支付信息
+     */
+    @ResponseBody
+    @PostMapping("/wxConfig")
+    public Object uptWxConfig(@RequestBody String msg) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        String enprNo = jsonObject.getString("enprNo");
+        String appId = jsonObject.getString("appId");
+        String key = jsonObject.getString("key");
+        String mchId = jsonObject.getString("mchId");
+        try{
+            if(StringUtils.isNotEmpty(enprNo)){
+                WxConfig wxConfig = wxService.findByEnprNo(enprNo);
+                if(wxConfig != null){
+                    wxConfig.setMchId(mchId);
+                    wxConfig.setKey(key);
+                    wxConfig.setEnprNo(enprNo);
+                    wxConfig.setAppId(appId);
+                    wxService.save(wxConfig);
+                    jsonMap.put("code", "200");
+                    jsonMap.put("info", "修改成功");
+
+                } else {
+                    WxConfig wxConfig1 = new WxConfig();
+                    wxConfig1.setEnprNo(enprNo);
+                    wxConfig1.setAppId(appId);
+                    wxConfig1.setKey(key);
+                    wxConfig1.setMchId(mchId);
+                    wxService.save(wxConfig);
+                    jsonMap.put("code", "200");
+                    jsonMap.put("info", "修改成功");
+                }
+            } else {
+                jsonMap.put("code", "-1");
+                jsonMap.put("info", "参数错误");
+            }
+        } catch (Exception e){
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "内部错误");
         }
         Object object = JSONObject.toJSON(jsonMap);
         return object;

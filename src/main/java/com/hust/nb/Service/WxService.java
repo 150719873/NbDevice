@@ -1,5 +1,7 @@
 package com.hust.nb.Service;
 
+import com.hust.nb.Entity.WxConfig;
+
 import java.util.Map;
 
 /**
@@ -9,5 +11,9 @@ import java.util.Map;
 public interface WxService {
     String payBack(String resXml);
 
-    Map doUnifiedOrder() throws Exception;
+    Map doMicroOrder(String authcode, String enprNo, String fee, String userNo) throws Exception;
+
+    void save(WxConfig wxConfig);
+
+    WxConfig findByEnprNo(String enprNo);
 }

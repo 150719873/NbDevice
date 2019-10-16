@@ -1,7 +1,7 @@
 spring:
   datasource:
     url: jdbc:sqlserver://47.111.144.250:1433;DatebaseName=mixAll
-#    url: jdbc:sqlserver://47.106.131.190:1433;DatebaseName=mixAll
+#    url: jdbc:sqlserver://47.106.131.190                    :1433;DatebaseName=mixAll
 #    url: jdbc:sqlserver://222.20.80.142:1433;DatebaseName=mixAll
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
     username: sa

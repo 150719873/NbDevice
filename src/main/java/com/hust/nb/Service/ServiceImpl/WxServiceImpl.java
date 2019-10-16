@@ -3,11 +3,17 @@ package com.hust.nb.Service.ServiceImpl;
 import com.github.wxpay.sdk.WXPay;
 import com.github.wxpay.sdk.WXPayConstants;
 import com.github.wxpay.sdk.WXPayUtil;
+import com.hust.nb.Dao.WxConfigDao;
+import com.hust.nb.Entity.PayHistory;
+import com.hust.nb.Entity.WxConfig;
+import com.hust.nb.Service.PayHistoryService;
 import com.hust.nb.Service.WxService;
 import com.hust.nb.util.WXConfigUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,9 +27,137 @@ public class WxServiceImpl implements WxService {
 
     private static Logger log = LoggerFactory.getLogger(WxServiceImpl.class);
 
-    public static final String SPBILL_CREATE_IP = "服务器ip地址";
+    @Autowired
+    WxConfigDao wxConfigDao;
+
+    @Autowired
+    PayHistoryService payHistoryService;
+
+    public static final String SPBILL_CREATE_IP = "222.20.81.173";
     public static final String NOTIFY_URL = "回调接口地址";
-    public static final String TRADE_TYPE_MICROPAY = "MICROPAY";
+    private static final int TRADE_INIT = 0;
+    private static final int TRADE_SUCCESS = 1;
+    private static final int TRADE_FAILED = -1;
+
+    @Override
+    public Map doMicroOrder(String authcode, String enprNo, String fee, String userNo) throws Exception {
+        Map<String,Object> jsonMap = new HashMap<>();
+        WxConfig wxConfig = wxConfigDao.getWxConfigByEnprNo(enprNo);
+        PayHistory payHistory = new PayHistory();
+        payHistory.setState(TRADE_INIT);
+        payHistory.setEnprNo(enprNo);
+        payHistory.setFee(fee);
+        String curTime = ""+System.currentTimeMillis()/1000;
+        payHistory.setPayTime(curTime);
+        String out_trade_no = userNo+curTime;
+        payHistory.setTradeNo(out_trade_no);
+        payHistory.setUserNo(userNo);
+        payHistoryService.transactionProcess(payHistory);
+        try {
+            WXConfigUtil config = new WXConfigUtil();
+            config.setAPP_ID(wxConfig.getAppId());
+            config.setMCH_ID(wxConfig.getMchId());
+            config.setKEY(wxConfig.getKey());
+            WXPay wxpay = new WXPay(config);
+            Map<String, String> data = new HashMap<>();
+            //生成商户订单号，不可重复
+            data.put("appid", config.getAppID());//公众账号ID
+            data.put("mch_id", config.getMchID());//商户号
+            data.put("nonce_str", WXPayUtil.generateNonceStr());//随机字符串
+            data.put("body", enprNo+"-"+"water");//商品名称
+            data.put("out_trade_no", out_trade_no); //商户订单号，自己生成
+            data.put("total_fee", fee); //订单金额int 传来的费用,分数形式  默认货币为CNY
+            data.put("spbill_create_ip", SPBILL_CREATE_IP);//调用微信支付API的机器IP
+            data.put("auth_code", authcode);//扫码支付授权码，设备读取用户微信中的条码或者二维码信息
+            data.put("sign", WXPayUtil.generateSignature(data, config.getKey(),
+                    WXPayConstants.SignType.MD5));
+            //使用官方API请求预付订单
+            Map<String, String> response = wxpay.microPay(data);
+            if ("SUCCESS".equals(response.get("return_code"))) {//主要返回以下5个参数
+                jsonMap.put("appid", response.get("appid"));
+                jsonMap.put("mch_id", response.get("mch_id"));
+                jsonMap.put("nonce_str", response.get("nonce_str"));
+                jsonMap.put("sign", response.get("sign"));
+                jsonMap.put("transactionId", response.get("transaction_id"));//微信支付订单号
+                jsonMap.put("outTradeNo", response.get("out_trade_no"));
+                jsonMap.put("timeEnd", response.get("time_end"));
+                String resultCode = response.get("result_code");
+                if(resultCode.equals("SUCCESS")){
+                    payHistory.setTransactionId(response.get("transaction_id"));
+                    payHistory.setState(TRADE_SUCCESS);
+                    payHistoryService.transactionProcess(payHistory);
+                    jsonMap.put("code", 200);
+                    return jsonMap;
+                } else {
+                    String errCode = response.get("err_code");
+                    Map<String, String> res;
+                    if(errCode.equals("USERPAYING")){ // 付款中状态
+                        double ts = System.currentTimeMillis()/1000;
+                        do{
+                            Thread.sleep(5000);
+                            Map<String, String> req = new HashMap<>();
+                            req.put("appid", config.getAppID());
+                            req.put("mch_id", config.getMchID());
+                            req.put("out_trade_no", out_trade_no);
+                            req.put("nonce_str", WXPayUtil.generateNonceStr());
+                            req.put("sign", WXPayUtil.generateSignature(req, config.getKey(),
+                                    WXPayConstants.SignType.MD5));
+                            res = wxpay.orderQuery(req);
+                            errCode = res.get("trade_state");
+                        } while (errCode != null && errCode.equals("USERPAYING") && (System.currentTimeMillis()/1000 - ts) < 30);
+                        if(errCode.equals("SUCCESS")){ // 成功
+                            payHistory.setTransactionId(response.get("transaction_id"));
+                            payHistory.setState(TRADE_SUCCESS);
+                            payHistoryService.transactionProcess(payHistory);
+                            jsonMap.put("trade_state_desc", res.get("trade_state_desc"));
+                            jsonMap.put("code", 200);
+                            return jsonMap;
+                        } else { // 没有成功，撤销订单
+                            payHistory.setTransactionId(response.get("transaction_id"));
+                            payHistory.setState(TRADE_FAILED);
+                            payHistoryService.transactionProcess(payHistory);
+                            jsonMap.put("code", -1);
+                            jsonMap.put("trade_state_desc", res.get("trade_state_desc"));
+                            return jsonMap;
+                        }
+                    } else {
+                        payHistory.setTransactionId(response.get("transaction_id"));
+                        payHistory.setState(TRADE_FAILED);
+                        payHistoryService.transactionProcess(payHistory);
+                        jsonMap.put("err_code", errCode);
+                        jsonMap.put("code", -1);
+                        return jsonMap;
+                    }
+                }
+            } else {
+                payHistory.setState(TRADE_FAILED);
+                payHistoryService.transactionProcess(payHistory);
+                String errMsg = response.get("return_msg");
+                jsonMap.put("code", -1);
+                jsonMap.put("err_msg", errMsg);
+            }
+        } catch (Exception e) {
+            jsonMap.put("code", -1);
+            jsonMap.put("err_msg", "内部错误");
+            log.error(e.toString());
+        }
+        return jsonMap;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(System.currentTimeMillis()/1000);
+    }
+
+    @Override
+    @Transactional
+    public void save(WxConfig wxConfig) {
+        wxConfigDao.save(wxConfig);
+    }
+
+    @Override
+    public WxConfig findByEnprNo(String enprNo) {
+        return wxConfigDao.getWxConfigByEnprNo(enprNo);
+    }
 
     @Override
     public String payBack(String resXml) {
@@ -67,46 +201,5 @@ public class WxServiceImpl implements WxService {
             xmlBack = "<xml>" + "<return_code><![CDATA[FAIL]]></return_code>" + "<return_msg><![CDATA[报文为空]]></return_msg>" + "</xml> ";
         }
         return xmlBack;
-    }
-
-    @Override
-    public Map doUnifiedOrder() throws Exception {
-        try {
-            WXConfigUtil config = new WXConfigUtil();
-            WXPay wxpay = new WXPay(config);
-            Map<String, String> data = new HashMap<>();
-            //生成商户订单号，不可重复
-            data.put("appid", config.getAppID());//公众账号ID
-            data.put("mch_id", config.getMchID());//商户号
-            data.put("nonce_str", WXPayUtil.generateNonceStr());//随机字符串
-            String body = "A水司-水费";
-            data.put("body", body);//商品名称
-            data.put("out_trade_no", "订单号"); //商户订单号，自己生成
-            data.put("total_fee", "1"); //订单金额int 传来的费用,分数形式  默认货币为CNY
-            data.put("spbill_create_ip", SPBILL_CREATE_IP);//调用微信支付API的机器IP
-            data.put("notify_url", NOTIFY_URL);//异步通知地址(请注意必须是外网)
-            data.put("auth_code", "1111111111");//扫码支付授权码，设备读取用户微信中的条码或者二维码信息
-            data.put("trade_type", TRADE_TYPE_MICROPAY);//交易类型
-            data.put("sign", WXPayUtil.generateSignature(data, config.getKey(),
-                    WXPayConstants.SignType.MD5));
-            //使用官方API请求预付订单
-            Map<String, String> response = wxpay.microPay(data);
-            if ("SUCCESS".equals(response.get("return_code"))) {//主要返回以下5个参数
-                Map<String, String> param = new HashMap<>();
-                param.put("appid", config.getAppID());
-                param.put("partnerid", response.get("mch_id"));
-                param.put("prepayid", response.get("prepay_id"));
-                param.put("package", "Sign=WXPay");
-                param.put("noncestr", WXPayUtil.generateNonceStr());
-                param.put("timestamp", System.currentTimeMillis() / 1000 + "");
-                param.put("sign", WXPayUtil.generateSignature(param, config.getKey(),
-                        WXPayConstants.SignType.MD5));
-                return param;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new Exception("下单失败");
-        }
-        throw new Exception();
     }
 }

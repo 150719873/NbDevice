@@ -1,11 +1,10 @@
 package com.hust.nb.Controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.hust.nb.Service.WxService;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
@@ -26,8 +25,14 @@ public class OrderController {
     private WxService wxService;
 
     @PostMapping("/wx")
-    public Map wxAdd() throws Exception {
-        return wxService.doUnifiedOrder();
+    @ResponseBody
+    public Map wxAdd(@RequestBody String msg) throws Exception {
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        String authcode = jsonObject.getString("authCode");
+        String enprNo = jsonObject.getString("enprNo");
+        String fee = jsonObject.getString("fee");
+        String userNo = jsonObject.getString("user_no");
+        return wxService.doMicroOrder(authcode, enprNo, fee, userNo);
     }
 
     @PostMapping("/notify")

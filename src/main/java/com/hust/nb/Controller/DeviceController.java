@@ -371,9 +371,6 @@ public class DeviceController {
     }
 
 
-
-
-
     /**
      * 读取数据接口(SZQH
      * 提供更新功能
@@ -397,35 +394,33 @@ public class DeviceController {
         String res = "";
         try {
             String url = "http://118.25.217.87/emac_android_connect/get_hbhxznas_all_data.php";
+            JSONObject object = new JSONObject();
+            if (flag == 0) {//获得所哟有信息,
+                paramMap.put("operatecmd", "getdata");
+                res = restTemplate.postForEntity(url, paramMap, String.class).getBody();
+                object = JSONObject.parseObject(res);
 
+            } else if (flag == 1) {//根据地址获得表信息
+                String macAddr = args.get("macAddr").toString();
+                paramMap.put("mac_addr", macAddr);
+                paramMap.put("operatecmd", "getdatabyaddr");
+                res = restTemplate.postForEntity(url, paramMap, String.class).getBody();
+                object = JSONObject.parseObject(res);
+            } else if (flag == 2) {
+                String date = args.get("startTime").toString();
+                paramMap.put("startdatetime", date);
+                paramMap.put("operatecmd", "getdatabytime");
+                res = restTemplate.postForEntity(url, paramMap, String.class).getBody();
+                object = JSONObject.parseObject(res);
+            }
 
-        JSONObject object = new JSONObject();
-        if (flag == 0) {//获得所哟有信息,
-            paramMap.put("operatecmd", "getdata");
-            res = restTemplate.postForEntity(url, paramMap, String.class).getBody();
-            object = JSONObject.parseObject(res);
-
-        }else if (flag == 1){//根据地址获得表信息
-            String macAddr = args.get("macAddr").toString();
-            paramMap.put("mac_addr",macAddr);
-            paramMap.put("operatecmd","getdatabyaddr");
-            res = restTemplate.postForEntity(url, paramMap, String.class).getBody();
-            object = JSONObject.parseObject(res);
-        }else if (flag == 2){
-            String date = args.get("startTime").toString();
-            paramMap.put("startdatetime",date);
-            paramMap.put("operatecmd","getdatabytime");
-            res = restTemplate.postForEntity(url, paramMap, String.class).getBody();
-            object = JSONObject.parseObject(res);
-        }
-
-            if (check == 0){
+            if (check == 0) {
                 //得到数据，插入数据库,
                 JSONArray data = object.getJSONArray("message");
-                for (int i = 0; i < data.size(); i++){
+                for (int i = 0; i < data.size(); i++) {
                     Device device = deviceService.findByImei(data.getJSONObject(i).get("imei").toString());
-                    if (device != null){
-                        if (device.getBatteryVoltage() != null){
+                    if (device != null) {
+                        if (device.getBatteryVoltage() != null) {
                             if (!device.getReadTime().equals(Timestamp.valueOf(data.getJSONObject(i).get("node_updatetime").toString()))
                                     || device.getValve() != (Integer.valueOf(data.getJSONObject(i).get("switch_status").toString()))) {
                                 //插入historyData表
@@ -494,7 +489,7 @@ public class DeviceController {
             } else if (check == 1) {
                 JSONArray data = object.getJSONArray("message");
                 for (int i = 0; i < data.size(); i++) {
-                    try{
+                    try {
                         String imei = data.getJSONObject(i).get("imei").toString();
                         DeviceCheck device = deviceCheckDao.findByImei(imei);
 //                    System.out.println(data.getJSONObject(i).get("batteryval").toString());
@@ -511,11 +506,11 @@ public class DeviceController {
                                 device.setReadTime(Timestamp.valueOf(data.getJSONObject(i).get("node_updatetime").toString()));
                                 device.setValve(Integer.valueOf(data.getJSONObject(i).get("switch_status").toString()));
                                 deviceCheckDao.save(device);
-                            } else if (device.getBatteryVoltage() != null  && data.getJSONObject(i).get("batteryval").toString() != null) {
+                            } else if (device.getBatteryVoltage() != null && data.getJSONObject(i).get("batteryval").toString() != null) {
                                 if ((!device.getReadTime().equals(Timestamp.valueOf(data.getJSONObject(i).get("node_updatetime").toString()))
                                         || device.getValve() != (Integer.valueOf(data.getJSONObject(i).get("switch_status").toString()))
                                         || !device.getBatteryVoltage().equals(data.getJSONObject(i).get("batteryval").toString()))
-                                       ) {
+                                ) {
                                     device.setBatteryVoltage(data.getJSONObject(i).get("batteryval").toString());
                                     device.setReadValue(new BigDecimal(data.getJSONObject(i).get("ton").toString()));
                                     if (data.getJSONObject(i).get("rssi") != null) {
@@ -530,7 +525,7 @@ public class DeviceController {
                                 }
                             }
                         }
-                    } catch (Exception e){
+                    } catch (Exception e) {
                         logger.error(e.getMessage());
                     }
                 }

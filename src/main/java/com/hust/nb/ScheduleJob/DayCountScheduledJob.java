@@ -70,7 +70,7 @@ public class DayCountScheduledJob {
     DeviceController deviceController;
 
     /**
-     * 每天六点更新所有水表  device 针对每一个水表插入dayCount
+     * 每天六点更新所有水表，针对每一个水表计算日用水量，插入dayCount
      */
     @Scheduled(cron = "0 0 6 * * ?")
     public void update() {
@@ -100,7 +100,11 @@ public class DayCountScheduledJob {
                     }
                     device.setPreReadValue(device.getReadValue());
                     device.setPreReadTime(device.getReadTime());
-                    device.setMonthAmount(device.getMonthAmount().add(daycount.getDayAmount()));
+                    if(device.getMonthAmount() == null && device.getMonthAmount().compareTo(new BigDecimal("0")) <= 0){
+                        device.setMonthAmount(daycount.getDayAmount());
+                    } else {
+                        device.setMonthAmount(device.getMonthAmount().add(daycount.getDayAmount()));
+                    }
                     daycostService.updateDeviceAndDaycount(device, daycount);
                 }
             } catch (Exception e){
@@ -110,7 +114,7 @@ public class DayCountScheduledJob {
     }
 
     /**
-     * 定时功能，更新
+     * 定时功能，更新水表读数
      */
     @Scheduled(cron = "0 0 0/3 * * ?")
     public void updateNBDevice() {
@@ -154,7 +158,7 @@ public class DayCountScheduledJob {
      * @param enprNo
      * @param user
      */
-    public void userProcess(Calendar calendar, String enprNo, User user) throws Exception{
+    public void userProcess(Calendar calendar, String enprNo, User user) throws Exception {
         Daycost daycost = new Daycost();
         List<Device> deviceList = deviceDao.findAllByUserId(user.getUserId());
         BigDecimal userDayAmount = new BigDecimal("0");
@@ -165,7 +169,11 @@ public class DayCountScheduledJob {
             );
             BigDecimal deviceDayAmount = daycount == null ? new BigDecimal("0") : daycount.getDayAmount();
             userDayAmount = userDayAmount.add(deviceDayAmount);
-            userMonthAmount = userMonthAmount.add(device.getMonthAmount());
+            BigDecimal preMonthAmount = device.getMonthAmount();
+            if(preMonthAmount == null || preMonthAmount.compareTo(new BigDecimal("0")) <= 0){
+                preMonthAmount = new BigDecimal("0");
+            }
+            userMonthAmount = userMonthAmount.add(preMonthAmount);
         }
         int userType = user.getUserType();
         ChargeLevel chargelevel = chargeLevelDao.findChargeLevelByEnprNoAndType(enprNo, userType);
@@ -174,7 +182,7 @@ public class DayCountScheduledJob {
             //每月第一天核查完上月水费后清空device的月用水量
             daycostService.userProcessAndDeviceRefresh(user, daycost, deviceList);
         } else {
-            daycostService.userProcess(user, daycost);//
+            daycostService.userProcess(user, daycost);
         }
     }
 
@@ -197,60 +205,51 @@ public class DayCountScheduledJob {
         BigDecimal fourthEdge = chargelevel.getFourthEdge();
         BigDecimal fifthEdge = chargelevel.getFifthEdge();
         BigDecimal sixthEdge = chargelevel.getSixthEdge();
-        if (fifth != null && userMonthAmount.compareTo(fifth) != -1) {
+        if (fifth != null && userMonthAmount.compareTo(fifth) != -1 && userMonthAmount.subtract(userDayAmount).compareTo(fifth) != -1) {
             BigDecimal cost = sixthEdge.multiply(userDayAmount);
             daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
-        } else if (fifth != null && userMonthAmount.compareTo(fifth) == -1 && userMonthAmount.add(userDayAmount).compareTo(fifth) != -1) {
+        } else if(fifth != null && userMonthAmount.compareTo(fifth) != -1 && userMonthAmount.subtract(userDayAmount).compareTo(fifth) == -1){
+            BigDecimal beyond = userMonthAmount.subtract(fifth);
+            BigDecimal higher = beyond.subtract(sixthEdge);
+            BigDecimal lower = userDayAmount.subtract(beyond).subtract(fifth);
+            BigDecimal cost = higher.add(lower);
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+        } else if (fifth != null && userMonthAmount.compareTo(fifth) == -1 && userMonthAmount.compareTo(fourth) != -1) {
             BigDecimal total = userDayAmount.add(userMonthAmount);
             BigDecimal beyond = total.subtract(fifth);
             BigDecimal higher = beyond.multiply(sixthEdge);
             BigDecimal lower = userDayAmount.subtract(beyond).multiply(fifthEdge);
             BigDecimal cost = higher.add(lower);
             daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
-        } else if (fourth != null && userMonthAmount.compareTo(fourth) != -1) {
-            BigDecimal cost = fifthEdge.multiply(userDayAmount);
-            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
-        } else if (fourth != null && userMonthAmount.compareTo(fourth) == -1 && userMonthAmount.add(userDayAmount).compareTo(fourth) != -1) {
+        }  else if (fourth != null && userMonthAmount.compareTo(fourth) == -1 && userMonthAmount.compareTo(third) != -1) {
             BigDecimal total = userDayAmount.add(userMonthAmount);
             BigDecimal beyond = total.subtract(fourth);
             BigDecimal higher = beyond.multiply(fifthEdge);
             BigDecimal lower = userDayAmount.subtract(beyond).multiply(fourthEdge);
             BigDecimal cost = higher.add(lower);
             daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
-        } else if (third != null && userMonthAmount.compareTo(third) != -1) {
-            BigDecimal cost = fourthEdge.multiply(userDayAmount);
-            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
-        } else if (third != null && userMonthAmount.compareTo(third) == -1 && userMonthAmount.add(userDayAmount).compareTo(third) != -1) {
+        } else if (third != null && userMonthAmount.compareTo(third) == -1 && userMonthAmount.compareTo(second) != -1) {
             BigDecimal total = userDayAmount.add(userMonthAmount);
             BigDecimal beyond = total.subtract(third);
             BigDecimal higher = beyond.multiply(fourthEdge);
             BigDecimal lower = userDayAmount.subtract(beyond).multiply(thirdEdge);
             BigDecimal cost = higher.add(lower);
             daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
-        } else if (second != null && userMonthAmount.compareTo(second) != -1) {
-            BigDecimal cost = thirdEdge.multiply(userDayAmount);
-            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
-        } else if (second != null && userMonthAmount.compareTo(second) == -1 && userMonthAmount.add(userDayAmount).compareTo(second) != -1) {
+        } else if (second != null && userMonthAmount.compareTo(second) == -1 && userMonthAmount.compareTo(first) != -1) {
             BigDecimal total = userDayAmount.add(userMonthAmount);
             BigDecimal beyond = total.subtract(second);
             BigDecimal higher = beyond.multiply(thirdEdge);
             BigDecimal lower = userDayAmount.subtract(beyond).multiply(secondEdge);
             BigDecimal cost = higher.add(lower);
             daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
-        } else if (first != null && userMonthAmount.compareTo(first) != -1) {
-            BigDecimal cost = secondEdge.multiply(userDayAmount);
-            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
-        } else if (first != null && userMonthAmount.compareTo(first) == -1 && userMonthAmount.add(userDayAmount).compareTo(first) != -1) {
+        } else if (first != null && userMonthAmount.compareTo(first) == -1 && userMonthAmount.compareTo(min) != -1) {
             BigDecimal total = userDayAmount.add(userMonthAmount);
             BigDecimal beyond = total.subtract(first);
             BigDecimal higher = beyond.multiply(secondEdge);
             BigDecimal lower = userDayAmount.subtract(beyond).multiply(firstEdge);
             BigDecimal cost = higher.add(lower);
             daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
-        } else if (min != null && userMonthAmount.compareTo(min) != -1) {
-            BigDecimal cost = firstEdge.multiply(userDayAmount);
-            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
-        } else if (min != null && userMonthAmount.compareTo(min) == -1 && userMonthAmount.add(userDayAmount).compareTo(min) != -1) {
+        } else if (min != null && userMonthAmount.compareTo(min) == -1) {
             BigDecimal total = userDayAmount.add(userMonthAmount);
             BigDecimal beyond = total.subtract(min);
             BigDecimal higher = beyond.multiply(firstEdge);

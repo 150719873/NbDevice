@@ -45,6 +45,9 @@ public class OperateController {
     @Autowired
     EnterpriseService enterpriseService;
 
+    @Autowired
+    WxService wxService;
+
     private static Logger logger = LoggerFactory.getLogger(OperateController.class);
 
 
@@ -269,6 +272,7 @@ public class OperateController {
                     String enprNo = operator.getEnprNo();
                     Enterprise enterprise = enterpriseService.findByEnprNo(enprNo);
                     jsonMap.put("enterprise", enterprise);
+                    jsonMap.put("wxConfig",wxService.findByEnprNo(enprNo));
                 }
             } else {
                 jsonMap.put("code", "-1");

@@ -16,17 +16,34 @@ import java.io.InputStream;
 public class WXConfigUtil implements WXPayConfig {
 
     private byte[] certData;
-    private static final String APP_ID = "你的appid";
-    private static final String KEY = "你的api key不是appSecret";
-    private static final String MCH_ID = "你的商户id";
+    private String APP_ID;
+    private String KEY;
+    private String MCH_ID;
 
-    public WXConfigUtil() throws Exception {
-        String certPath = ClassUtils.getDefaultClassLoader().getResource("").getPath()+"/weixin/apiclient_cert.p12";//从微信商户平台下载的安全证书存放的路径
-        File file = new File(certPath);
-        InputStream certStream = new FileInputStream(file);
-        this.certData = new byte[(int) file.length()];
-        certStream.read(this.certData);
-        certStream.close();
+//    public WXConfigUtil() throws Exception {
+//        String certPath = ClassUtils.getDefaultClassLoader().getResource("").getPath()+"/weixin/apiclient_cert.p12";//从微信商户平台下载的安全证书存放的路径
+//        File file = new File(certPath);
+//        InputStream certStream = new FileInputStream(file);
+//        this.certData = new byte[(int) file.length()];
+//        certStream.read(this.certData);
+//        certStream.close();
+//    }
+
+
+    public void setCertData(byte[] certData) {
+        this.certData = certData;
+    }
+
+    public void setAPP_ID(String APP_ID) {
+        this.APP_ID = APP_ID;
+    }
+
+    public void setKEY(String KEY) {
+        this.KEY = KEY;
+    }
+
+    public void setMCH_ID(String MCH_ID) {
+        this.MCH_ID = MCH_ID;
     }
 
     @Override
@@ -34,7 +51,6 @@ public class WXConfigUtil implements WXPayConfig {
         return APP_ID;
     }
 
-    //parnerid，商户号
     @Override
     public String getMchID() {
         return MCH_ID;
