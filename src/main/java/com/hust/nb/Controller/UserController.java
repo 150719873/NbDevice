@@ -3,8 +3,10 @@ package com.hust.nb.Controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.hust.nb.Entity.Monthcost;
+import com.hust.nb.Entity.RepairItem;
 import com.hust.nb.Entity.User;
 import com.hust.nb.Service.MonthcostService;
+import com.hust.nb.Service.RepairService;
 import com.hust.nb.Service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -30,6 +33,10 @@ public class UserController {
 
     @Autowired
     MonthcostService monthcostService;
+
+    @Autowired
+    RepairService repairService;
+
 
     private static Logger logger = LoggerFactory.getLogger(UserController.class);
 
@@ -165,4 +172,121 @@ public class UserController {
         Object object = JSONObject.toJSON(jsonMap);
         return object;
     }
+
+    /**
+     * @param msg 报修受理
+     */
+    @CrossOrigin
+    @ResponseBody
+    @PostMapping("/RepairItem")
+    public Object inputRepairInfo(@RequestBody String msg) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        String enprNo = jsonObject.getString("enprNo");
+        String userNo = jsonObject.getString("userNo");
+        String userTel = jsonObject.getString("userTel");
+        Integer feedbackType = jsonObject.getInteger("feedbackType");
+        String contents = jsonObject.getString("contents");
+        Integer blockId = jsonObject.getInteger("blockId");
+        Integer state = jsonObject.getInteger("state");
+        Timestamp repairTime = Timestamp.valueOf(LocalDateTime.now()) ;
+        Integer communityId = repairService.getCommunityIdByBlockId(blockId);
+        String deviceNo = repairService.getDeviceNoByUserNoAndEnprNo(userNo, enprNo);
+        RepairItem repairItem =new RepairItem();
+        repairItem.setUserTel(userTel);
+        repairItem.setFeedbackType(feedbackType);
+        repairItem.setContents(contents);
+        repairItem.setRepairTime(repairTime);
+        repairItem.setEnprNo(enprNo);
+        repairItem.setUserNo(userNo);
+        repairItem.setState(state);
+        repairItem.setCommunityId(communityId);
+        repairItem.setDeviceNo(deviceNo);
+        try {
+            repairService.saveRepairItem(repairItem);
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "报修受理成功");
+            jsonMap.put("data",repairItem);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "导入失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+
+
+    /**
+     * @param msg 显示用户报修信息
+     */
+    @ResponseBody
+    @PostMapping("/showRepairInfo")
+    @CrossOrigin
+    public Object showRepairInfo(@RequestBody String msg) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        Integer userId = jsonObject.getInteger("userId");
+        RepairItem repairItem = repairService.getbyUserId(userId);
+        try {
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "查询成功");
+            jsonMap.put("data",repairItem);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "查询失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+    /**
+     * @param msg 撤回用户报修信息
+     */
+    @ResponseBody
+    @PostMapping("/deleteRepairInfo")
+    @CrossOrigin
+    public Object deleteRepairInfo(@RequestBody String msg)
+    {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        Integer userId = jsonObject.getInteger("userId");
+        RepairItem repairItem = repairService.getbyUserId(userId);
+        try {
+            repairService.deleteRepairInfo(repairItem);
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "删除成功");
+
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "删除失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

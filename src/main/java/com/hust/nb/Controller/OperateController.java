@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.hust.nb.Config.Constants;
 import com.hust.nb.Dao.OperatorDao;
+import com.hust.nb.Dao.RepairDao;
 import com.hust.nb.Entity.*;
 import com.hust.nb.Service.*;
 import com.hust.nb.util.EntityFactory;
@@ -14,7 +15,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -47,6 +50,12 @@ public class OperateController {
 
     @Autowired
     WxService wxService;
+
+    @Autowired
+    RepairService repairService;
+
+    @Autowired
+    RepairDao repairDao;
 
     private static Logger logger = LoggerFactory.getLogger(OperateController.class);
 
@@ -457,4 +466,186 @@ public class OperateController {
         detailMap.put("deviceDetailList", deviceDetailList);
         return detailMap;
     }
+
+    /**
+     * 安排维修师傅
+     */
+    @ResponseBody
+    @PostMapping("/Repairman")
+    @CrossOrigin
+    public Object Repairman(@RequestBody String msg)
+    {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        String repairmanName = jsonObject.getString("repairmanName");
+        String repairmanTel = jsonObject.getString("repairmanTel");
+        Integer userId = jsonObject.getInteger("userId");
+        Integer state = jsonObject.getInteger("state");
+        RepairItem repairItem = repairService.getbyUserId(userId);
+        repairItem.setRepairmanName(repairmanName);
+        repairItem.setRepairmanTel(repairmanTel);
+        repairItem.setState(state);
+        try {
+            repairService.saveRepairItem(repairItem);
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "已安排维修师傅");
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "导入失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+    /**
+     * * 录入维修完成时间
+     */
+    @ResponseBody
+    @PostMapping("/RepairFinish")
+    @CrossOrigin
+    public Object RepairFinish(@RequestBody String msg)
+    {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        Timestamp endTime = Timestamp.valueOf(LocalDateTime.now());
+        Integer userId = jsonObject.getInteger("userId");
+        Integer state =jsonObject.getInteger("state");
+        RepairItem repairItem = repairService.getbyUserId(userId);
+        repairItem.setEndTime(endTime);
+        repairItem.setState(state);
+        try {
+            repairService.saveRepairItem(repairItem);
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "导入成功");
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "导入失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+
+    /**
+     *  根据用户编号查询反馈信息
+     */
+    @CrossOrigin
+    @ResponseBody
+    @PostMapping("/getFeedbackByUserNo")
+    public Object getFeedbackByUserNo(@RequestBody String msg){
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        String userNo = jsonObject.getString("userNo");
+        try {
+            List<RepairItem> list01=repairService.getFeedbackByUserNo(userNo);
+            jsonMap.put("code","200");
+            jsonMap.put("info", "查询成功");
+            jsonMap.put("data",list01);
+        }catch (Exception e){
+            logger.error(e.getMessage());
+            jsonMap.put("code","-1");
+            jsonMap.put("info", "查询失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+
+    /**
+     *  根据表地址查询反馈信息
+     */
+    @CrossOrigin
+    @ResponseBody
+    @PostMapping("/getFeedbackByDeviceNo")
+    public Object getFeedbackByDeviceNo(@RequestBody String msg){
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        String deviceNo = jsonObject.getString("deviceNo");
+        try {
+            List<RepairItem> list02=repairService.getFeedbackByDeviceNo(deviceNo);
+            jsonMap.put("code","200");
+            jsonMap.put("info", "查询成功");
+            jsonMap.put("data",list02);
+        }catch (Exception e){
+            logger.error(e.getMessage());
+            jsonMap.put("code","-1");
+            jsonMap.put("info", "查询失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+
+    /**
+     *  根据小区Id查询所有信息
+     */
+    @CrossOrigin
+    @ResponseBody
+    @PostMapping("/getFeedbackByCommunityId")
+    public Object getFeedbackByCommunityId(@RequestBody String msg)
+    {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        Integer communityId = jsonObject.getInteger("communityId");
+        try {
+            List<RepairItem> list03 =repairService.getByCommunityId(communityId);
+            jsonMap.put("code","200");
+            jsonMap.put("info", "查询成功");
+            jsonMap.put("data",list03);
+        }catch (Exception e){
+            logger.error(e.getMessage());
+            jsonMap.put("code","-1");
+            jsonMap.put("info", "查询失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+    /**
+     *  根据水司编码查询所有信息
+     */
+    @CrossOrigin
+    @ResponseBody
+    @PostMapping("/getFeedbackByEnprNo")
+    public Object getFeedbackByEnprNo(@RequestBody String msg)
+    {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        String enprNo = jsonObject.getString("enprNo");
+        try {
+            List <RepairItem> list04=repairService.getbyEnprNo(enprNo);
+            jsonMap.put("code","200");
+            jsonMap.put("info","查询成功");
+            jsonMap.put("data", list04);
+        }catch (Exception e){
+            logger.error(e.getMessage());
+            jsonMap.put("code","-1");
+            jsonMap.put("info", "查询失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
