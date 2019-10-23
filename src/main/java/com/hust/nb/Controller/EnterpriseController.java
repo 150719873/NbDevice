@@ -305,14 +305,13 @@ public class EnterpriseController {
                     wxService.save(wxConfig);
                     jsonMap.put("code", "200");
                     jsonMap.put("info", "修改成功");
-
                 } else {
                     WxConfig wxConfig1 = new WxConfig();
                     wxConfig1.setEnprNo(enprNo);
                     wxConfig1.setAppId(appId);
                     wxConfig1.setKey(key);
                     wxConfig1.setMchId(mchId);
-                    wxService.save(wxConfig);
+                    wxService.save(wxConfig1);
                     jsonMap.put("code", "200");
                     jsonMap.put("info", "修改成功");
                 }
@@ -321,6 +320,7 @@ public class EnterpriseController {
                 jsonMap.put("info", "参数错误");
             }
         } catch (Exception e){
+            logger.error(e.toString());
             jsonMap.put("code", "-1");
             jsonMap.put("info", "内部错误");
         }
