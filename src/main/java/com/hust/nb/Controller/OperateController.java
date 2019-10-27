@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -467,7 +469,7 @@ public class OperateController {
     }
 
     /**
-     * 安排维修师傅
+     * 编辑维修师傅信息
      */
     @ResponseBody
     @PostMapping("/Repairman")
@@ -479,7 +481,8 @@ public class OperateController {
         String repairmanName = jsonObject.getString("repairmanName");
         String repairmanTel = jsonObject.getString("repairmanTel");
         Integer userId = jsonObject.getInteger("userId");
-        Integer state = jsonObject.getInteger("state");
+//        Integer state = jsonObject.getInteger("state");
+        Integer state =2;
         RepairItem repairItem = repairService.getbyUserId(userId);
         repairItem.setRepairmanName(repairmanName);
         repairItem.setRepairmanTel(repairmanTel);
@@ -487,7 +490,7 @@ public class OperateController {
         try {
             repairService.saveRepairItem(repairItem);
             jsonMap.put("code", "200");
-            jsonMap.put("info", "已安排维修师傅");
+            jsonMap.put("info", "编辑成功");
         } catch (Exception e) {
             logger.error(e.getMessage());
             jsonMap.put("code", "-1");
@@ -509,7 +512,8 @@ public class OperateController {
         JSONObject jsonObject = JSONObject.parseObject(msg);
         Timestamp endTime = Timestamp.valueOf(LocalDateTime.now());
         Integer userId = jsonObject.getInteger("userId");
-        Integer state =jsonObject.getInteger("state");
+//        Integer state =jsonObject.getInteger("state");
+        Integer state = 0;
         RepairItem repairItem = repairService.getbyUserId(userId);
         repairItem.setEndTime(endTime);
         repairItem.setState(state);
@@ -517,6 +521,7 @@ public class OperateController {
             repairService.saveRepairItem(repairItem);
             jsonMap.put("code", "200");
             jsonMap.put("info", "导入成功");
+            jsonMap.put("data",endTime);
         } catch (Exception e) {
             logger.error(e.getMessage());
             jsonMap.put("code", "-1");
@@ -532,13 +537,14 @@ public class OperateController {
      */
     @CrossOrigin
     @ResponseBody
-    @PostMapping("/getFeedbackByUserNo")
-    public Object getFeedbackByUserNo(@RequestBody String msg){
+    @PostMapping("/getFeedbackByUserNoAndEnprNo")
+    public Object getFeedbackByUserNoAndEnprNo(@RequestBody String msg){
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
         String userNo = jsonObject.getString("userNo");
+        String enprNo = jsonObject.getString("enprNo");
         try {
-            List<RepairItem> list01=repairService.getFeedbackByUserNo(userNo);
+            List<RepairItem> list01=repairService.getFeedbackByUserNoAndEnprNo(userNo,enprNo);
             jsonMap.put("code","200");
             jsonMap.put("info", "查询成功");
             jsonMap.put("data",list01);
@@ -557,13 +563,14 @@ public class OperateController {
      */
     @CrossOrigin
     @ResponseBody
-    @PostMapping("/getFeedbackByDeviceNo")
-    public Object getFeedbackByDeviceNo(@RequestBody String msg){
+    @PostMapping("/getFeedbackByDeviceNoAndEnprNo")
+    public Object getFeedbackByDeviceNoAndEnprNo(@RequestBody String msg){
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
         String deviceNo = jsonObject.getString("deviceNo");
+        String enprNo = jsonObject.getString("enprNo");
         try {
-            List<RepairItem> list02=repairService.getFeedbackByDeviceNo(deviceNo);
+            List<RepairItem> list02=repairService.getFeedbackByDeviceNoAndEnprNo(deviceNo,enprNo);
             jsonMap.put("code","200");
             jsonMap.put("info", "查询成功");
             jsonMap.put("data",list02);
@@ -582,17 +589,21 @@ public class OperateController {
      */
     @CrossOrigin
     @ResponseBody
-    @PostMapping("/getFeedbackByCommunityId")
-    public Object getFeedbackByCommunityId(@RequestBody String msg)
+    @PostMapping("/getFeedbackByCommunityIdAndEnprNo")
+    public Object getFeedbackByCommunityIdAndEnprNo(@RequestBody String msg)
     {
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
         Integer communityId = jsonObject.getInteger("communityId");
+        String enprNo = jsonObject.getString("enprNo");
+        int rows = jsonObject.getInteger("rows");
+        int page = Integer.parseInt(jsonObject.getString("page"));
         try {
-            List<RepairItem> list03 =repairService.getByCommunityId(communityId);
+            Pageable pageable = PageRequest.of(page - 1, rows);
+            Page<RepairItem> page01 = repairService.getByCommunityIdAndEnprNo(communityId,enprNo,pageable);
             jsonMap.put("code","200");
             jsonMap.put("info", "查询成功");
-            jsonMap.put("data",list03);
+            jsonMap.put("data",page01);
         }catch (Exception e){
             logger.error(e.getMessage());
             jsonMap.put("code","-1");
@@ -613,11 +624,14 @@ public class OperateController {
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
         String enprNo = jsonObject.getString("enprNo");
+        int rows = jsonObject.getInteger("rows");
+        int page = Integer.parseInt(jsonObject.getString("page"));
         try {
-            List <RepairItem> list04=repairService.getbyEnprNo(enprNo);
+            Pageable pageable = PageRequest.of(page - 1, rows);
+            Page <RepairItem> page02=repairService.getbyEnprNo(enprNo,pageable);
             jsonMap.put("code","200");
             jsonMap.put("info","查询成功");
-            jsonMap.put("data", list04);
+            jsonMap.put("data", page02);
         }catch (Exception e){
             logger.error(e.getMessage());
             jsonMap.put("code","-1");
@@ -626,6 +640,33 @@ public class OperateController {
         Object object = JSONObject.toJSON(jsonMap);
         return object;
     }
+
+    /**
+     *  删除报修记录
+     */
+    @CrossOrigin
+    @ResponseBody
+    @PostMapping("/deleteFeedbackInfo")
+    public Object deleteRepairInfo(@RequestBody String msg)
+    {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        Integer userId = jsonObject.getInteger("userId");
+        RepairItem repairItem = repairService.getbyUserId(userId);
+        try {
+            repairService.deleteRepairInfo(repairItem);
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "删除成功");
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "删除失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+
 
 
 
