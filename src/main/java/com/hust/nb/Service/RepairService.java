@@ -1,6 +1,8 @@
 package com.hust.nb.Service;
 
 import com.hust.nb.Entity.RepairItem;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -12,13 +14,13 @@ public interface RepairService
 
     RepairItem getbyUserId(Integer userId);
 
-    List<RepairItem> getFeedbackByUserNo(String userNo);
+    List<RepairItem> getFeedbackByUserNoAndEnprNo(String userNo,String enprNo);
 
 //     Integer getUserIdByDeviceNo(String deviceNo);
 
     //List<RepairItem> getbyCommunityId(Integer communityId);
 
-    List<RepairItem> getbyEnprNo(String enproNo);
+    Page<RepairItem> getbyEnprNo(String enproNo,Pageable pageable);
 
     void deleteRepairInfo(RepairItem repairItem);
 
@@ -26,10 +28,13 @@ public interface RepairService
 
     Integer getCommunityIdByBlockId(Integer blockId);
 
-    List<RepairItem> getByCommunityId(Integer communityId);
+
+    Page<RepairItem> getByCommunityIdAndEnprNo(Integer communityId, String enprNo, Pageable pageable);
 
     String getDeviceNoByUserNoAndEnprNo(String userNo, String enprNo);
 
-    List<RepairItem> getFeedbackByDeviceNo(String deviceNo);
+    List<RepairItem> getFeedbackByDeviceNoAndEnprNo(String deviceNo,String enprNo);
+
+    String getCommunityNameByCommunityId(Integer communityId);
 }
 

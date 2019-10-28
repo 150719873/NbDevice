@@ -4,6 +4,9 @@ import com.hust.nb.Dao.RepairDao;
 import com.hust.nb.Entity.RepairItem;
 import com.hust.nb.Service.RepairService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,10 +30,13 @@ public class RepairServiceImpl implements RepairService
         return repairDao.findCommunityIdByBlockId(blockId);
     }
 
+
+
     @Override
-    public List<RepairItem> getByCommunityId(Integer communityId)
+    public Page<RepairItem> getByCommunityIdAndEnprNo(Integer communityId, String enprNo,Pageable pageable )
     {
-        return repairDao.findAllByCommunityId(communityId);
+        return repairDao.findAllByCommunityIdAndEnprNo(communityId,enprNo,pageable);
+
     }
 
     @Override
@@ -45,16 +51,11 @@ public class RepairServiceImpl implements RepairService
     }
 
     @Override
-    public List<RepairItem> getFeedbackByUserNo(String userNo)
+    public List<RepairItem> getFeedbackByUserNoAndEnprNo(String userNo,String enprNo)
     {
-        return repairDao.findAllByUserNo(userNo);
+        return repairDao.findAllByUserNoAndEnprNo(userNo,enprNo);
     }
 
-//    @Override
-//    public Integer getUserIdByDeviceNo(String deviceNo)
-//    {
-//        return repairDao.findUserIdByDeviceNo(deviceNo);
-//    }
 
     @Override
     public List<RepairItem> getFeedbackByUserId(Integer userId)
@@ -64,9 +65,9 @@ public class RepairServiceImpl implements RepairService
 
 
     @Override
-    public List<RepairItem> getbyEnprNo(String enprNo)
+    public Page<RepairItem> getbyEnprNo(String enprNo,Pageable pageable)
     {
-        return  repairDao.findByEnprNo(enprNo);
+        return  repairDao.findByEnprNo(enprNo,pageable);
     }
 
     @Override
@@ -76,9 +77,15 @@ public class RepairServiceImpl implements RepairService
     }
 
     @Override
-    public List<RepairItem> getFeedbackByDeviceNo(String deviceNo)
+    public List<RepairItem> getFeedbackByDeviceNoAndEnprNo(String deviceNo,String enprNo)
     {
-        return repairDao.findByDeviceNo(deviceNo);
+        return repairDao.findByDeviceNoAndEnprNo(deviceNo,enprNo);
+    }
+
+    @Override
+    public String getCommunityNameByCommunityId(Integer communityId)
+    {
+        return repairDao.findCommunityNameByCommunityId(communityId);
     }
 
 }

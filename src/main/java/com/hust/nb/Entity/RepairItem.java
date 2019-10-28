@@ -29,6 +29,13 @@ public class RepairItem implements Serializable {
     private String userNo;
 
     /**
+     * 用户姓名
+     */
+    @Basic
+    @Column(name = "user_name")
+    private String userName;
+
+    /**
      * 用户电话
      */
     @Basic
@@ -105,6 +112,27 @@ public class RepairItem implements Serializable {
     @Column(name = "device_no")
     private String deviceNo ;
 
+    /**
+     * 楼栋id
+     */
+    @Basic
+    @Column(name = "block_id")
+    private Integer blockId ;
+
+    /**
+     * 用户地址
+     */
+    @Basic
+    @Column(name = "addr")
+    private String addr ;
+
+    /**
+     * 小区名
+     */
+    @Basic
+    @Column(name = "community_name")
+    private String communityName ;
+
     public Integer getUserId() {
         return userId;
     }
@@ -119,6 +147,14 @@ public class RepairItem implements Serializable {
 
     public void setUserNo(String userNo) {
         this.userNo = userNo;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     public String getUserTel() {
@@ -207,6 +243,30 @@ public class RepairItem implements Serializable {
 
     public void setDeviceNo(String deviceNo) {
         this.deviceNo = deviceNo;
+    }
+
+    public Integer getBlockId() {
+        return blockId;
+    }
+
+    public void setBlockId(Integer blockId) {
+        this.blockId = blockId;
+    }
+
+    public String getAddr() {
+        return addr;
+    }
+
+    public void setAddr(String addr) {
+        this.addr = addr;
+    }
+
+    public String getCommunityName() {
+        return communityName;
+    }
+
+    public void setCommunityName(String communityName) {
+        this.communityName = communityName;
     }
 }
 

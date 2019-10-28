@@ -184,13 +184,16 @@ public class UserController {
         JSONObject jsonObject = JSONObject.parseObject(msg);
         String enprNo = jsonObject.getString("enprNo");
         String userNo = jsonObject.getString("userNo");
+        String userName = jsonObject.getString("userName");
         String userTel = jsonObject.getString("userTel");
         Integer feedbackType = jsonObject.getInteger("feedbackType");
         String contents = jsonObject.getString("contents");
         Integer blockId = jsonObject.getInteger("blockId");
-        Integer state = jsonObject.getInteger("state");
+        Integer state = 1;
+        String addr = jsonObject.getString("addr");
         Timestamp repairTime = Timestamp.valueOf(LocalDateTime.now()) ;
         Integer communityId = repairService.getCommunityIdByBlockId(blockId);
+        String communityName = repairService.getCommunityNameByCommunityId(communityId);
         String deviceNo = repairService.getDeviceNoByUserNoAndEnprNo(userNo, enprNo);
         RepairItem repairItem =new RepairItem();
         repairItem.setUserTel(userTel);
@@ -199,9 +202,14 @@ public class UserController {
         repairItem.setRepairTime(repairTime);
         repairItem.setEnprNo(enprNo);
         repairItem.setUserNo(userNo);
+        repairItem.setUserName(userName);
+//        repairItem.setState(state);
         repairItem.setState(state);
         repairItem.setCommunityId(communityId);
         repairItem.setDeviceNo(deviceNo);
+        repairItem.setAddr(addr);
+        repairItem.setBlockId(blockId);
+        repairItem.setCommunityName(communityName);
         try {
             repairService.saveRepairItem(repairItem);
             jsonMap.put("code", "200");
@@ -266,26 +274,7 @@ public class UserController {
         }
         Object object = JSONObject.toJSON(jsonMap);
         return object;
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
