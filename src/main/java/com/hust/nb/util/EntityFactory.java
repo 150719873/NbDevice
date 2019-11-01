@@ -2,6 +2,7 @@ package com.hust.nb.util;
 
 import com.hust.nb.Entity.Daycount;
 import com.hust.nb.Entity.DeviceChange;
+import com.hust.nb.Entity.Notice;
 import com.hust.nb.Entity.Operator;
 
 import java.math.BigDecimal;
@@ -55,5 +56,17 @@ public class EntityFactory {
         daycount.setDate(date);
         daycount.setState(state);
         return daycount;
+    }
+
+    public static Notice inputNoticeFactory(String title, String content, Timestamp rTime, Integer type, String enprNo,String objects)
+    {
+        Notice notice = new Notice();
+        notice.setTitle(title);
+        notice.setContent(content);
+        notice.setReleaseTime(rTime);
+        notice.setType(type);
+        notice.setEnprNo(enprNo);
+        notice.setObjects(objects);
+        return notice;
     }
 }

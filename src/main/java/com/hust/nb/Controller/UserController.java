@@ -3,15 +3,19 @@ package com.hust.nb.Controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.hust.nb.Entity.Monthcost;
+import com.hust.nb.Entity.Notice;
 import com.hust.nb.Entity.RepairItem;
 import com.hust.nb.Entity.User;
 import com.hust.nb.Service.MonthcostService;
+import com.hust.nb.Service.NoticeService;
 import com.hust.nb.Service.RepairService;
 import com.hust.nb.Service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,6 +40,9 @@ public class UserController {
 
     @Autowired
     RepairService repairService;
+
+    @Autowired
+    NoticeService noticeService;
 
 
     private static Logger logger = LoggerFactory.getLogger(UserController.class);
@@ -203,7 +210,6 @@ public class UserController {
         repairItem.setEnprNo(enprNo);
         repairItem.setUserNo(userNo);
         repairItem.setUserName(userName);
-//        repairItem.setState(state);
         repairItem.setState(state);
         repairItem.setCommunityId(communityId);
         repairItem.setDeviceNo(deviceNo);
@@ -276,6 +282,32 @@ public class UserController {
         return object;
     }
 
+    /**
+     * @param msg 查看公告
+     */
+    @CrossOrigin
+    @ResponseBody
+    @PostMapping("/getNotice")
+    public Object getNotice(@RequestBody String msg) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        String enprNo = jsonObject.getString("enprNo");
+        int rows = jsonObject.getInteger("rows");
+        int page = Integer.parseInt(jsonObject.getString("page"));
+        try {
+            Pageable pageable = PageRequest.of(page - 1, rows);
+            Page<Notice> page04 = noticeService.getByEnprNo(enprNo, pageable);
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "查看成功");
+            jsonMap.put("data", page04);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "查看失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
 
 
 }

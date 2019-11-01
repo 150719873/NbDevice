@@ -6,6 +6,7 @@ import com.hust.nb.Config.Constants;
 import com.hust.nb.Dao.OperatorDao;
 import com.hust.nb.Dao.RepairDao;
 import com.hust.nb.Entity.*;
+import com.hust.nb.Entity.Notice;
 import com.hust.nb.Service.*;
 import com.hust.nb.util.EntityFactory;
 import org.slf4j.Logger;
@@ -58,6 +59,10 @@ public class OperateController {
 
     @Autowired
     RepairDao repairDao;
+
+    @Autowired
+    NoticeService noticeService;
+
 
     private static Logger logger = LoggerFactory.getLogger(OperateController.class);
 
@@ -667,6 +672,61 @@ public class OperateController {
         return object;
     }
 
+    /**
+     *  录入（编辑）公告内容
+     */
+    @CrossOrigin
+    @ResponseBody
+    @PostMapping("/inputNotice")
+    public Object inputNotice(@RequestBody String msg)
+    {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        String title = jsonObject.getString("title");
+        String content =jsonObject.getString("content");
+        Timestamp rTime = Timestamp.valueOf(LocalDateTime.now());
+        Integer type = jsonObject.getInteger("type");
+        String enprNo =jsonObject.getString("enprNo");
+        String objects =jsonObject.getString("objects");
+        Notice notice =EntityFactory.inputNoticeFactory(title,content,rTime,type,enprNo,objects);
+        try {
+            noticeService.saveNotice(notice);
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "录入成功");
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "录入失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+
+    /**
+     *  删除某条公告
+     */
+    @CrossOrigin
+    @ResponseBody
+    @PostMapping("/deleteNotice")
+    public Object deleteNotice(@RequestBody String msg)
+    {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        Integer id =jsonObject.getInteger("id");
+        Notice notice =noticeService.getNoticeById(id);
+        try {
+            noticeService.deleteNotice(notice);
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "删除成功");
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "删除失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
 
 
 
@@ -688,5 +748,33 @@ public class OperateController {
 
 
 
+
+    /**
+     *  显示历史公告记录
+     */
+    @CrossOrigin
+    @ResponseBody
+    @PostMapping("/outputNotice")
+    public Object outputNotice(@RequestBody String msg)
+    {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        String enprNo =jsonObject.getString("enprNo");
+        int rows = jsonObject.getInteger("rows");
+        int page = Integer.parseInt(jsonObject.getString("page"));
+        try {
+            Pageable pageable = PageRequest.of(page - 1, rows);
+            Page <Notice> page03=noticeService.getByEnprNo(enprNo,pageable);
+            jsonMap.put("code","200");
+            jsonMap.put("info","显示成功");
+            jsonMap.put("data", page03);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "显示失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
 
 }
