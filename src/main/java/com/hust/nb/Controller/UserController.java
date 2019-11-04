@@ -52,7 +52,7 @@ public class UserController {
      * 方法功能描述:更改单个用户详细信息
      */
     @ResponseBody
-    @PostMapping("/UpdateUserDetailInfo")
+    @PostMapping("/查看")
     @CrossOrigin
     public Object updateUser(@RequestBody String user) {
         User UserEntity = JSON.parseObject(user, User.class);

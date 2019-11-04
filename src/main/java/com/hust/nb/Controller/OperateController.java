@@ -693,6 +693,7 @@ public class OperateController {
             noticeService.saveNotice(notice);
             jsonMap.put("code", "200");
             jsonMap.put("info", "录入成功");
+            jsonMap.put("data",notice);
         } catch (Exception e) {
             logger.error(e.getMessage());
             jsonMap.put("code", "-1");
