@@ -191,9 +191,14 @@ public class CenterController {
         }else {
             try {
             String imei = jsonObject.getString("imei");
-            deviceCheckDao.deleteByImeiAndEnprNo(imei, enprNo);
-            jsonMap.put("code","200");
-            jsonMap.put("info","删除成功");
+            if (imei != null){
+                deviceCheckDao.deleteByImeiAndEnprNo(imei, enprNo);
+                jsonMap.put("code","200");
+                jsonMap.put("info","删除成功");
+            }else {
+                jsonMap.put("code","-1");
+                jsonMap.put("info","删除失败");
+            }
         }catch (Exception e){
             logger.error(e.getMessage());
             jsonMap.put("code","-1");
@@ -225,50 +230,67 @@ public class CenterController {
                 deviceController.getSZNBdevice(map);
             } else if (flag == 1) {
                 String macAddr = jsonObject.getString("macAddr");
-                map.put("macAddr", macAddr);
-                deviceController.getSZNBdevice(map);
+                if (macAddr == null){
+                    jsonMap.put("code", "-1");
+                    jsonMap.put("info", "参数传输失败");
+                }else {
+                    map.put("macAddr", macAddr);
+                    deviceController.getSZNBdevice(map);
+                    jsonMap.put("code", "200");
+                    jsonMap.put("info", "更新成功");
+                }
             } else if (flag == 2) {
                 //更新某一表阀门状态
                 String macAddr = jsonObject.getString("macAddr");
-                JSONObject paramMap = new JSONObject();
-                String companyalias = "hbhxzn03";
-                String loginname = "YWRtaW5oYmh4em4wMw==";
-                String password = "YWRtaW5oYmh4em4wMw==";
-                paramMap.put("companyalias", companyalias);
-                paramMap.put("loginname", loginname);
-                paramMap.put("password", password);
-                paramMap.put("mac_addr", macAddr);
-                RestTemplate restTemplate = new RestTemplate();
-                Integer value01 = jsonObject.getInteger("value01");
-                paramMap.put("operatecmd", "switchtip");
-                paramMap.put("value01", value01);
-                //更新阀门状态
-                String url1 = "http://118.25.217.87/emac_android_connect/get_hbhxznas_all_data.php";
-                paramMap.put("operatecmd", "getdatabyaddr");
-                String res1 = restTemplate.postForEntity(url1, paramMap, String.class).getBody();
-                JSONObject object1 = JSONObject.parseObject(res1);
-                JSONArray data = object1.getJSONArray("message");
-                try {
-                    if (check == 1){
-                        DeviceCheck device = deviceCheckDao.findByImei(data.getJSONObject(0).get("imei").toString());
-                        if (device != null) {
-                            device.setValve(Integer.valueOf(data.getJSONObject(0).get("switch_status").toString()));
-                            deviceCheckDao.save(device);
+                if (macAddr == null){
+                    jsonMap.put("code", "-1");
+                    jsonMap.put("info", "参数传输失败");
+                }else {
+                    JSONObject paramMap = new JSONObject();
+                    String companyalias = "hbhxzn03";
+                    String loginname = "YWRtaW5oYmh4em4wMw==";
+                    String password = "YWRtaW5oYmh4em4wMw==";
+                    paramMap.put("companyalias", companyalias);
+                    paramMap.put("loginname", loginname);
+                    paramMap.put("password", password);
+                    paramMap.put("mac_addr", macAddr);
+                    RestTemplate restTemplate = new RestTemplate();
+                    Integer value01 = jsonObject.getInteger("value01");
+                    paramMap.put("operatecmd", "switchtip");
+                    paramMap.put("value01", value01);
+                    //更新阀门状态
+                    String url1 = "http://118.25.217.87/emac_android_connect/get_hbhxznas_all_data.php";
+                    paramMap.put("operatecmd", "getdatabyaddr");
+                    String res1 = restTemplate.postForEntity(url1, paramMap, String.class).getBody();
+                    JSONObject object1 = JSONObject.parseObject(res1);
+                    JSONArray data = object1.getJSONArray("message");
+                    try {
+                        if (check == 1){
+                            DeviceCheck device = deviceCheckDao.findByImei(data.getJSONObject(0).get("imei").toString());
+                            if (device != null) {
+                                device.setValve(Integer.valueOf(data.getJSONObject(0).get("switch_status").toString()));
+                                deviceCheckDao.save(device);
+                            }
+                        }else {
+                            Device device1 = deviceService.findByImei(data.getJSONObject(0).get("imei").toString());
+                            if (device1 != null) {
+                                device1.setValve(Integer.valueOf(data.getJSONObject(0).get("switch_status").toString()));
+                                deviceService.updateDevice(device1);
+                            }
                         }
-                    }else {
-                        Device device1 = deviceService.findByImei(data.getJSONObject(0).get("imei").toString());
-                        if (device1 != null) {
-                            device1.setValve(Integer.valueOf(data.getJSONObject(0).get("switch_status").toString()));
-                            deviceService.updateDevice(device1);
-                        }
+                        jsonMap.put("code", "200");
+                        jsonMap.put("info", "更新成功");
+                    } catch (Exception e) {
+                        logger.error(e.getMessage());
+                        jsonMap.put("code", "-1");
+                        jsonMap.put("info", "更新失败");
                     }
-                } catch (Exception e) {
-                    logger.error(e.getMessage());
-                }
-            }
 
-            jsonMap.put("code", "200");
-            jsonMap.put("info", "更新成功");
+                }
+
+
+                }
+
         } catch (Exception e) {
             logger.error(e.getMessage());
             jsonMap.put("code", "-1");
@@ -500,7 +522,7 @@ public class CenterController {
         int flag = jsonObject.getInteger("flag");//标识字段，0则代表查询小区故障表，1则代表水司故障表
         List<Warning> warnings = new ArrayList<>();
         Timestamp cur = GetDate.getCurrentDay();
-        if (flag == 1){
+        if (flag == 0){
             String communityName = jsonObject.getString("communityName");
             warnings = warningDao.findByEnprNoAndCommunityNameAndWarningDate(enprNo, communityName, cur);
         }else {

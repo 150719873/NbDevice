@@ -30,7 +30,7 @@ public interface DeviceDao extends JpaRepository<Device,Device>,JpaSpecification
     List<Integer> findStateByUserId(int userId);
 
     @Query(value = "select new com.hust.nb.vo.DeviceOutputVO(d.id,d.deviceNo,u.userName,d.imei,d.dayAmount,d.deviceType,d.monthAmount,d.readTime,d.readValue,d.state,d.userId,d.waterType,d.valve,u.userAddr,u.blockId,u.userNo" +
-                ") FROM Device d INNER JOIN User u ON d.userId = u.userId WHERE u.blockId in (SELECT blockId FROM Block b WHERE b.communityId = ?1) AND d.state <> 0 ORDER BY u.blockId")
+                ") FROM Device d INNER JOIN User u ON d.userId = u.userId WHERE u.blockId in (SELECT blockId FROM Block b WHERE b.communityId = ?1) AND d.state <> 0 and d.imei is not null ORDER BY u.blockId")
      Page<DeviceOutputVO> getFailDeviceByCommunityId(int communityId, Pageable pageable);
 
     @Query(value = "select new com.hust.nb.vo.DeviceOutputVO(d.id,d.deviceNo,u.userName,d.imei,d.dayAmount,d.deviceType,d.monthAmount,d.readTime,d.readValue,d.state,d.userId,d.waterType,d.valve,u.userAddr,u.blockId,u.userNo" +

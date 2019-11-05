@@ -70,53 +70,9 @@ public class DayCountScheduledJob {
     DeviceController deviceController;
 
     /**
-     * 每天六点更新所有水表，针对每一个水表计算日用水量，插入dayCount
+     * 定时功能，每天凌晨三点更新水表读数
      */
-    @Scheduled(cron = "0 0 6 * * ?")
-    public void update() {
-        logger.info("====================日水量统计====================");
-        List<Device> deviceList = deviceDao.findAll();
-        BigDecimal limit = new BigDecimal(200);
-        BigDecimal zero = new BigDecimal(0);
-        Calendar calendar = Calendar.getInstance();
-        for (Device device : deviceList) {
-            try{
-                if (device.getImei() != null) {
-                    Daycount daycount = new Daycount();
-                    daycount.setDeviceNo(device.getDeviceNo());
-                    daycount.setEnprNo(device.getEnprNo());
-                    daycount.setEndTime(device.getReadTime());
-                    daycount.setEndValue(device.getReadValue());
-                    daycount.setDate(GetDate.getYesterday());
-                    daycount.setDayAmount(device.getReadValue().subtract(device.getPreReadValue()));
-                    if (daycount.getStartTime() == daycount.getEndTime()) {
-                        daycount.setState(2);
-                    } else if (daycount.getDayAmount().compareTo(limit) == 1) {
-                        daycount.setState(3);
-                    } else if (daycount.getDayAmount().compareTo(zero) == -1) {
-                        daycount.setState(1);
-                    } else {
-                        daycount.setState(0);
-                    }
-                    device.setPreReadValue(device.getReadValue());
-                    device.setPreReadTime(device.getReadTime());
-                    if(device.getMonthAmount() == null && device.getMonthAmount().compareTo(new BigDecimal("0")) <= 0){
-                        device.setMonthAmount(daycount.getDayAmount());
-                    } else {
-                        device.setMonthAmount(device.getMonthAmount().add(daycount.getDayAmount()));
-                    }
-                    daycostService.updateDeviceAndDaycount(device, daycount);
-                }
-            } catch (Exception e){
-                logger.error(e.getMessage());
-            }
-        }
-    }
-
-    /**
-     * 定时功能，更新水表读数
-     */
-    @Scheduled(cron = "0 0 0/3 * * ?")
+    @Scheduled(cron = "0 0 3 * * ?")
     public void updateNBDevice() {
         Map<String, Object> map = new HashMap<>();
         map.put("flag", 0);
@@ -126,7 +82,52 @@ public class DayCountScheduledJob {
         try {
             deviceController.getSZNBdevice(map);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error(e.getStackTrace().toString());
+        }
+    }
+
+    /**
+     * 每天六点更新所有水表，针对每一个水表计算日用水量，插入dayCount，并且更新device表的日用水量
+     * 水表的deviceValue在导入的时候就已经导入过，所以该字段不可能为空，即使是初次使用
+     * 另外如果是初次使用，凌晨三点的时候就已经更新过preReadValue，所以该字段也不可能为空
+     */
+    @Scheduled(cron = "0 0 6 * * ?")
+    public void update() {
+        logger.info("====================日水量统计====================");
+        List<Device> deviceList = deviceDao.findAll();
+        BigDecimal limit = new BigDecimal(200);
+        BigDecimal zero = new BigDecimal(0);
+        for (Device device : deviceList) {
+            try {
+                if (device.getImei() != null) {
+                    Daycount daycount = new Daycount();
+                    daycount.setDeviceNo(device.getDeviceNo());
+                    daycount.setEnprNo(device.getEnprNo());
+                    daycount.setEndTime(device.getReadTime());
+                    daycount.setEndValue(device.getReadValue());
+                    daycount.setDate(GetDate.getYesterday()); //凌晨六点计算的是前一天的用水量，二号六点计算的是一号的用水量
+                    BigDecimal dayAmount = device.getReadValue().subtract(device.getPreReadValue());
+                    daycount.setDayAmount(dayAmount);
+                    device.setDayAmount(dayAmount);
+                    if (daycount.getStartTime() == daycount.getEndTime()) {
+                        daycount.setState(2);
+                    } else if (daycount.getDayAmount().compareTo(limit) == 1) {
+                        daycount.setState(3);
+                    } else if (daycount.getDayAmount().compareTo(zero) == -1) {
+                        daycount.setState(1);
+                    } else {
+                        daycount.setState(0);
+                    }
+                    if (device.getMonthAmount() == null && device.getMonthAmount().compareTo(new BigDecimal("0")) <= 0) {
+                        device.setMonthAmount(daycount.getDayAmount());
+                    } else {
+                        device.setMonthAmount(device.getMonthAmount().add(daycount.getDayAmount())); // 月用水量清零操作在计算水费的时候进行
+                    }
+                    daycostService.updateDeviceAndDaycount(device, daycount);
+                }
+            } catch (Exception e) {
+                logger.error(e.getStackTrace().toString());
+            }
         }
     }
 
@@ -142,10 +143,10 @@ public class DayCountScheduledJob {
             String enprNo = enterprise.getEnprNo();
             List<User> userList = userDao.findAllByEnprNo(enprNo);
             for (User user : userList) {
-                try{
+                try {
                     userProcess(calendar, enprNo, user);
-                } catch (Exception e){
-                    logger.error(e.getMessage());
+                } catch (Exception e) {
+                    logger.error(e.getStackTrace().toString());
                 }
             }
         }
@@ -158,22 +159,14 @@ public class DayCountScheduledJob {
      * @param enprNo
      * @param user
      */
-    public void userProcess(Calendar calendar, String enprNo, User user) throws Exception {
+    private void userProcess(Calendar calendar, String enprNo, User user) throws Exception {
         Daycost daycost = new Daycost();
         List<Device> deviceList = deviceDao.findAllByUserId(user.getUserId());
         BigDecimal userDayAmount = new BigDecimal("0");
         BigDecimal userMonthAmount = new BigDecimal("0");
         for (Device device : deviceList) {
-            Daycount daycount = daycountDao.findLatestRecord(
-                    device.getDeviceNo(), device.getEnprNo(), GetDate.getYesterday()
-            );
-            BigDecimal deviceDayAmount = daycount == null ? new BigDecimal("0") : daycount.getDayAmount();
-            userDayAmount = userDayAmount.add(deviceDayAmount);
-            BigDecimal preMonthAmount = device.getMonthAmount();
-            if(preMonthAmount == null || preMonthAmount.compareTo(new BigDecimal("0")) <= 0){
-                preMonthAmount = new BigDecimal("0");
-            }
-            userMonthAmount = userMonthAmount.add(preMonthAmount);
+            userDayAmount = userDayAmount.add(device.getDayAmount());
+            userMonthAmount = userMonthAmount.add(device.getMonthAmount());
         }
         int userType = user.getUserType();
         ChargeLevel chargelevel = chargeLevelDao.findChargeLevelByEnprNoAndType(enprNo, userType);
@@ -205,57 +198,46 @@ public class DayCountScheduledJob {
         BigDecimal fourthEdge = chargelevel.getFourthEdge();
         BigDecimal fifthEdge = chargelevel.getFifthEdge();
         BigDecimal sixthEdge = chargelevel.getSixthEdge();
-        if (fifth != null && userMonthAmount.compareTo(fifth) != -1 && userMonthAmount.subtract(userDayAmount).compareTo(fifth) != -1) {
+        BigDecimal excludeToday = userMonthAmount.subtract(userDayAmount);
+        if (fifth != null && userMonthAmount.compareTo(fifth) != -1 && excludeToday.compareTo(fifth) != -1) {
             BigDecimal cost = sixthEdge.multiply(userDayAmount);
             daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
-        } else if(fifth != null && userMonthAmount.compareTo(fifth) != -1 && userMonthAmount.subtract(userDayAmount).compareTo(fifth) == -1){
-            BigDecimal beyond = userMonthAmount.subtract(fifth);
-            BigDecimal higher = beyond.subtract(sixthEdge);
-            BigDecimal lower = userDayAmount.subtract(beyond).subtract(fifth);
-            BigDecimal cost = higher.add(lower);
+        } else if (fifth != null && userMonthAmount.compareTo(fifth) != -1 && excludeToday.compareTo(fifth) == -1) {
+            BigDecimal cost = getCostBetween(userDayAmount, userMonthAmount, fifthEdge, sixthEdge);
             daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
-        } else if (fifth != null && userMonthAmount.compareTo(fifth) == -1 && userMonthAmount.compareTo(fourth) != -1) {
-            BigDecimal total = userDayAmount.add(userMonthAmount);
-            BigDecimal beyond = total.subtract(fifth);
-            BigDecimal higher = beyond.multiply(sixthEdge);
-            BigDecimal lower = userDayAmount.subtract(beyond).multiply(fifthEdge);
-            BigDecimal cost = higher.add(lower);
+        } else if (fourth != null && userMonthAmount.compareTo(fourth) != -1 && excludeToday.compareTo(fourth) != -1) {
+            BigDecimal cost = userDayAmount.add(fifthEdge);
             daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
-        }  else if (fourth != null && userMonthAmount.compareTo(fourth) == -1 && userMonthAmount.compareTo(third) != -1) {
-            BigDecimal total = userDayAmount.add(userMonthAmount);
-            BigDecimal beyond = total.subtract(fourth);
-            BigDecimal higher = beyond.multiply(fifthEdge);
-            BigDecimal lower = userDayAmount.subtract(beyond).multiply(fourthEdge);
-            BigDecimal cost = higher.add(lower);
+        } else if (fourth != null && userMonthAmount.compareTo(fourth) != -1 && excludeToday.compareTo(fourth) == -1) {
+            BigDecimal cost = getCostBetween(userDayAmount, userMonthAmount, fourthEdge, fifthEdge);
             daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
-        } else if (third != null && userMonthAmount.compareTo(third) == -1 && userMonthAmount.compareTo(second) != -1) {
-            BigDecimal total = userDayAmount.add(userMonthAmount);
-            BigDecimal beyond = total.subtract(third);
-            BigDecimal higher = beyond.multiply(fourthEdge);
-            BigDecimal lower = userDayAmount.subtract(beyond).multiply(thirdEdge);
-            BigDecimal cost = higher.add(lower);
+        } else if (third != null && userMonthAmount.compareTo(third) != -1 && excludeToday.compareTo(third) != -1) {
+            BigDecimal cost = userDayAmount.multiply(fourthEdge);
             daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
-        } else if (second != null && userMonthAmount.compareTo(second) == -1 && userMonthAmount.compareTo(first) != -1) {
-            BigDecimal total = userDayAmount.add(userMonthAmount);
-            BigDecimal beyond = total.subtract(second);
-            BigDecimal higher = beyond.multiply(thirdEdge);
-            BigDecimal lower = userDayAmount.subtract(beyond).multiply(secondEdge);
-            BigDecimal cost = higher.add(lower);
+        } else if (third != null && userMonthAmount.compareTo(third) != -1 && excludeToday.compareTo(third) == -1) {
+            BigDecimal cost = getCostBetween(userDayAmount, userMonthAmount, thirdEdge, fourthEdge);
             daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
-        } else if (first != null && userMonthAmount.compareTo(first) == -1 && userMonthAmount.compareTo(min) != -1) {
-            BigDecimal total = userDayAmount.add(userMonthAmount);
-            BigDecimal beyond = total.subtract(first);
-            BigDecimal higher = beyond.multiply(secondEdge);
-            BigDecimal lower = userDayAmount.subtract(beyond).multiply(firstEdge);
-            BigDecimal cost = higher.add(lower);
+        } else if (second != null && userMonthAmount.compareTo(second) != -1 && excludeToday.compareTo(second) != -1) {
+            BigDecimal cost = userDayAmount.multiply(thirdEdge);
             daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
-        } else if (min != null && userMonthAmount.compareTo(min) == -1) {
-            BigDecimal total = userDayAmount.add(userMonthAmount);
-            BigDecimal beyond = total.subtract(min);
-            BigDecimal higher = beyond.multiply(firstEdge);
-            BigDecimal cost = higher.add(minCharge);
+        } else if (second != null && userMonthAmount.compareTo(second) != -1 && excludeToday.compareTo(second) == -1) {
+            BigDecimal cost = getCostBetween(userDayAmount, userMonthAmount, secondEdge, thirdEdge);
             daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
-        } else {
+        } else if(first != null && userMonthAmount.compareTo(first) != -1 && excludeToday.compareTo(first) != -1){
+            BigDecimal cost = userDayAmount.multiply(secondEdge);
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+        } else if(first != null && userMonthAmount.compareTo(first) != -1 && excludeToday.compareTo(first) == -1){
+            BigDecimal cost = getCostBetween(userDayAmount, userMonthAmount, firstEdge, secondEdge);
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+        } else if(min != null && userMonthAmount.compareTo(min) != -1 && excludeToday.compareTo(min) != -1){
+            BigDecimal cost = userDayAmount.multiply(firstEdge);
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+        } else if(min != null && userMonthAmount.compareTo(min) != -1 && excludeToday.compareTo(min) == -1){
+            BigDecimal beyond = userMonthAmount.subtract(userDayAmount);
+            BigDecimal higherCost = beyond.multiply(firstEdge);
+            BigDecimal cost = minCharge.add(higherCost);
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+        } else if(min != null && userMonthAmount.compareTo(min) == -1) {
             //凌晨计算前一天水费，如果是一号代表上个月用水量未超过最低限额，扣费
             //其余日期(直到月底计算前)不扣费
             if (date == 1) {
@@ -266,6 +248,14 @@ public class DayCountScheduledJob {
         }
     }
 
+    private BigDecimal getCostBetween(BigDecimal userDayAmount, BigDecimal userMonthAmount, BigDecimal preStage, BigDecimal posStage){
+        BigDecimal beyond = userMonthAmount.subtract(userDayAmount);
+        BigDecimal higherCost = beyond.multiply(posStage);
+        BigDecimal lowerCost = userDayAmount.subtract(beyond).multiply(preStage);
+        BigDecimal cost = higherCost.add(lowerCost);
+        return cost;
+    }
+
 
     /**
      * nb故障诊断每日定时分析
@@ -274,7 +264,6 @@ public class DayCountScheduledJob {
     public void warining() {
         Warning warning = new Warning();
         List<Device> deviceList = deviceDao.getFailDevice();
-
         for (Device device1 : deviceList) {
             if (device1.getImei() != null) {
                 Daycount daycount = daycountDao.findLatestDaycountRecord(device1.getDeviceNo(), device1.getEnprNo());

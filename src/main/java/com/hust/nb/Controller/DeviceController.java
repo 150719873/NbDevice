@@ -6,12 +6,14 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.hust.nb.Dao.DaycountDao;
 import com.hust.nb.Dao.DeviceCheckDao;
+import com.hust.nb.Dao.DimnessDao;
 import com.hust.nb.Entity.*;
 import com.hust.nb.Service.*;
 import com.hust.nb.util.Adapter;
 import com.hust.nb.util.BigDevicePropUtil;
 import com.hust.nb.util.EntityFactory;
 import com.hust.nb.util.GetDate;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +61,9 @@ public class DeviceController {
 
     @Autowired
     DeviceCheckDao deviceCheckDao;
+
+    @Autowired
+    DimnessDao dimnessDao;
 
     private static Logger logger = LoggerFactory.getLogger(DeviceController.class);
 
@@ -215,6 +220,7 @@ public class DeviceController {
             try {
                 oldDevice.setUserId(null);
                 newDevice.setUserId(userId);
+                newDevice.setMonthAmount(oldDevice.getMonthAmount());
                 deviceChangeService.changeDevice(oldDevice, newDevice, deviceChange);
                 jsonMap.put("code", "200");
                 jsonMap.put("info", "更换水表成功");
@@ -546,6 +552,11 @@ public class DeviceController {
         JSONObject jsonObject = JSONObject.parseObject(msg);
         Integer command = jsonObject.getInteger("command");//命令0代表从设备获取数据，1代表初始化底数 2代表阀门控制，1，2需要给参数value01即底数参数或状态参数
         String macAddr = jsonObject.getString("macAddr");
+        if (StringUtils.isEmpty(macAddr)){
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "命令失败");
+            return JSONObject.toJSON(jsonMap);
+        }
         String url = bigDevicePropUtil.getNbDeviceUrl() + "execute_hbhxznas_cmd.php";
         JSONObject paramMap = new JSONObject();
         String companyalias = "hbhxzn03";
@@ -611,7 +622,40 @@ public class DeviceController {
         }
         Object o = JSONObject.toJSON(jsonMap);
         return o;
+    }
 
+    /**
+     * 浊度值获取接口
+     */
+    @ResponseBody
+    @PostMapping("/turbidity")
+    public Object getDimness(@RequestBody String msg){
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        String address = jsonObject.getString("address");
+        Double turbidity = jsonObject.getDouble("turbidity");
+        String dateline = jsonObject.getString("datetime");
+        if(StringUtils.isEmpty(address) || turbidity == null || StringUtils.isEmpty(dateline)){
+            logger.error("浊度值获取参数异常");
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "浊度值获取参数异常");
+        } else {
+            Dimness turbidity1 = new Dimness();
+            turbidity1.setAddress(address);
+            turbidity1.setTurbidity(turbidity);
+            turbidity1.setDateline(dateline);
+            try{
+                dimnessDao.save(turbidity1);
+                jsonMap.put("code", "200");
+                jsonMap.put("info", "获取成功");
+            } catch (Exception e){
+                logger.error(e.getStackTrace().toString());
+                jsonMap.put("code", "-1");
+                jsonMap.put("info", "获取失败");
+            }
+        }
+        Object o = JSONObject.toJSON(jsonMap);
+        return o;
     }
 
 }

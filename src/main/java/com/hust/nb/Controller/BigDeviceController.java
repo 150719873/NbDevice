@@ -22,6 +22,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @author fengzexian
+ */
 @Slf4j
 @RestController
 @RequestMapping("/bigDevice")
@@ -51,7 +54,12 @@ public class BigDeviceController {
         String url = bigDevicePropUtil.getBigDeviceUrl()+"api/Login/Login";
         //获取第三方token
         try {
-            tokenStr = HttpRequest.post(url).header(Header.ACCEPT,"text/json").form(paramsMap).execute().body();
+            tokenStr = HttpRequest
+                    .post(url)
+                    .header(Header.ACCEPT,"text/json")
+                    .form(paramsMap)
+                    .execute()
+                    .body();
         }catch (Exception e){
             logger.error("第三方token获取异常: " + e.getMessage());
         }
@@ -61,7 +69,7 @@ public class BigDeviceController {
             String data = jsonObject.getString("Data");
             JSONObject token1 = JSON.parseObject(data);
             String token = token1.getString("Token");
-            System.out.println(token);
+            logger.info("第三方token获取：" + token);
             jsonMap.put("code","200");
             jsonMap.put("info",token);
         }catch (Exception e){
@@ -87,13 +95,17 @@ public class BigDeviceController {
         String url = bigDevicePropUtil.getBigDeviceUrl()+"api/Meter/GetMeterList";
         String resStr = "";
         try {
-            resStr = HttpRequest.post(url).header(Header.ACCEPT,"text/json").header("Authorization",token).form(paramMap).execute().body();
+            resStr = HttpRequest.post(url)
+                    .header(Header.ACCEPT,"text/json")
+                    .header("Authorization",token)
+                    .form(paramMap)
+                    .execute()
+                    .body();
         }catch (Exception e){
             e.printStackTrace();
 
         }
         JSONObject object = JSONObject.parseObject(resStr);
-
         try {
             //得到数据，插入数据库
             ArrayList<BigDevice> list = new ArrayList<>();
@@ -152,6 +164,7 @@ public class BigDeviceController {
                         bigDevice.setCelVal(new BigDecimal(data.getJSONObject(i).get("CelVal").toString()));
                         list.add(bigDevice);
                     }
+                    //存在该大表并且RealValue有变化
                     if (verify!= null &&!data.getJSONObject(i).get("RealValue").toString().equals(verify.getRealValue())) {
                         verify.setRealValue(new BigDecimal(data.getJSONObject(i).get("RealValue").toString()));
                         if (data.getJSONObject(i).get("ToValue")!=null){
