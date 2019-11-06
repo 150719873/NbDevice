@@ -468,6 +468,7 @@ public class ImportExcelController {
         MultipartHttpServletRequest params = ((MultipartHttpServletRequest) request);
         MultipartFile file = ((MultipartHttpServletRequest) request).getFile("file");
         String enprNo = params.getParameter("enprNo");
+        System.out.println(params.getParameter("communityId"));
         Integer communityId = Integer.parseInt(params.getParameter("communityId"));
         boolean isExcel2003 = true;
         String fileName = file.getOriginalFilename();

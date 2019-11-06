@@ -124,6 +124,31 @@ public class OperateController {
     }
 
     /**
+     * 方法功能描述:根据区域ID获取小区信息
+     */
+    @CrossOrigin
+    @ResponseBody
+    @PostMapping("/GetCommunityInfoByRegion")
+    public Object getCommunityInfoByRegion(@RequestBody String msg) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        int regionId = jsonObject.getInteger("regionId");
+        List<Community> communities = null;
+        try{
+            communities = communityService.getByRegionId(regionId);
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "查询成功");
+            jsonMap.put("data", communities);
+        } catch (Exception e){
+            logger.error(e.getStackTrace().toString());
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "查询失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+    /**
      * 方法功能描述:根据楼栋获取用户信息
      */
     @ResponseBody
