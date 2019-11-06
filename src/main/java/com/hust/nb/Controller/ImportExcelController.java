@@ -10,6 +10,7 @@ import com.hust.nb.Entity.*;
 import com.hust.nb.Service.*;
 import com.hust.nb.util.ImportExcel;
 import com.hust.nb.util.WDWUtil;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -519,11 +520,11 @@ public class ImportExcelController {
                     if (cellList.get(0) == null){
                         continue;
                     }
-                    if ("".equals(cellList.get(1))) {
-                        errstr.append("序号为(" + j + ")这一行的用户名为空，请检查excel！");
+                    if (StringUtils.isEmpty(cellList.get(1))) {
+                        errstr.append("sheet为"+blockName+"序号为(" + j + ")这一行的用户名为空，请检查excel！");
                     }
-                    if ("".equals(cellList.get(2))) {
-                        errstr.append("序号为(" + j + ")这一行的用户类型为空，请检查excel！");
+                    if (StringUtils.isEmpty(cellList.get(2))) {
+                        errstr.append("sheet为"+blockName+"序号为(" + j + ")这一行的用户类型为空，请检查excel！");
                     }
 
                     User user = userService.findByUserNameAndUserAddrAAndUserTel(cellList.get(1), cellList.get(9), cellList.get(3));
@@ -554,87 +555,87 @@ public class ImportExcelController {
 
 
                     if(block == null){
-                        errstr.append("序号为(" + j + ")这一行的用户所属小区与已导入所属小区不符，请检查excel！");
+                        errstr.append("sheet为"+blockName+"序号为(" + j + ")这一行的用户所属小区与已导入所属小区不符，请检查excel！");
                     }
                     if (user != null && block != null){
                         if (!user.getEnprNo().equals(enprNo)){
-                            errstr.append("序号为(" + j + ")这一行的用户所属水司与已导入所属水司不符，请检查excel！");
+                            errstr.append("sheet为"+blockName+"序号为(" + j + ")这一行的用户所属水司与已导入所属水司不符，请检查excel！");
                         }
 
                         if (user.getBlockId() != block.getBlockId()){
-                            errstr.append("序号为(" + j + ")这一行的用户所属楼栋与已导入所属楼栋不符，请检查excel！");
+                            errstr.append("sheet为"+blockName+"序号为(" + j + ")这一行的用户所属楼栋与已导入所属楼栋不符，请检查excel！");
                         }
                         Block commnityId = blockDao.getByBlockId(user.getBlockId());
                         if (commnityId.getCommunityId() != communityId){
-                            errstr.append("序号为(" + j + ")这一行的用户所属小区与已导入所属小区不符，请检查excel！");
+                            errstr.append("sheet为"+blockName+"序号为(" + j + ")这一行的用户所属小区与已导入所属小区不符，请检查excel！");
                         }
                     }
 
-                    if ("".equals(cellList.get(3))) {
-                        errstr.append("序号为(" + j + ")这一行的用户电话为空，请检查excel！");
+                    if (StringUtils.isEmpty(cellList.get(3))) {
+                        errstr.append("sheet为"+blockName+"序号为(" + j + ")这一行的用户电话为空，请检查excel！");
                     } else if (cellList.get(3).length() != 11 && cellList.get(3).length() < 4 && cellList.get(3).length() > 8) {
-                        errstr.append("序号为(" + j + ")这一行的用户电话位数有误，请检查excel！");
+                        errstr.append("sheet为"+blockName+"序号为(" + j + ")这一行的用户电话位数有误，请检查excel！");
                     } else if (mapTel.containsKey(cellList.get(3)) && !mapTel.get(cellList.get(3)).equals(cellList.get(1))) {
-                        errstr.append("序号为(" + j + ")这一行的用户电话已存在且与所存在用户名不符，请检查excel！");
+                        errstr.append("sheet为"+blockName+"序号为(" + j + ")这一行的用户电话已存在且与所存在用户名不符，请检查excel！");
                     } else if (!mapTel.containsKey(cellList.get(3))) {
                         mapTel.put(cellList.get(3), cellList.get(1));
                     }
-                    if (!cellList.get(5).isEmpty() && !cellList.get(7).isEmpty() && !cellList.get(6).isEmpty()) {
-                        if ("".equals(cellList.get(5))) {
-                            errstr.append("序号为(" + j + ")这一行的银行账号为空，请检查excel！");
+                    if (StringUtils.isNotEmpty(cellList.get(5)) && StringUtils.isNotEmpty(cellList.get(6)) && StringUtils.isNotEmpty(cellList.get(7))) {
+                        if (StringUtils.isEmpty(cellList.get(5))) {
+                            errstr.append("sheet为"+blockName+"序号为(" + j + ")这一行的银行账号为空，请检查excel！");
                         } else if (cellList.get(5).length() != 16 && cellList.get(5).length() != 15 && cellList.get(5).length() != 19) {
-                            errstr.append("序号为(" + j + ")这一行的银行账号位数有误，请检查excel！");
+                            errstr.append("sheet为"+blockName+"序号为(" + j + ")这一行的银行账号位数有误，请检查excel！");
                         } else if (mapBank.containsKey(cellList.get(5)) && !mapBank.get(cellList.get(5)).equals(cellList.get(6))) {
-                            errstr.append("序号为(" + j + ")这一行的银行账号与已导入户主不符，请检查excel！");
+                            errstr.append("sheet为"+blockName+"序号为(" + j + ")这一行的银行账号与已导入户主不符，请检查excel！");
                         }else if (!mapBank.containsKey(cellList.get(5))){
                             mapBank.put(cellList.get(5),cellList.get(6));
                         }
-                        if ("".equals(cellList.get(6))) {
-                            errstr.append("序号为(" + j + ")这一行的银行户主为空，请检查excel！");
+                        if (StringUtils.isEmpty(cellList.get(6))) {
+                            errstr.append("sheet为"+blockName+"序号为(" + j + ")这一行的银行户主为空，请检查excel！");
                         }
-                        if ("".equals(cellList.get(7))) {
-                            errstr.append("序号为(" + j + ")这一行的开户行为空，请检查excel！");
+                        if (StringUtils.isEmpty(cellList.get(7))) {
+                            errstr.append("sheet为"+blockName+"序号为(" + j + ")这一行的开户行为空，请检查excel！");
                         }
                     }
-                    if ("".equals(cellList.get(8))) {
-                        errstr.append("序号为(" + j + ")这一行的表地址为空，请检查excel！");
+                    if (StringUtils.isEmpty(cellList.get(8))) {
+                        errstr.append("sheet为"+blockName+"序号为(" + j + ")这一行的表地址为空，请检查excel！");
                     }else if (!deveceN.add(cellList.get(8))){
-                        errstr.append("序号为(" + j + ")这一行的表地址已存在，请检查excel！");
+                        errstr.append("sheet为"+blockName+"序号为(" + j + ")这一行的表地址已存在，请检查excel！");
                     }else {
                         deveceN.add(cellList.get(8));
                     }
-                    if ("".equals(cellList.get(9))) {
-                        errstr.append("序号为(" + j + ")这一行的用户住址为空，请检查excel！");
+                    if (StringUtils.isEmpty(cellList.get(9))) {
+                        errstr.append("sheet为"+blockName+"序号为(" + j + ")这一行的用户住址为空，请检查excel！");
                     }
 
-                    if ("".equals(cellList.get(10))) {
-                        errstr.append("序号为(" + j + ")这一行的IMEI为空，请检查excel！");
+                    if (StringUtils.isEmpty(cellList.get(10))) {
+                        errstr.append("sheet为"+blockName+"序号为(" + j + ")这一行的IMEI为空，请检查excel！");
                     }else if (!userImei.add(cellList.get(10))){
-                        errstr.append("序号为(" + j + ")这一行的IMEI号已存在，请检查excel！");
+                        errstr.append("sheet为"+blockName+"序号为(" + j + ")这一行的IMEI号已存在，请检查excel！");
                     }else {
                         userImei.add(cellList.get(10));
                     }
-                    if ("".equals(cellList.get(11))) {
-                        errstr.append("序号为(" + j + ")这一行的口径为空，请检查excel！");
+                    if (StringUtils.isEmpty(cellList.get(11))) {
+                        errstr.append("sheet为"+blockName+"序号为(" + j + ")这一行的口径为空，请检查excel！");
                     }
-                    if ("".equals(cellList.get(12))) {
-                        errstr.append("序号为(" + j + ")这一行的阀门为空，请检查excel！");
+                    if (StringUtils.isEmpty(cellList.get(12))) {
+                        errstr.append("sheet为"+blockName+"序号为(" + j + ")这一行的阀门为空，请检查excel！");
                     }
-                    if ("".equals(cellList.get(14))) {
-                        errstr.append("序号为(" + j + ")这一行的安装时间为空，请检查excel！");
+                    if (StringUtils.isEmpty(cellList.get(14))) {
+                        errstr.append("sheet为"+blockName+"序号为(" + j + ")这一行的安装时间为空，请检查excel！");
                     }
-                    if ("".equals(cellList.get(15))) {
-                        errstr.append("序号为(" + j + ")这一行的生产厂家为空，请检查excel！");
+                    if (StringUtils.isEmpty(cellList.get(15))) {
+                        errstr.append("sheet为"+blockName+"序号为(" + j + ")这一行的生产厂家为空，请检查excel！");
                     }
-                    if ("".equals(cellList.get(16))) {
-                        errstr.append("序号为(" + j + ")这一行的用户编号为空，请检查excel！");
+                    if (StringUtils.isEmpty(cellList.get(16))) {
+                        errstr.append("sheet为"+blockName+"序号为(" + j + ")这一行的用户编号为空，请检查excel！");
                     }
                     if (user != null && !user.getUserNo().equals(cellList.get(16))){
-                        errstr.append("序号为(" + j + ")这一行的用户已存在但用户编号与已存在用户编号不同，请检查excel！");
+                        errstr.append("sheet为"+blockName+"序号为(" + j + ")这一行的用户已存在但用户编号与已存在用户编号不同，请检查excel！");
                     }
                     if (user == null){
                        if (!userNo.add(cellList.get(16))){
-                            errstr.append("序号为(" + j + ")这一行的用户编号已存在，请检查excel！");
+                            errstr.append("sheet为"+blockName+"序号为(" + j + ")这一行的用户编号已存在，请检查excel！");
                         }else {
                             userNo.add(cellList.get(16));
                         }

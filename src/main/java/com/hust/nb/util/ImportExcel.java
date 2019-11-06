@@ -146,7 +146,7 @@ public class ImportExcel {
                             cellValue = String.valueOf(cell.getBooleanCellValue());
                             break;
                         case XSSFCell.CELL_TYPE_BLANK: //空白
-                            cellValue = cell.getStringCellValue();
+                            cellValue = "";
                             break;
                         case XSSFCell.CELL_TYPE_ERROR: //错误
                             cellValue = "错误";
