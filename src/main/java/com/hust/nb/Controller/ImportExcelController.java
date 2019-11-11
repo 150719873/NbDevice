@@ -482,6 +482,12 @@ public class ImportExcelController {
     }
 
 
+    @Override
+    public String toString() {
+        return "ImportExcelController{" +
+                "importExcelService=" + importExcelService +
+                '}';
+    }
 
     /**
      * NB导入检测

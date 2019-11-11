@@ -512,7 +512,6 @@ public class OperateController {
         String repairmanName = jsonObject.getString("repairmanName");
         String repairmanTel = jsonObject.getString("repairmanTel");
         Integer userId = jsonObject.getInteger("userId");
-//        Integer state = jsonObject.getInteger("state");
         Integer state =2;
         RepairItem repairItem = repairService.getbyUserId(userId);
         repairItem.setRepairmanName(repairmanName);
@@ -753,26 +752,6 @@ public class OperateController {
         Object object = JSONObject.toJSON(jsonMap);
         return object;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     /**

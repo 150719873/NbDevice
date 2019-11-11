@@ -1,6 +1,10 @@
 package com.hust.nb.Entity;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import javax.persistence.*;
+import java.sql.Timestamp;
 
 /**
  * @author: suxinyu
@@ -38,6 +42,13 @@ public class Dimness {
     @Column(name = "dateline")
     private String dateline;
 
+    /**
+     * 水司编码
+     */
+    @Basic
+    @Column(name = "enprNo")
+    private String enprNo;
+
     public Integer getId() {
         return Id;
     }
@@ -68,5 +79,13 @@ public class Dimness {
 
     public void setDateline(String dateline) {
         this.dateline = dateline;
+    }
+
+    public String getEnprNo() {
+        return enprNo;
+    }
+
+    public void setEnprNo(String enprNo) {
+        this.enprNo = enprNo;
     }
 }
