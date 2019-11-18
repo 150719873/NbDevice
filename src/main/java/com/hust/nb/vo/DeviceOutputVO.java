@@ -1,7 +1,6 @@
 package com.hust.nb.vo;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.util.Date;
 
 public class DeviceOutputVO {
@@ -9,7 +8,7 @@ public class DeviceOutputVO {
     private String deviceNo;
     private String userName;
     private String imei;
-    private BigDecimal dayCount;
+    private BigDecimal dayAmount;
     private Integer deviceType;
     private BigDecimal monthAmount;
     private Date readTime;
@@ -21,10 +20,10 @@ public class DeviceOutputVO {
     private String userAddr;
     private Integer blockId;
     private String userNo;
-
-    public DeviceOutputVO(){
-        super();
-    }
+    private String batteryVoltage;
+    private String rssi;
+    private Integer pinStatus;
+    private String macAddr;
 
     public Integer getId() {
         return id;
@@ -58,12 +57,12 @@ public class DeviceOutputVO {
         this.imei = imei;
     }
 
-    public BigDecimal getDayCount() {
-        return dayCount;
+    public BigDecimal getDayAmount() {
+        return dayAmount;
     }
 
-    public void setDayCount(BigDecimal dayCount) {
-        this.dayCount = dayCount;
+    public void setDayAmount(BigDecimal dayAmount) {
+        this.dayAmount = dayAmount;
     }
 
     public Integer getDeviceType() {
@@ -86,7 +85,7 @@ public class DeviceOutputVO {
         return readTime;
     }
 
-    public void setReadTime(Timestamp readTime) {
+    public void setReadTime(Date readTime) {
         this.readTime = readTime;
     }
 
@@ -154,12 +153,44 @@ public class DeviceOutputVO {
         this.userNo = userNo;
     }
 
-    public DeviceOutputVO(Integer id, String deviceNo, String userName, String imei, BigDecimal dayCount, Integer deviceType, BigDecimal monthAmount, Date readTime, BigDecimal readValue, Integer state, Integer userId, Integer waterType, Integer valve, String userAddr, Integer blockId, String userNo) {
+    public String getBatteryVoltage() {
+        return batteryVoltage;
+    }
+
+    public void setBatteryVoltage(String batteryVoltage) {
+        this.batteryVoltage = batteryVoltage;
+    }
+
+    public String getRssi() {
+        return rssi;
+    }
+
+    public void setRssi(String rssi) {
+        this.rssi = rssi;
+    }
+
+    public Integer getPinStatus() {
+        return pinStatus;
+    }
+
+    public void setPinStatus(Integer pinStatus) {
+        this.pinStatus = pinStatus;
+    }
+
+    public String getMacAddr() {
+        return macAddr;
+    }
+
+    public void setMacAddr(String macAddr) {
+        this.macAddr = macAddr;
+    }
+
+    public DeviceOutputVO(Integer id, String deviceNo, String userName, String imei, BigDecimal dayAmount, Integer deviceType, BigDecimal monthAmount, Date readTime, BigDecimal readValue, Integer state, Integer userId, Integer waterType, Integer valve, String batteryVoltage, String rssi, Integer pinStatus, String macAddr , String userAddr, Integer blockId, String userNo) {
         this.id = id;
         this.deviceNo = deviceNo;
         this.userName = userName;
         this.imei = imei;
-        this.dayCount = dayCount;
+        this.dayAmount = dayAmount;
         this.deviceType = deviceType;
         this.monthAmount = monthAmount;
         this.readTime = readTime;
@@ -171,5 +202,9 @@ public class DeviceOutputVO {
         this.userAddr = userAddr;
         this.blockId = blockId;
         this.userNo = userNo;
+        this.batteryVoltage = batteryVoltage;
+        this.rssi = rssi;
+        this.pinStatus = pinStatus;
+        this.macAddr = macAddr;
     }
 }

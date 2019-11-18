@@ -11,7 +11,7 @@ import java.sql.Timestamp;
  * Created by Administrator on 2019/8/25
  */
 @Entity
-@Table(name = "nt_daycount", schema = "dbo", catalog = "mixAll")
+@Table(name = "nb_daycost", schema = "dbo", catalog = "mixAll")
 public class Daycost {
     /**
      * 主键
@@ -32,8 +32,8 @@ public class Daycost {
      * 用户编号
      */
     @Basic
-    @Column(name = "user_no")
-    private String userNo;
+    @Column(name = "user_id")
+    private Integer userId;
 
     /**
      * 扣费
@@ -47,14 +47,14 @@ public class Daycost {
      */
     @Basic
     @Column(name = "cost_time")
-    private java.sql.Timestamp costTIme;
+    private java.sql.Timestamp costTime;
 
     /**
      * 前一天用水量
      */
     @Basic
-    @Column(name = "pre_day_amount")
-    private java.math.BigDecimal endValue;
+    @Column(name = "day_amount")
+    private java.math.BigDecimal dayAmount;
 
     /**
      * 水司编码
@@ -79,12 +79,12 @@ public class Daycost {
         this.imei = imei;
     }
 
-    public String getUserNo() {
-        return userNo;
+    public Integer getUserId() {
+        return userId;
     }
 
-    public void setUserNo(String userNo) {
-        this.userNo = userNo;
+    public void setUserId(Integer userId) {
+        this.userId = userId;
     }
 
     public BigDecimal getCostMoney() {
@@ -95,20 +95,20 @@ public class Daycost {
         this.costMoney = costMoney;
     }
 
-    public Timestamp getCostTIme() {
-        return costTIme;
+    public Timestamp getCostTime() {
+        return costTime;
     }
 
-    public void setCostTIme(Timestamp costTIme) {
-        this.costTIme = costTIme;
+    public void setCostTime(Timestamp costTime) {
+        this.costTime = costTime;
     }
 
-    public BigDecimal getEndValue() {
-        return endValue;
+    public BigDecimal getDayAmount() {
+        return dayAmount;
     }
 
-    public void setEndValue(BigDecimal endValue) {
-        this.endValue = endValue;
+    public void setDayAmount(BigDecimal dayAmount) {
+        this.dayAmount = dayAmount;
     }
 
     public String getEnprNo() {

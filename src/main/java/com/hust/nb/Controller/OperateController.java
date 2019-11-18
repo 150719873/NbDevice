@@ -82,7 +82,7 @@ public class OperateController {
             jsonMap.put("info", "查询成功");
             jsonMap.put("data", regions);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
@@ -115,7 +115,7 @@ public class OperateController {
             jsonMap.put("info", "查询成功");
             jsonMap.put("data", res);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
@@ -140,7 +140,7 @@ public class OperateController {
             jsonMap.put("info", "查询成功");
             jsonMap.put("data", communities);
         } catch (Exception e){
-            logger.error(e.getStackTrace().toString());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
@@ -172,7 +172,7 @@ public class OperateController {
             jsonMap.put("info", "查询成功");
             jsonMap.put("data", userDetailList);
         } catch (Exception e){
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
             jsonMap.put("data", "");
@@ -197,7 +197,7 @@ public class OperateController {
             jsonMap.put("info", "查询成功");
             jsonMap.put("data", addrs);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
@@ -226,7 +226,7 @@ public class OperateController {
             jsonMap.put("info", "查询成功");
             jsonMap.put("data", detailList);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
@@ -254,7 +254,7 @@ public class OperateController {
             jsonMap.put("info", "查询成功");
             jsonMap.put("data", detailMap);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
@@ -280,7 +280,7 @@ public class OperateController {
             jsonMap.put("info", "查询成功");
             jsonMap.put("data", detailMap);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
@@ -320,7 +320,7 @@ public class OperateController {
                 jsonMap.put("info", "登录失败");
             }
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
@@ -353,7 +353,7 @@ public class OperateController {
             jsonMap.put("info", "查询成功");
             jsonMap.put("data", res);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
@@ -395,7 +395,7 @@ public class OperateController {
             jsonMap.put("code", "200");
             jsonMap.put("info", "成功");
         } catch (Exception e){
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "失败");
         }
@@ -418,7 +418,7 @@ public class OperateController {
             jsonMap.put("code", "200");
             jsonMap.put("info", "删除成功");
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "删除失败");
         }
@@ -448,7 +448,7 @@ public class OperateController {
             jsonMap.put("code", "200");
             jsonMap.put("info", "修改成功");
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "修改失败");
         }
@@ -522,7 +522,7 @@ public class OperateController {
             jsonMap.put("code", "200");
             jsonMap.put("info", "编辑成功");
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "导入失败");
         }
@@ -553,7 +553,7 @@ public class OperateController {
             jsonMap.put("info", "导入成功");
             jsonMap.put("data",endTime);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "导入失败");
         }
@@ -579,7 +579,7 @@ public class OperateController {
             jsonMap.put("info", "查询成功");
             jsonMap.put("data",list01);
         }catch (Exception e){
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code","-1");
             jsonMap.put("info", "查询失败");
         }
@@ -605,7 +605,7 @@ public class OperateController {
             jsonMap.put("info", "查询成功");
             jsonMap.put("data",list02);
         }catch (Exception e){
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code","-1");
             jsonMap.put("info", "查询失败");
         }
@@ -635,7 +635,7 @@ public class OperateController {
             jsonMap.put("info", "查询成功");
             jsonMap.put("data",page01);
         }catch (Exception e){
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code","-1");
             jsonMap.put("info", "查询失败");
         }
@@ -663,7 +663,7 @@ public class OperateController {
             jsonMap.put("info","查询成功");
             jsonMap.put("data", page02);
         }catch (Exception e){
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code","-1");
             jsonMap.put("info", "查询失败");
         }
@@ -688,7 +688,7 @@ public class OperateController {
             jsonMap.put("code", "200");
             jsonMap.put("info", "删除成功");
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "删除失败");
         }
@@ -719,7 +719,7 @@ public class OperateController {
             jsonMap.put("info", "录入成功");
             jsonMap.put("data",notice);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "录入失败");
         }
@@ -745,7 +745,7 @@ public class OperateController {
             jsonMap.put("code", "200");
             jsonMap.put("info", "删除成功");
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "删除失败");
         }
@@ -774,7 +774,7 @@ public class OperateController {
             jsonMap.put("info","显示成功");
             jsonMap.put("data", page03);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "显示失败");
         }

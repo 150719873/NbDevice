@@ -12,13 +12,11 @@ import com.hust.nb.Service.*;
 import com.hust.nb.util.Adapter;
 import com.hust.nb.util.BigDevicePropUtil;
 import com.hust.nb.util.EntityFactory;
-import com.hust.nb.util.GetDate;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -67,6 +65,10 @@ public class DeviceController {
 
     private static Logger logger = LoggerFactory.getLogger(DeviceController.class);
 
+    private static String COMPANY_ALIAS = "hbhxzn03";
+    private static String LOGIN_NAME = "YWRtaW5oYmh4em4wMw";
+    private static String PASSWORD = "YWRtaW5oYmh4em4wMw";
+
 
     /**
      * 方法功能描述:获取水表详细信息
@@ -92,7 +94,7 @@ public class DeviceController {
             jsonMap.put("info", "查询成功");
 
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
             jsonMap.put("data", "");
@@ -115,7 +117,7 @@ public class DeviceController {
             jsonMap.put("code", "200");
             jsonMap.put("info", "更新成功");
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "更新失败");
         }
@@ -225,7 +227,7 @@ public class DeviceController {
                 jsonMap.put("code", "200");
                 jsonMap.put("info", "更换水表成功");
             } catch (Exception e) {
-                logger.error(e.getMessage());
+                e.printStackTrace();
                 jsonMap.put("code", "-1");
                 jsonMap.put("info", "更换水表失败");
             }
@@ -265,7 +267,7 @@ public class DeviceController {
                 jsonMap.put("info", "查询成功");
                 jsonMap.put("data", res);
             } catch (Exception e) {
-                logger.error(e.getMessage());
+                e.printStackTrace();
                 jsonMap.put("code", "-1");
                 jsonMap.put("info", "查询失败");
             }
@@ -307,7 +309,7 @@ public class DeviceController {
                 jsonMap.put("info", "查询成功");
                 jsonMap.put("data", ret);
             } catch (Exception e) {
-                logger.error(e.getMessage());
+                e.printStackTrace();
                 jsonMap.put("code", "-1");
                 jsonMap.put("info", "查询失败");
             }
@@ -342,7 +344,7 @@ public class DeviceController {
             jsonMap.put("info", "查询成功");
             jsonMap.put("data", pageList);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
@@ -368,12 +370,158 @@ public class DeviceController {
             jsonMap.put("info", "查询成功");
             jsonMap.put("data", pageList);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
         Object object = JSONObject.toJSON(jsonMap);
         return object;
+    }
+
+    /**
+     * 更新所有水表信息
+     *  check: 1为更新出厂表，0为更新正式使用表
+     */
+    public void uptAllNBdevice(Map<String, Object> args) {
+        int check = Integer.parseInt(args.get("check").toString());
+        JSONObject paramMap = new JSONObject();
+        paramMap.put("companyalias", COMPANY_ALIAS);
+        paramMap.put("loginname", LOGIN_NAME);
+        paramMap.put("password", PASSWORD);
+        int position = 0;
+        paramMap.put("counts", 500);
+        RestTemplate restTemplate = new RestTemplate();
+        try {
+            JSONObject object = new JSONObject();
+            JSONArray data = new JSONArray();
+            do {
+                String url = "http://118.25.217.87/emac_android_connect/get_hbhxznas_all_data.php";
+                paramMap.put("operatecmd", "getdata");
+                paramMap.put("position", position);
+                object = JSONObject.parseObject(restTemplate.postForEntity(url, paramMap, String.class).getBody());
+                position += object.getInteger("counts");
+                if(object.getInteger("counts") != 0) {
+                    data.addAll(object.getJSONArray("message"));
+                }
+            } while (object.getInteger("counts") != 0);
+            if (check == 0) { // 正式使用的水表  需要更新Device的数据
+                data.parallelStream().forEach(jsonObject -> deviceProcess((JSONObject) jsonObject));
+            } else if (check == 1) { //出厂表  更新DeviceCheck表，不用更新Device
+                data.parallelStream().forEach(entity -> deviceCheckProcess((JSONObject) entity));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 正式使用的水表数据更新
+     */
+    private void deviceProcess(JSONObject jsonObject) {
+        Device device = deviceService.findByImei(jsonObject.get("imei").toString());
+        if (device != null) { //存在该水表才更新
+            if (device.getBatteryVoltage() != null) { //之前已经更新过数据的
+                if (!device.getReadTime().equals(Timestamp.valueOf(jsonObject.get("node_updatetime").toString())) // 数据有更新才插入历史表
+                        || device.getValve() != (Integer.valueOf(jsonObject.get("switch_status").toString()))
+                        || device.getPreReadTime() == null) {
+                    //插入historyData表
+                    historySave(jsonObject, device);
+                }
+                if ((!device.getReadTime().equals(Timestamp.valueOf(jsonObject.get("node_updatetime").toString()))
+                        || device.getPreReadTime() == null
+                        || device.getValve() != (Integer.valueOf(jsonObject.get("switch_status").toString()))
+                        || !device.getBatteryVoltage().equals(jsonObject.get("batteryval").toString()))
+                        && jsonObject.get("batteryval").toString() != null) { //数据有更新才更新device表
+                    assembleDevice(jsonObject, device);
+                    deviceService.addDevice(device);
+                }
+            } else if (device.getBatteryVoltage() == null && jsonObject.get("batteryval").toString() != null) {
+                //新插入device表的数据，首次更新数据,同时更新device表数据 插入历史记录数据
+                assembleDevice(jsonObject, device);
+                deviceService.addDevice(device);
+                //插入historyData表
+                historySave(jsonObject, device);
+            }
+        }
+    }
+
+    /**
+     * 保存历史数据
+     */
+    private void historySave(JSONObject jsonObject, Device device) {
+        Historydata h = new Historydata();
+        h.setDeviceNo(device.getDeviceNo());
+        h.setDeviceValue(new BigDecimal(jsonObject.get("ton").toString()));
+        h.setImei(device.getImei());
+        h.setReadTime(Timestamp.valueOf(jsonObject.get("node_updatetime").toString()));
+        if (jsonObject.get("rssi") != null) {
+            h.setSignalQuality(Integer.parseInt(jsonObject.get("rssi").toString()));
+        }
+        try {
+            historydataService.save(h);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 组装数据
+     * 将jsonObject里面的数据更新到device
+     */
+    private void assembleDevice(JSONObject jsonObject, Device device) {
+        device.setBatteryVoltage(jsonObject.get("batteryval").toString());
+        Timestamp preReadTime = device.getReadTime();
+        BigDecimal preReadValue = device.getReadValue();
+        device.setPreReadTime(preReadTime);
+        device.setPreReadValue(preReadValue);
+        device.setReadValue(new BigDecimal(jsonObject.get("ton").toString()));
+        if (jsonObject.get("rssi") != null) {
+            device.setRssi(jsonObject.get("rssi").toString());
+        }
+        device.setMacAddr(jsonObject.get("mac_addr").toString());
+        device.setNbDeviceType(Integer.parseInt(jsonObject.get("devicetype").toString()));
+        device.setPinStatus(Integer.parseInt(jsonObject.get("pin_status").toString()));
+        device.setReadTime(Timestamp.valueOf(jsonObject.get("node_updatetime").toString()));
+        device.setValve(Integer.valueOf(jsonObject.get("switch_status").toString()));
+    }
+
+    /**
+     * 出厂表数据更新
+     */
+    private void deviceCheckProcess(JSONObject jsonObject) {
+        String imei = jsonObject.getString("imei");
+        DeviceCheck deviceCheck = deviceCheckDao.findByImei(imei);
+        if (deviceCheck != null) {
+            if (deviceCheck.getBatteryVoltage() == null && jsonObject.get("batteryval").toString() != null) { //表示第一次读到数据
+                assembleDeviceCheck(jsonObject, deviceCheck);
+            } else if (deviceCheck.getBatteryVoltage() != null && jsonObject.get("batteryval").toString() != null) { //之前读取过
+                if ((!deviceCheck.getReadTime().equals(Timestamp.valueOf(jsonObject.get("node_updatetime").toString())) //如果数据没有更新，则不用操作
+                        || deviceCheck.getValve() != (Integer.valueOf(jsonObject.get("switch_status").toString()))
+                        || !deviceCheck.getBatteryVoltage().equals(jsonObject.get("batteryval").toString()))
+                ) {
+                    assembleDeviceCheck(jsonObject, deviceCheck);
+                }
+            }
+            deviceCheckDao.save(deviceCheck);
+        }
+    }
+
+    /**
+     * 组装数据
+     * 将jsonObject里面的数据更新到deviceCheck
+     */
+    private void assembleDeviceCheck(JSONObject jsonObject, DeviceCheck deviceCheck) {
+        deviceCheck.setBatteryVoltage(jsonObject.get("batteryval").toString());
+        deviceCheck.setReadValue(new BigDecimal(jsonObject.get("ton").toString()));
+        if (jsonObject.get("rssi") != null) {
+            deviceCheck.setRssi(jsonObject.get("rssi").toString());
+        }
+        deviceCheck.setMacAddr(jsonObject.get("mac_addr").toString());
+        deviceCheck.setNbDeviceType(Integer.parseInt(jsonObject.get("devicetype").toString()));
+        deviceCheck.setPinStatus(Integer.parseInt(jsonObject.get("pin_status").toString()));
+        deviceCheck.setReadTime(Timestamp.valueOf(jsonObject.get("node_updatetime").toString()));
+        deviceCheck.setValve(Integer.valueOf(jsonObject.get("switch_status").toString()));
     }
 
 
@@ -382,18 +530,14 @@ public class DeviceController {
      * 提供更新功能
      */
     public void getSZNBdevice(Map<String, Object> args) {
-//        JSONObject jsonObject = JSONObject.parseObject(msg);
         int flag = Integer.parseInt(args.get("flag").toString());//获取flag，0为获得全部设备信息，1为根据地址获得表信息，2为根据开始日期获得表信息（起始日期,默认昨日
         String position = args.get("position").toString();//获取数据得开始号码，默认0
         String counts = args.get("count").toString();//获取数据得记录数默认50，最大不超过500
         int check = Integer.parseInt(args.get("check").toString());//如果只是对表进行数据读取出厂检测，为1，正式使用为0
         JSONObject paramMap = new JSONObject();
-        String companyalias = "hbhxzn03";
-        String loginname = "YWRtaW5oYmh4em4wMw==";
-        String password = "YWRtaW5oYmh4em4wMw==";
-        paramMap.put("companyalias", companyalias);
-        paramMap.put("loginname", loginname);
-        paramMap.put("password", password);
+        paramMap.put("companyalias", COMPANY_ALIAS);
+        paramMap.put("loginname", LOGIN_NAME);
+        paramMap.put("password", PASSWORD);
         paramMap.put("position", position);
         paramMap.put("counts", counts);
         RestTemplate restTemplate = new RestTemplate();
@@ -441,7 +585,7 @@ public class DeviceController {
                                 try {
                                     historydataService.save(h);
                                 } catch (Exception e) {
-                                    logger.error(e.getMessage());
+                                    e.printStackTrace();
                                 }
                             }
                             if ((!device.getReadTime().equals(Timestamp.valueOf(data.getJSONObject(i).get("node_updatetime").toString()))
@@ -484,7 +628,7 @@ public class DeviceController {
                             try {
                                 historydataService.save(h);
                             } catch (Exception e) {
-                                logger.error(e.getMessage());
+                                e.printStackTrace();
                             }
                         }
                     }
@@ -532,12 +676,12 @@ public class DeviceController {
                             }
                         }
                     } catch (Exception e) {
-                        logger.error(e.getMessage());
+                        e.printStackTrace();
                     }
                 }
             }
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -552,19 +696,16 @@ public class DeviceController {
         JSONObject jsonObject = JSONObject.parseObject(msg);
         Integer command = jsonObject.getInteger("command");//命令0代表从设备获取数据，1代表初始化底数 2代表阀门控制，1，2需要给参数value01即底数参数或状态参数
         String macAddr = jsonObject.getString("macAddr");
-        if (StringUtils.isEmpty(macAddr)){
+        if (StringUtils.isEmpty(macAddr)) {
             jsonMap.put("code", "-1");
             jsonMap.put("info", "命令失败");
             return JSONObject.toJSON(jsonMap);
         }
         String url = bigDevicePropUtil.getNbDeviceUrl() + "execute_hbhxznas_cmd.php";
         JSONObject paramMap = new JSONObject();
-        String companyalias = "hbhxzn03";
-        String loginname = "YWRtaW5oYmh4em4wMw==";
-        String password = "YWRtaW5oYmh4em4wMw==";
-        paramMap.put("companyalias", companyalias);
-        paramMap.put("loginname", loginname);
-        paramMap.put("password", password);
+        paramMap.put("companyalias", COMPANY_ALIAS);
+        paramMap.put("loginname", LOGIN_NAME);
+        paramMap.put("password", PASSWORD);
         paramMap.put("mac_addr", macAddr);
         RestTemplate restTemplate = new RestTemplate();
         String res = "";
@@ -608,7 +749,7 @@ public class DeviceController {
                     }
                     System.out.println("更新成功");
                 } catch (Exception e) {
-                    logger.error(e.getMessage());
+                    e.printStackTrace();
                 }
                 logger.info("switchtip");
             }
@@ -616,7 +757,7 @@ public class DeviceController {
             jsonMap.put("info", "命令成功");
             jsonMap.put("data", object);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "命令失败");
         }
@@ -629,13 +770,13 @@ public class DeviceController {
      */
     @ResponseBody
     @PostMapping("/turbidity")
-    public Object getDimness(@RequestBody String msg){
+    public Object getDimness(@RequestBody String msg) {
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
         String address = jsonObject.getString("address");
         Double turbidity = jsonObject.getDouble("turbidity");
         String dateline = jsonObject.getString("datetime");
-        if(StringUtils.isEmpty(address) || turbidity == null || StringUtils.isEmpty(dateline)){
+        if (StringUtils.isEmpty(address) || turbidity == null || StringUtils.isEmpty(dateline)) {
             logger.error("浊度值获取参数异常");
             jsonMap.put("code", "-1");
             jsonMap.put("info", "浊度值获取参数异常");
@@ -644,12 +785,12 @@ public class DeviceController {
             turbidity1.setAddress(address);
             turbidity1.setTurbidity(turbidity);
             turbidity1.setDateline(dateline);
-            try{
+            try {
                 dimnessDao.save(turbidity1);
                 jsonMap.put("code", "200");
                 jsonMap.put("info", "获取成功");
-            } catch (Exception e){
-                logger.error(e.getStackTrace().toString());
+            } catch (Exception e) {
+                e.printStackTrace();
                 jsonMap.put("code", "-1");
                 jsonMap.put("info", "获取失败");
             }

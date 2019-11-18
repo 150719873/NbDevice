@@ -65,7 +65,7 @@ public class EnterpriseController {
             jsonMap.put("info", "获取成功");
             jsonMap.put("data", levelList);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "获取失败");
         }
@@ -109,7 +109,7 @@ public class EnterpriseController {
             jsonMap.put("code", "200");
             jsonMap.put("info", "修改成功");
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "修改失败");
         }
@@ -146,7 +146,7 @@ public class EnterpriseController {
             jsonMap.put("code", "200");
             jsonMap.put("info", "设置修改成功");
         }catch (Exception e){
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "设置修改失败");
         }
@@ -247,7 +247,7 @@ public class EnterpriseController {
                     operatorDao.save(operator);
                     operatorDao.save(operator2);
                 } catch (Exception e) {
-                    logger.error(e.getMessage());
+                    e.printStackTrace();
                     jsonMap.put("code", "-2");
                     jsonMap.put("info", "添加失败");
                 }

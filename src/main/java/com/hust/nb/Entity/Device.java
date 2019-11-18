@@ -189,48 +189,6 @@ public class Device implements Serializable,Cloneable {
     @Column(name = "pre_read_value")
     private BigDecimal preReadValue;
 
-    public String getBatteryVoltage() {
-        return batteryVoltage;
-    }
-
-    public void setBatteryVoltage(String batteryVoltage) {
-        this.batteryVoltage = batteryVoltage;
-    }
-
-
-    public String getRssi() {
-        return rssi;
-    }
-
-    public void setRssi(String rssi) {
-        this.rssi = rssi;
-    }
-
-    public String getMacAddr() {
-        return macAddr;
-    }
-
-    public void setMacAddr(String macAddr) {
-        this.macAddr = macAddr;
-    }
-
-
-    public Integer getNbDeviceType() {
-        return nbDeviceType;
-    }
-
-    public void setNbDeviceType(Integer nbDeviceType) {
-        this.nbDeviceType = nbDeviceType;
-    }
-
-    public Integer getPinStatus() {
-        return pinStatus;
-    }
-
-    public void setPinStatus(Integer pinStatus) {
-        this.pinStatus = pinStatus;
-    }
-
     public Integer getId() {
         return id;
     }
@@ -357,6 +315,46 @@ public class Device implements Serializable,Cloneable {
 
     public void setWaterType(Integer waterType) {
         this.waterType = waterType;
+    }
+
+    public String getBatteryVoltage() {
+        return batteryVoltage;
+    }
+
+    public void setBatteryVoltage(String batteryVoltage) {
+        this.batteryVoltage = batteryVoltage;
+    }
+
+    public String getRssi() {
+        return rssi;
+    }
+
+    public void setRssi(String rssi) {
+        this.rssi = rssi;
+    }
+
+    public String getMacAddr() {
+        return macAddr;
+    }
+
+    public void setMacAddr(String macAddr) {
+        this.macAddr = macAddr;
+    }
+
+    public Integer getNbDeviceType() {
+        return nbDeviceType;
+    }
+
+    public void setNbDeviceType(Integer nbDeviceType) {
+        this.nbDeviceType = nbDeviceType;
+    }
+
+    public Integer getPinStatus() {
+        return pinStatus;
+    }
+
+    public void setPinStatus(Integer pinStatus) {
+        this.pinStatus = pinStatus;
     }
 
     public Timestamp getPreReadTime() {

@@ -13,6 +13,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -23,9 +24,9 @@ import java.util.Map;
  * Created by Administrator on 2019/5/20
  */
 @Component
-public class DayCountScheduledJob {
+public class ScheduledJob {
 
-    private static Logger logger = LoggerFactory.getLogger(DayCountScheduledJob.class);
+    private static Logger logger = LoggerFactory.getLogger(ScheduledJob.class);
 
     @Autowired
     HistoryDao historydataDao;
@@ -70,19 +71,36 @@ public class DayCountScheduledJob {
     DeviceController deviceController;
 
     /**
-     * 定时功能，每天凌晨三点更新水表读数
+     * 定时功能，每天凌晨三点更新所有出厂水表读数
      */
-    @Scheduled(cron = "0 0 3 * * ?")
-    public void updateNBDevice() {
+    @Scheduled(cron = "0 0 4 * * ?")
+    public void updateNBDeviceCheck() {
         Map<String, Object> map = new HashMap<>();
         map.put("flag", 0);
         map.put("position", 0);
         map.put("count", 500);
         map.put("check", 1);
         try {
-            deviceController.getSZNBdevice(map);
+            deviceController.uptAllNBdevice(map);
         } catch (Exception e) {
-            logger.error(e.getStackTrace().toString());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 定时功能，每天凌晨三点更新所有正式使用水表读数
+     */
+    @Scheduled(cron = "0 0 5 * * ?")
+    public void updateNBDevice() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("flag", 0);
+        map.put("position", 0);
+        map.put("count", 500);
+        map.put("check", 0);
+        try {
+            deviceController.uptAllNBdevice(map);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -95,8 +113,6 @@ public class DayCountScheduledJob {
     public void update() {
         logger.info("====================日水量统计====================");
         List<Device> deviceList = deviceDao.findAll();
-        BigDecimal limit = new BigDecimal(200);
-        BigDecimal zero = new BigDecimal(0);
         for (Device device : deviceList) {
             try {
                 if (device.getImei() != null) {
@@ -109,15 +125,7 @@ public class DayCountScheduledJob {
                     BigDecimal dayAmount = device.getReadValue().subtract(device.getPreReadValue());
                     daycount.setDayAmount(dayAmount);
                     device.setDayAmount(dayAmount);
-                    if (daycount.getStartTime() == daycount.getEndTime()) {
-                        daycount.setState(2);
-                    } else if (daycount.getDayAmount().compareTo(limit) == 1) {
-                        daycount.setState(3);
-                    } else if (daycount.getDayAmount().compareTo(zero) == -1) {
-                        daycount.setState(1);
-                    } else {
-                        daycount.setState(0);
-                    }
+                    daycount.setState(0);
                     if (device.getMonthAmount() == null && device.getMonthAmount().compareTo(new BigDecimal("0")) <= 0) {
                         device.setMonthAmount(daycount.getDayAmount());
                     } else {
@@ -126,7 +134,8 @@ public class DayCountScheduledJob {
                     daycostService.updateDeviceAndDaycount(device, daycount);
                 }
             } catch (Exception e) {
-                logger.error(e.getStackTrace().toString());
+                System.err.println(device.getImei() + "计算日水量出现问题");
+                e.printStackTrace();
             }
         }
     }
@@ -146,7 +155,8 @@ public class DayCountScheduledJob {
                 try {
                     userProcess(calendar, enprNo, user);
                 } catch (Exception e) {
-                    logger.error(e.getStackTrace().toString());
+                    System.err.println(user.getUserId());
+                    e.printStackTrace();
                 }
             }
         }
@@ -161,6 +171,8 @@ public class DayCountScheduledJob {
      */
     private void userProcess(Calendar calendar, String enprNo, User user) throws Exception {
         Daycost daycost = new Daycost();
+        daycost.setUserId(user.getUserId());
+        daycost.setCostTime(new Timestamp(System.currentTimeMillis()));
         List<Device> deviceList = deviceDao.findAllByUserId(user.getUserId());
         BigDecimal userDayAmount = new BigDecimal("0");
         BigDecimal userMonthAmount = new BigDecimal("0");
@@ -168,6 +180,8 @@ public class DayCountScheduledJob {
             userDayAmount = userDayAmount.add(device.getDayAmount());
             userMonthAmount = userMonthAmount.add(device.getMonthAmount());
         }
+        daycost.setDayAmount(userDayAmount);
+        daycost.setEnprNo(enprNo);
         int userType = user.getUserType();
         ChargeLevel chargelevel = chargeLevelDao.findChargeLevelByEnprNoAndType(enprNo, userType);
         calculatePrice(userDayAmount, userMonthAmount, chargelevel, daycost, calendar.get(Calendar.DATE));
@@ -201,42 +215,42 @@ public class DayCountScheduledJob {
         BigDecimal excludeToday = userMonthAmount.subtract(userDayAmount);
         if (fifth != null && userMonthAmount.compareTo(fifth) != -1 && excludeToday.compareTo(fifth) != -1) {
             BigDecimal cost = sixthEdge.multiply(userDayAmount);
-            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP));
         } else if (fifth != null && userMonthAmount.compareTo(fifth) != -1 && excludeToday.compareTo(fifth) == -1) {
             BigDecimal cost = getCostBetween(userDayAmount, userMonthAmount, fifthEdge, sixthEdge);
-            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP));
         } else if (fourth != null && userMonthAmount.compareTo(fourth) != -1 && excludeToday.compareTo(fourth) != -1) {
             BigDecimal cost = userDayAmount.add(fifthEdge);
-            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP));
         } else if (fourth != null && userMonthAmount.compareTo(fourth) != -1 && excludeToday.compareTo(fourth) == -1) {
             BigDecimal cost = getCostBetween(userDayAmount, userMonthAmount, fourthEdge, fifthEdge);
-            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP));
         } else if (third != null && userMonthAmount.compareTo(third) != -1 && excludeToday.compareTo(third) != -1) {
             BigDecimal cost = userDayAmount.multiply(fourthEdge);
-            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP));
         } else if (third != null && userMonthAmount.compareTo(third) != -1 && excludeToday.compareTo(third) == -1) {
             BigDecimal cost = getCostBetween(userDayAmount, userMonthAmount, thirdEdge, fourthEdge);
-            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP));
         } else if (second != null && userMonthAmount.compareTo(second) != -1 && excludeToday.compareTo(second) != -1) {
             BigDecimal cost = userDayAmount.multiply(thirdEdge);
-            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP));
         } else if (second != null && userMonthAmount.compareTo(second) != -1 && excludeToday.compareTo(second) == -1) {
             BigDecimal cost = getCostBetween(userDayAmount, userMonthAmount, secondEdge, thirdEdge);
-            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP));
         } else if(first != null && userMonthAmount.compareTo(first) != -1 && excludeToday.compareTo(first) != -1){
             BigDecimal cost = userDayAmount.multiply(secondEdge);
-            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP));
         } else if(first != null && userMonthAmount.compareTo(first) != -1 && excludeToday.compareTo(first) == -1){
             BigDecimal cost = getCostBetween(userDayAmount, userMonthAmount, firstEdge, secondEdge);
-            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP));
         } else if(min != null && userMonthAmount.compareTo(min) != -1 && excludeToday.compareTo(min) != -1){
             BigDecimal cost = userDayAmount.multiply(firstEdge);
-            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP));
         } else if(min != null && userMonthAmount.compareTo(min) != -1 && excludeToday.compareTo(min) == -1){
             BigDecimal beyond = userMonthAmount.subtract(userDayAmount);
             BigDecimal higherCost = beyond.multiply(firstEdge);
             BigDecimal cost = minCharge.add(higherCost);
-            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP).negate());
+            daycost.setCostMoney(cost.setScale(2, BigDecimal.ROUND_HALF_UP));
         } else if(min != null && userMonthAmount.compareTo(min) == -1) {
             //凌晨计算前一天水费，如果是一号代表上个月用水量未超过最低限额，扣费
             //其余日期(直到月底计算前)不扣费
@@ -286,7 +300,7 @@ public class DayCountScheduledJob {
                 try {
                     warningDao.save(warning);
                 } catch (Exception e) {
-                    logger.error(e.getMessage());
+                    e.printStackTrace();
                 }
             }
         }

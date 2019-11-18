@@ -2,6 +2,7 @@ package com.hust.nb.Controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.hust.nb.Dao.UserDao;
 import com.hust.nb.Entity.Monthcost;
 import com.hust.nb.Entity.Notice;
 import com.hust.nb.Entity.RepairItem;
@@ -10,6 +11,7 @@ import com.hust.nb.Service.MonthcostService;
 import com.hust.nb.Service.NoticeService;
 import com.hust.nb.Service.RepairService;
 import com.hust.nb.Service.UserService;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +64,7 @@ public class UserController {
             jsonMap.put("code", "200");
             jsonMap.put("info", "编辑成功");
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "编辑失败");
         }
@@ -86,7 +88,7 @@ public class UserController {
             jsonMap.put("info", "查询成功");
             jsonMap.put("data", user);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
@@ -111,7 +113,7 @@ public class UserController {
             jsonMap.put("info", "查询成功");
             jsonMap.put("data", monthcosts);
         } catch (Exception e){
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
@@ -136,7 +138,7 @@ public class UserController {
             jsonMap.put("info", "查询成功");
             jsonMap.put("data", monthcosts);
         } catch (Exception e){
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
@@ -172,7 +174,7 @@ public class UserController {
             jsonMap.put("code", "200");
             jsonMap.put("info", "编辑成功");
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "编辑失败");
         }
@@ -222,7 +224,7 @@ public class UserController {
             jsonMap.put("info", "报修受理成功");
             jsonMap.put("data",repairItem);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "导入失败");
         }
@@ -248,7 +250,7 @@ public class UserController {
             jsonMap.put("info", "查询成功");
             jsonMap.put("data",repairItem);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
@@ -274,7 +276,7 @@ public class UserController {
             jsonMap.put("info", "删除成功");
 
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "删除失败");
         }
@@ -301,13 +303,76 @@ public class UserController {
             jsonMap.put("info", "查看成功");
             jsonMap.put("data", page04);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查看失败");
         }
         Object object = JSONObject.toJSON(jsonMap);
         return object;
     }
+
+    /**
+     * 用户登录
+     */
+    @CrossOrigin
+    @ResponseBody
+    @PostMapping("/UserLogin")
+    public Object userLogin(@RequestBody String msg) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        String enprNo = jsonObject.getString("enprNo");
+        String userNo = jsonObject.getString("userNo");
+        String password = jsonObject.getString("password");
+        try {
+            User user = userService.getByUserNoAndPassword(userNo, password);
+            if(user != null){
+                jsonMap.put("code", "200");
+                jsonMap.put("info", user);
+            } else {
+                jsonMap.put("code", "-1");
+                jsonMap.put("info", "登陆失败，不存在此用户");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "查看失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+    /**
+     * 用户密码修改
+     */
+    @CrossOrigin
+    @ResponseBody
+    @PostMapping("/modifyUserPass")
+    public Object modifyUserPass(@RequestBody String msg) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        int userId = jsonObject.getInteger("userPassId");
+        String newPass1 = jsonObject.getString("newPassword1");
+        String newPass2 = jsonObject.getString("newPassword2");
+        if(StringUtils.isEmpty(newPass1) || StringUtils.isEmpty(newPass2) || !newPass1.equals(newPass2)){
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "修改失败");
+        } else {
+            User user = userService.getByUserId(userId);
+            user.setPassword(newPass1);
+            try{
+                userService.updateUser(user);
+                jsonMap.put("code", "200");
+                jsonMap.put("info", "修改成功");
+            } catch (Exception e){
+                jsonMap.put("code", "-1");
+                jsonMap.put("info", "修改失败");
+            }
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+
 
 
 }

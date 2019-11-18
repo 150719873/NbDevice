@@ -9,6 +9,7 @@ import com.hust.nb.Service.*;
 import com.hust.nb.util.Adapter;
 import com.hust.nb.util.GetDate;
 import com.hust.nb.vo.DeviceOutputVO;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @CrossOrigin(origins = "*")
@@ -68,14 +70,14 @@ public class CenterController {
 
 
     /**
+     * 列出小区超表界面
      *
-     *  列出小区超表界面
      * @return
      */
     @CrossOrigin
     @ResponseBody
     @PostMapping("/searchCenter")
-    public Object searchCenter(@RequestBody String msg){
+    public Object searchCenter(@RequestBody String msg) {
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
         String enprNo = jsonObject.getString("enprNo");
@@ -83,24 +85,24 @@ public class CenterController {
         Operator operator = operatorDao.findByOperatorId(operatorId);
         List<Community> communityList = new ArrayList<>();
         try {
-            if (operator.getUserType() == 1){
+            if (operator.getUserType() == 1) {
                 List<Region> regions = regionService.getByEnprNo(enprNo);
-                for (Region region : regions){
+                for (Region region : regions) {
                     List<Community> communities = communityService.getByRegionId(region.getRegionId());
                     communityList.addAll(communities); //得到所有小区
                 }
-                for (Community community : communityList){
+                for (Community community : communityList) {
                     Region region = regionService.findByRegionId(community.getRegionId());
                     List<Block> blocks = blockDao.getAllByCommunityId(community.getCommunityId());
                     int count = 0;
                     int sucessCount = 0;
-                    for (Block block : blocks){
+                    for (Block block : blocks) {
                         List<Integer> userIds = userService.getUserIdsByBlockId(block.getBlockId());
-                        for (Integer id : userIds){
-                            List<Integer> device = deviceService.findStateByUserId(id);
-                            for (Integer device1 : device){
+                        for (Integer id : userIds) {
+                            List<Integer> deviceStates = deviceService.findStateByUserId(id);
+                            for (Integer state : deviceStates) {
                                 count++;
-                                if (device1 == 0){
+                                if (state == 0) {
                                     sucessCount++;
                                 }
                             }
@@ -111,19 +113,19 @@ public class CenterController {
                     community.setRegionName(region.getRegionName());
                 }
 
-            }else if (operator.getUserType() ==2){
+            } else if (operator.getUserType() == 2) {
                 Community community = communityService.getByCommunityNameAndEnprNo(operator.getManageCommunity(), enprNo);
                 communityList.add(community);
                 List<Block> blocks = blockDao.getAllByCommunityId(community.getCommunityId());
                 int count = 0;
                 int sucessCount = 0;
-                for (Block block : blocks){
+                for (Block block : blocks) {
                     List<Integer> userIds = userService.getUserIdsByBlockId(block.getBlockId());
-                    for (Integer id : userIds){
+                    for (Integer id : userIds) {
                         List<Integer> device = deviceService.findStateByUserId(id);
-                        for (Integer device1 : device){
+                        for (Integer device1 : device) {
                             count++;
-                            if (device1 == 0){
+                            if (device1 == 0) {
                                 sucessCount++;
                             }
                         }
@@ -134,8 +136,8 @@ public class CenterController {
             }
             jsonMap.put("code", "200");
             jsonMap.put("info", communityList);
-        }catch (Exception e){
-            logger.error(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
@@ -144,13 +146,14 @@ public class CenterController {
         Object object = JSONObject.toJSON(jsonMap);
         return object;
     }
+
     /**
      * 查看小区下楼栋
      */
     @CrossOrigin
     @ResponseBody
     @PostMapping("/getBlockList")
-    public Object getBlockList(@RequestBody String msg){
+    public Object getBlockList(@RequestBody String msg) {
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
         int communityId = jsonObject.getInteger("communityId");
@@ -158,8 +161,8 @@ public class CenterController {
             List<Block> blockList = blockDao.getAllByCommunityId(communityId);
             jsonMap.put("code", "200");
             jsonMap.put("info", blockList);
-        }catch (Exception e){
-            logger.error(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
@@ -168,42 +171,41 @@ public class CenterController {
     }
 
     /**
-     *删除初始化水表
-     *
+     * 删除初始化水表
      */
     @ResponseBody
     @PostMapping("/delectDeviceInit")
-    public Object delectDeviceInit(@RequestBody String msg){
+    public Object delectDeviceInit(@RequestBody String msg) {
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
         String enprNo = jsonObject.getString("enprNo");
         Integer flag = jsonObject.getInteger("flag");//0为删除水司所有表，1为删除某一块表
-        if (flag == 0){
+        if (flag == 0) {
             try {
                 deviceCheckDao.deleteByEnprNo(enprNo);
-                jsonMap.put("code","200");
-                jsonMap.put("info","删除成功");
-            }catch (Exception e){
-                logger.error(e.getMessage());
-                jsonMap.put("code","-1");
-                jsonMap.put("info","删除失败");
+                jsonMap.put("code", "200");
+                jsonMap.put("info", "删除成功");
+            } catch (Exception e) {
+                e.printStackTrace();
+                jsonMap.put("code", "-1");
+                jsonMap.put("info", "删除失败");
             }
-        }else {
+        } else {
             try {
-            String imei = jsonObject.getString("imei");
-            if (imei != null){
-                deviceCheckDao.deleteByImeiAndEnprNo(imei, enprNo);
-                jsonMap.put("code","200");
-                jsonMap.put("info","删除成功");
-            }else {
-                jsonMap.put("code","-1");
-                jsonMap.put("info","删除失败");
+                String imei = jsonObject.getString("imei");
+                if (imei != null) {
+                    deviceCheckDao.deleteByImeiAndEnprNo(imei, enprNo);
+                    jsonMap.put("code", "200");
+                    jsonMap.put("info", "删除成功");
+                } else {
+                    jsonMap.put("code", "-1");
+                    jsonMap.put("info", "删除失败");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                jsonMap.put("code", "-1");
+                jsonMap.put("info", "删除失败");
             }
-        }catch (Exception e){
-            logger.error(e.getMessage());
-            jsonMap.put("code","-1");
-            jsonMap.put("info","删除失败");
-        }
         }
         Object o = JSONObject.toJSON(jsonMap);
         return o;
@@ -227,13 +229,13 @@ public class CenterController {
         map.put("check", check);
         try {
             if (flag == 0) {
-                deviceController.getSZNBdevice(map);
+                deviceController.uptAllNBdevice(map);
             } else if (flag == 1) {
                 String macAddr = jsonObject.getString("macAddr");
-                if (macAddr == null){
+                if (macAddr == null) {
                     jsonMap.put("code", "-1");
                     jsonMap.put("info", "参数传输失败");
-                }else {
+                } else {
                     map.put("macAddr", macAddr);
                     deviceController.getSZNBdevice(map);
                     jsonMap.put("code", "200");
@@ -242,10 +244,10 @@ public class CenterController {
             } else if (flag == 2) {
                 //更新某一表阀门状态
                 String macAddr = jsonObject.getString("macAddr");
-                if (macAddr == null){
+                if (macAddr == null) {
                     jsonMap.put("code", "-1");
                     jsonMap.put("info", "参数传输失败");
-                }else {
+                } else {
                     JSONObject paramMap = new JSONObject();
                     String companyalias = "hbhxzn03";
                     String loginname = "YWRtaW5oYmh4em4wMw==";
@@ -265,13 +267,13 @@ public class CenterController {
                     JSONObject object1 = JSONObject.parseObject(res1);
                     JSONArray data = object1.getJSONArray("message");
                     try {
-                        if (check == 1){
+                        if (check == 1) {
                             DeviceCheck device = deviceCheckDao.findByImei(data.getJSONObject(0).get("imei").toString());
                             if (device != null) {
                                 device.setValve(Integer.valueOf(data.getJSONObject(0).get("switch_status").toString()));
                                 deviceCheckDao.save(device);
                             }
-                        }else {
+                        } else {
                             Device device1 = deviceService.findByImei(data.getJSONObject(0).get("imei").toString());
                             if (device1 != null) {
                                 device1.setValve(Integer.valueOf(data.getJSONObject(0).get("switch_status").toString()));
@@ -281,22 +283,19 @@ public class CenterController {
                         jsonMap.put("code", "200");
                         jsonMap.put("info", "更新成功");
                     } catch (Exception e) {
-                        logger.error(e.getMessage());
+                        e.printStackTrace();
                         jsonMap.put("code", "-1");
                         jsonMap.put("info", "更新失败");
                     }
 
                 }
-
-
-                }
-
+            }
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "更新失败");
         }
-        Object o =JSONObject.toJSON(jsonMap);
+        Object o = JSONObject.toJSON(jsonMap);
         return o;
     }
 
@@ -306,7 +305,7 @@ public class CenterController {
     @CrossOrigin
     @ResponseBody
     @PostMapping("/deviceList")
-    public Object deviceList(@RequestBody String msg){
+    public Object deviceList(@RequestBody String msg) {
         //两个方法都用这个，1.直接从小区查询表，2.查询楼栋下得表
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
@@ -318,12 +317,12 @@ public class CenterController {
         int flag = 0;
         String position = "0";
         Map<String, Object> map = new HashMap<>();
-        map.put("flag",flag);
-        map.put("position",position);
-        map.put("count",500);
-        map.put("check",0);
+        map.put("flag", flag);
+        map.put("position", position);
+        map.put("count", 500);
+        map.put("check", 0);
         try {
-            if (communityId != 0 && blockName == null){
+            if (communityId != 0 && blockName == null) {
                 //更新device表读数
 
                 //根据小区ID查询表
@@ -334,7 +333,7 @@ public class CenterController {
                 jsonMap.put("total", total);
                 jsonMap.put("data", userDetailList);
                 jsonMap.put("blockList", blockList);
-            }else if (blockName != null){
+            } else if (blockName != null) {
                 //查看楼栋下得表
                 Block block = blockDao.getAllByCommunityIdAndBlockName(communityId, blockName);
                 Pageable pageable = PageRequest.of(page - 1, rows);
@@ -346,8 +345,8 @@ public class CenterController {
             }
             jsonMap.put("code", "200");
             jsonMap.put("info", "查询成功");
-        }catch (Exception e){
-            logger.error(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
             jsonMap.put("data", "");
@@ -357,13 +356,14 @@ public class CenterController {
     }
 
     //todo 查看该水司下所有表
+
     /**
      * 查看水司下所有表,水表出厂检测
      */
     @ResponseBody
     @PostMapping("/getAllDevice")
-    public Object getAllDevice(@RequestBody String msg){
-        Map<String ,Object> jsonMap = new HashMap<>();
+    public Object getAllDevice(@RequestBody String msg) {
+        Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
         String enprNo = jsonObject.getString("enprNo");
         int rows = jsonObject.getInteger("rows");
@@ -371,36 +371,37 @@ public class CenterController {
         int sort = jsonObject.getInteger("sort");//如果为0，查看全部表，为1 查看成功表，2查看失败表
         String position = "0";
         Map<String, Object> map = new HashMap<>();
-        map.put("flag",0);
-        map.put("position",position);
-        map.put("count",500);
-        map.put("check",1);
+        map.put("flag", 0);
+        map.put("position", position);
+        map.put("count", 500);
+        map.put("check", 1);
         try {
 //            deviceController.getSZNBdevice(map);
             Pageable pageable = PageRequest.of(page - 1, rows);
-            if (sort == 0){
-                Page<DeviceCheck> deviceCheckList = deviceCheckDao.findByEnprNo(enprNo,pageable);
+            if (sort == 0) {
+                Page<DeviceCheck> deviceCheckList = deviceCheckDao.findByEnprNo(enprNo, pageable);
                 Integer counts = deviceCheckDao.selectCounts(enprNo);
-                Integer success = deviceCheckDao.selectSuccessCounts(enprNo,GetDate.getCurrentDay(),GetDate.getTomorrowDay());
+                Integer success = deviceCheckDao.selectSuccessCounts(enprNo, GetDate.getCurrentDay(), GetDate.getTomorrowDay());
                 jsonMap.put("data", deviceCheckList);
                 jsonMap.put("counts", counts);
                 jsonMap.put("success", success);
-            }else if (sort == 1){
-                Page<DeviceCheck> deviceCheckList = deviceCheckDao.findSuccessByEnprNo(enprNo,GetDate.getCurrentDay(),GetDate.getTomorrowDay(),pageable);
+            } else if (sort == 1) {
+                Page<DeviceCheck> deviceCheckList = deviceCheckDao.findSuccessByEnprNo(enprNo, GetDate.getCurrentDay(), GetDate.getTomorrowDay(), pageable);
                 jsonMap.put("data", deviceCheckList);
-            }else if (sort == 2){
-                Page<DeviceCheck> deviceCheckList = deviceCheckDao.findfailedByEnprNo(enprNo,GetDate.getCurrentDay(),pageable);
+            } else if (sort == 2) {
+                Page<DeviceCheck> deviceCheckList = deviceCheckDao.findfailedByEnprNo(enprNo, GetDate.getCurrentDay(), pageable);
                 jsonMap.put("data", deviceCheckList);
             }
             jsonMap.put("code", "200");
-        }catch (Exception e){
-            logger.error(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查找失败");
         }
         Object o = JSONObject.toJSON(jsonMap);
         return o;
     }
+
     /**
      * 查看失败表
      */
@@ -418,13 +419,13 @@ public class CenterController {
             Page<DeviceOutputVO> userPage = deviceService.getFailDeviceByCommunityId(communityId, pageable);
             List<Block> blockList = blockDao.getAllByCommunityId(communityId);
             long total = userPage.getTotalElements();
-            jsonMap.put("code","200");
+            jsonMap.put("code", "200");
             jsonMap.put("info", userPage);
             jsonMap.put("total", total);
             jsonMap.put("blockList", blockList);
-        }catch (Exception e){
-            logger.error(e.getMessage());
-            jsonMap.put("code","-1");
+        } catch (Exception e) {
+            e.printStackTrace();
+            jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
         Object o = JSONObject.toJSON(jsonMap);
@@ -432,12 +433,12 @@ public class CenterController {
     }
 
     /**
-     *根据表地址查询表信息
+     * 根据表地址查询表信息
      */
     @CrossOrigin
     @ResponseBody
     @PostMapping("/getDeviceByDeviceNo")
-    public Object getDeviceByDeviceNo(@RequestBody String msg){
+    public Object getDeviceByDeviceNo(@RequestBody String msg) {
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
         String enprNo = jsonObject.getString("enprNo");
@@ -446,11 +447,11 @@ public class CenterController {
             Device device = deviceService.getByDeviceNoAndEnprNo(deviceNo, enprNo);
             User user = userService.getByUserId(device.getUserId());
             Object object = getFrontInfoByUser(user);
-            jsonMap.put("code","200");
+            jsonMap.put("code", "200");
             jsonMap.put("info", object);
-        }catch (Exception e){
-            logger.error(e.getMessage());
-            jsonMap.put("code","-1");
+        } catch (Exception e) {
+            e.printStackTrace();
+            jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
         Object o = JSONObject.toJSON(jsonMap);
@@ -458,27 +459,27 @@ public class CenterController {
     }
 
     /**
-     *根据用户名查询表信息
+     * 根据用户名查询表信息
      */
     @CrossOrigin
     @ResponseBody
     @PostMapping("/getDeviceByUserName")
-    public Object getDeviceByUserName(@RequestBody String msg){
+    public Object getDeviceByUserName(@RequestBody String msg) {
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
         String enprNo = jsonObject.getString("enprNo");
         String userName = jsonObject.getString("userName");
         try {
             List<Object> userList = new ArrayList<>();
-            List<User> users = userService.getUserByNameAndEnprNo(userName,enprNo);
-            for (User user: users){
+            List<User> users = userService.getUserByNameAndEnprNo(userName, enprNo);
+            for (User user : users) {
                 userList.add(getFrontInfoByUser(user));
             }
-            jsonMap.put("code","200");
+            jsonMap.put("code", "200");
             jsonMap.put("info", userList);
-        }catch (Exception e){
-            logger.error(e.getMessage());
-            jsonMap.put("code","-1");
+        } catch (Exception e) {
+            e.printStackTrace();
+            jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
         Object o = JSONObject.toJSON(jsonMap);
@@ -491,53 +492,72 @@ public class CenterController {
     @CrossOrigin
     @ResponseBody
     @PostMapping("/getDeviceByUserAddr")
-    public Object getDeviceByUserAddr(@RequestBody String msg){
+    public Object getDeviceByUserAddr(@RequestBody String msg) {
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
         String userAddr = jsonObject.getString("userAddr");
         int blockId = jsonObject.getInteger("blockId");
+        int rows = Integer.parseInt(jsonObject.getString("rows"));
+        int page = Integer.parseInt(jsonObject.getString("page"));
         try {
-            User user = userService.getByBLockIdAndAddr(blockId, userAddr);
-            Object object = getFrontInfoByUser(user);
-            jsonMap.put("code","200");
-            jsonMap.put("info", object);
-        }catch (Exception e){
-            logger.error(e.getMessage());
-            jsonMap.put("code","-1");
+            List<Object> res = new ArrayList<>();
+            List<User> nowUsers = new ArrayList<>();
+            if(StringUtils.isEmpty(userAddr)){
+//                List<User> users = userService.getUsersByBlockId(blockId);
+//                users.stream().forEach(user -> res.add(getFrontInfoByUser(user)));
+                  List<User> users = userService.getUsersByBlockId(blockId);
+                  nowUsers = filterByPage(users, page, rows);
+                  nowUsers.stream().forEach(user -> res.add(getFrontInfoByUser(user)));
+                jsonMap.put("size", users.size());
+            } else {
+                res.add(getFrontInfoByUser(userService.getByBLockIdAndAddr(blockId, userAddr)));
+                jsonMap.put("size", 1);
+            }
+            jsonMap.put("code", "200");
+            jsonMap.put("info", res);
+        } catch (Exception e) {
+            e.printStackTrace();
+            jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
         Object o = JSONObject.toJSON(jsonMap);
         return o;
     }
+
+    public static List filterByPage(List<User> list, int page, int rows){
+        Object collect = list.stream().skip(rows*(page-1)).limit(rows).collect(Collectors.toList());
+        return (List) collect;
+    }
+
     /**
      * 显示小区故障表
      */
     @CrossOrigin
     @ResponseBody
     @PostMapping("/getWarningDevice")
-    public Object getWarningDevice(@RequestBody String msg){
+    public Object getWarningDevice(@RequestBody String msg) {
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
         String enprNo = jsonObject.getString("enprNo");
         int flag = jsonObject.getInteger("flag");//标识字段，0则代表查询小区故障表，1则代表水司故障表
         List<Warning> warnings = new ArrayList<>();
         Timestamp cur = GetDate.getCurrentDay();
-        if (flag == 0){
+        if (flag == 0) {
             String communityName = jsonObject.getString("communityName");
             warnings = warningDao.findByEnprNoAndCommunityNameAndWarningDate(enprNo, communityName, cur);
-        }else {
-            warnings = warningDao.findByEnprNoAndWarningDate(enprNo,cur);
+        } else {
+            warnings = warningDao.findByEnprNoAndWarningDate(enprNo, cur);
         }
         try {
-            jsonMap.put("code","200");
-            jsonMap.put("info","成功");
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "成功");
             jsonMap.put("data", warnings);
-        }catch (Exception e){
-            logger.error(e.getMessage());
-            jsonMap.put("code","-1");
+        } catch (Exception e) {
+            e.printStackTrace();
+            jsonMap.put("code", "-1");
             jsonMap.put("info", "失败");
         }
-        Object o= JSONObject.toJSON(jsonMap);
+        Object o = JSONObject.toJSON(jsonMap);
         return o;
     }
 
@@ -572,14 +592,16 @@ public class CenterController {
                 //imei
                 deviceMap.put("imei", device.getImei());
                 //表类型
-                deviceMap.put("deviceType",device.getDeviceType());
-                deviceMap.put("waterType",device.getWaterType());
-                deviceDetailList.add(deviceMap);
+                deviceMap.put("deviceType", device.getDeviceType());
+                deviceMap.put("rssi", device.getRssi());
+                deviceMap.put("battery_voltage", device.getBatteryVoltage());
+                deviceMap.put("waterType", device.getWaterType());
                 deviceMap.put("userAddr", addr);
                 deviceMap.put("userId", userId);
                 deviceMap.put("userName", userName);
-                deviceMap.put("blockName",block.getBlockName());
-                deviceMap.put("userNo",user.getUserNo());
+                deviceMap.put("blockName", block.getBlockName());
+                deviceMap.put("userNo", user.getUserNo());
+                deviceDetailList.add(deviceMap);
             }
         }
         detailMap.put("deviceDetailList", deviceDetailList);

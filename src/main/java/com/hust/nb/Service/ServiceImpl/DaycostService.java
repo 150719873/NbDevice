@@ -47,9 +47,9 @@ public class DaycostService {
     @Transactional(rollbackFor = Exception.class)
     public void userProcess(User user, Daycost daycost) {
         BigDecimal left = user.getAccountBalance().subtract(daycost.getCostMoney());
-        if (left.compareTo(new BigDecimal("20")) == -1) {
-            MsgSender.send(user.getUserTel(), String.valueOf(left));
-        }
+//        if (left.compareTo(new BigDecimal("20")) == -1) {
+//            MsgSender.send(user.getUserTel(), String.valueOf(left));
+//        }
         user.setAccountBalance(left);
         userDao.save(user);
         daycostDao.save(daycost);

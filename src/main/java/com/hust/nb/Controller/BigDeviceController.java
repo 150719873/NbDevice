@@ -119,7 +119,7 @@ public class BigDeviceController {
             //得到数据，插入数据库
             ArrayList<BigDevice> list = new ArrayList<>();
             JSONArray data = object.getJSONArray("List");
-            if (data.size() != 0) {
+            if (data != null && data.size() != 0) {
                 for (int i = 0; i < data.size(); i++) {
                     BigDevice verify = bigDeviceDao.findByMPipeDn(data.getJSONObject(i).get("M_PipeDn").toString());
                     if (verify == null) {
@@ -128,8 +128,14 @@ public class BigDeviceController {
                         if (data.getJSONObject(i).get("M_Tag") != null) {
                             bigDevice.setMTag(data.getJSONObject(i).get("M_Tag").toString());
                         }
-                        bigDevice.setParentListId(data.getJSONObject(i).get("ParentListId").toString());
-                        bigDevice.setMUserType(data.getJSONObject(i).get("M_UserType").toString());
+                        if(data.getJSONObject(i).get("ParentListId") != null){
+                            bigDevice.setParentListId(data.getJSONObject(i).get("ParentListId").toString());
+                        }
+
+                        if(data.getJSONObject(i).get("M_UserType") != null){
+                            bigDevice.setMUserType(data.getJSONObject(i).get("M_UserType").toString());
+                        }
+
                         if (data.getJSONObject(i).get("M_DoorNo") != null) {
                             bigDevice.setMDoorNo(data.getJSONObject(i).get("M_DoorNo").toString());
                         }
@@ -157,35 +163,61 @@ public class BigDeviceController {
                         }
                         bigDevice.setMeterId(data.getJSONObject(i).get("MeterId").toString());
                         bigDevice.setOrganizeId(data.getJSONObject(i).get("OrganizeId").toString());
-                        bigDevice.setOrganizeId(data.getJSONObject(i).get("OrganizeId").toString());
-                        String date1 = data.getJSONObject(i).get("CreateTime").toString();
-                        String[] date2 = date1.split("T");
-                        String date = date2[0] + " " + date2[1];
-                        bigDevice.setCreateTime(Timestamp.valueOf(date));
-                        bigDevice.setRealValue(new BigDecimal(data.getJSONObject(i).get("RealValue").toString()));
+                        if(data.getJSONObject(i).get("CreateTime") != null){
+                            String date1 = data.getJSONObject(i).get("CreateTime").toString();
+                            String[] date2 = date1.split("T");
+                            String date = date2[0] + " " + date2[1];
+                            bigDevice.setCreateTime(Timestamp.valueOf(date));
+                        }
+                        if(data.getJSONObject(i).get("RealValue") != null){
+                            bigDevice.setRealValue(new BigDecimal(data.getJSONObject(i).get("RealValue").toString()));
+                        }
+
                         if (data.getJSONObject(i).get("ToValue") != null) {
                             bigDevice.setToValue(new BigDecimal(data.getJSONObject(i).get("ToValue").toString()));
                         }
-                        bigDevice.setRevValue(new BigDecimal(data.getJSONObject(i).get("RevValue").toString()));
-                        bigDevice.setPressValue(new BigDecimal(data.getJSONObject(i).get("PressValue").toString()));
-                        bigDevice.setForValue(new BigDecimal(data.getJSONObject(i).get("ForValue").toString()));
-                        bigDevice.setMSortCode(Integer.parseInt(data.getJSONObject(i).get("M_SortCode").toString()));
-                        bigDevice.setCelVal(new BigDecimal(data.getJSONObject(i).get("CelVal").toString()));
+
+                        if(data.getJSONObject(i).get("RevValue") != null){
+                            bigDevice.setRevValue(new BigDecimal(data.getJSONObject(i).get("RevValue").toString()));
+                        }
+
+                        if(data.getJSONObject(i).get("PressValue") != null){
+                            bigDevice.setPressValue(new BigDecimal(data.getJSONObject(i).get("PressValue").toString()));
+                        }
+
+                        if(data.getJSONObject(i).get("ForValue") != null){
+                            bigDevice.setForValue(new BigDecimal(data.getJSONObject(i).get("ForValue").toString()));
+                        }
+
+                        if(data.getJSONObject(i).get("M_SortCode") != null){
+                            bigDevice.setMSortCode(Integer.parseInt(data.getJSONObject(i).get("M_SortCode").toString()));
+                        }
+
+                        if(data.getJSONObject(i).get("CelVal") != null){
+                            bigDevice.setCelVal(new BigDecimal(data.getJSONObject(i).get("CelVal").toString()));
+                        }
                         list.add(bigDevice);
                     }
                     //存在该大表并且RealValue有变化
-                    if (verify != null && !data.getJSONObject(i).get("RealValue").toString().equals(verify.getRealValue())) {
-                        verify.setRealValue(new BigDecimal(data.getJSONObject(i).get("RealValue").toString()));
+                    if (verify != null && data.getJSONObject(i).get("RealValue") != null && !data.getJSONObject(i).get("RealValue").toString().equals(verify.getRealValue())) {
+                        if(data.getJSONObject(i).get("RevValue") != null){
+                            verify.setRevValue(new BigDecimal(data.getJSONObject(i).get("RevValue").toString()));
+                        }
+
                         if (data.getJSONObject(i).get("ToValue") != null) {
                             verify.setToValue(new BigDecimal(data.getJSONObject(i).get("ToValue").toString()));
                         }
                         verify.setRevValue(new BigDecimal(data.getJSONObject(i).get("RevValue").toString()));
-                        verify.setPressValue(new BigDecimal(data.getJSONObject(i).get("PressValue").toString()));
-                        verify.setForValue(new BigDecimal(data.getJSONObject(i).get("ForValue").toString()));
-                        verify.setCelVal(new BigDecimal(data.getJSONObject(i).get("CelVal").toString()));
+                        String pressureValue = data.getJSONObject(i).get("PressValue") == null ? "0" : data.getJSONObject(i).get("PressValue").toString();
+                        verify.setPressValue(new BigDecimal(pressureValue));
+
+                        String forValue = data.getJSONObject(i).get("ForValue") == null ? "0" : data.getJSONObject(i).get("ForValue").toString();
+                        verify.setForValue(new BigDecimal(forValue));
+
+                        String CelVal = data.getJSONObject(i).get("CelVal") == null ? "0" : data.getJSONObject(i).get("CelVal").toString();
+                        verify.setCelVal(new BigDecimal(CelVal));
                         list.add(verify);
                     }
-
                 }
             }
             try {
@@ -193,7 +225,7 @@ public class BigDeviceController {
                 object.put("code", "200");
                 object.put("info", "数据库保存成功");
             } catch (Exception e) {
-                logger.error(e.getMessage());
+                e.printStackTrace();
                 object.put("code", "-2");
                 object.put("info", "保存至本地数据库失败");
             }
@@ -222,7 +254,7 @@ public class BigDeviceController {
             object.put("code", "200");
             object.put("info", "查询成功");
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             object.put("code", "-1");
             object.put("info", "查询失败");
         }
@@ -252,7 +284,7 @@ public class BigDeviceController {
             object.put("code", "200");
             object.put("info", "查询成功");
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             object.put("code", "-1");
             object.put("info", "查询失败");
         }
@@ -272,6 +304,7 @@ public class BigDeviceController {
         String phoneNumber = jsonObject.getString("phoneNumber");
         String addressCode = jsonObject.getString("addressCode");
         String day = jsonObject.getString("day");
+        System.out.println(day);
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = format.parse(day);
         logger.info("date is : " + date);
@@ -287,19 +320,12 @@ public class BigDeviceController {
             object.put("code", "200");
             object.put("info", "查询成功");
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             object.put("code", "-1");
             object.put("info", "查询失败");
         }
         Object o = JSONObject.toJSON(object);
         return o;
-    }
-
-    @ResponseBody
-    @PostMapping("/testLog")
-    public Object testLog() throws Exception {
-        logger.error("come");
-        return null;
     }
 
     /**
@@ -329,7 +355,7 @@ public class BigDeviceController {
             object.put("code", "200");
             object.put("info", "查询成功");
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             object.put("code", "-1");
             object.put("info", "查询失败");
         }
@@ -368,7 +394,7 @@ public class BigDeviceController {
             object.put("code", "200");
             object.put("info", "查询成功");
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             object.put("code", "-1");
             object.put("info", "查询失败");
         }
@@ -407,7 +433,7 @@ public class BigDeviceController {
             object.put("code", "200");
             object.put("info", "查询成功");
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             object.put("code", "-1");
             object.put("info", "查询失败");
         }
@@ -482,7 +508,7 @@ public class BigDeviceController {
             jsonMap.put("info", "显示成功");
             jsonMap.put("data", page01);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "显示失败");
         }

@@ -29,4 +29,8 @@ public interface UserService {
     User findByUserNameAndUserAddrAAndUserTel(String userName, String userAddr, String userTel);
 
     List<Integer> getUserIdsByBlockId(int blockId);
+
+    User getByUserNoAndPassword(String userNo, String password);
+
+    List<User> getUsersByBlockId(int blockId);
 }

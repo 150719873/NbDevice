@@ -75,4 +75,14 @@ public class UserServiceImpl implements UserService {
     public List<Integer> getUserIdsByBlockId(int blockId){
         return userDao.getUserIdsByBlockId(blockId);
     }
+
+    @Override
+    public User getByUserNoAndPassword(String userNo, String password) {
+        return userDao.findByUserNoAndPassword(userNo, password);
+    }
+
+    @Override
+    public List<User> getUsersByBlockId(int blockId) {
+        return userDao.findByBlockId(blockId);
+    }
 }

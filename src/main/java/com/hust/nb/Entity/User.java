@@ -112,6 +112,13 @@ public class User implements Serializable {
     @Column(name = "user_no")
     private String userNo;
 
+    /**
+     *密码
+     */
+    @Basic
+    @Column(name = "password")
+    private String password;
+
     public Integer getUserId() {
         return userId;
     }
@@ -222,5 +229,13 @@ public class User implements Serializable {
 
     public void setUserNo(String userNo) {
         this.userNo = userNo;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }
