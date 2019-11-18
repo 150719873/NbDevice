@@ -6,6 +6,7 @@ import com.hust.nb.Service.CommunityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -32,5 +33,32 @@ public class CommunityServiceImpl implements CommunityService {
     public Community getByCommunityNameAndEnprNo(String communityName, String enprNo){
         return communityDao.getByCommunityNameAndEnprNo(communityName, enprNo);
     }
+
+    @Override
+    public String getEnprNoByCommunityId(Integer communityId) {
+        return communityDao.getEnprNoByCommunityId(communityId);
+    }
+
+    @Override
+    public void saveCommunityWater(Community community)
+    {
+        communityDao.save(community);
+    }
+
+    @Override
+    public BigDecimal getTotalDayAmountByCommunityId(Integer communityId)
+    {
+        return communityDao.getTotalDayAmountByCommunityId(communityId);
+    }
+
+    @Override
+    public BigDecimal getTotalMonthAmountByCommunityId(Integer communityId)
+    {
+        return communityDao.getTotalMonthAmountByCommunityId(communityId);
+    }
+
+
+
+
 
 }

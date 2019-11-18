@@ -2,6 +2,7 @@ package com.hust.nb.Entity;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * Description:nb
@@ -47,6 +48,20 @@ public class Community implements Serializable {
     @Basic
     @Column(name = "collection_type")
     private Integer collectionType;
+
+    /**
+     * 总日用量
+     */
+    @Basic
+    @Column(name = "total_dayamount")
+    private java.math.BigDecimal totalDayAmount;
+
+    /**
+     * 总月用量
+     */
+    @Basic
+    @Column(name = "total_monthamount")
+    private java.math.BigDecimal totalMonthAmount;
 
     @Transient
     private Integer deviceCount;
@@ -120,5 +135,21 @@ public class Community implements Serializable {
 
     public void setRegionName(String regionName) {
         this.regionName = regionName;
+    }
+
+    public BigDecimal getTotalDayAmount() {
+        return totalDayAmount;
+    }
+
+    public void setTotalDayAmount(BigDecimal totalDayAmount) {
+        this.totalDayAmount = totalDayAmount;
+    }
+
+    public BigDecimal getTotalMonthAmount() {
+        return totalMonthAmount;
+    }
+
+    public void setTotalMonthAmount(BigDecimal totalMonthAmount) {
+        this.totalMonthAmount = totalMonthAmount;
     }
 }

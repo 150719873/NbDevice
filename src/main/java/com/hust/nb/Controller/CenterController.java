@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -94,6 +95,8 @@ public class CenterController {
                 for (Community community : communityList) {
                     Region region = regionService.findByRegionId(community.getRegionId());
                     List<Block> blocks = blockDao.getAllByCommunityId(community.getCommunityId());
+                    BigDecimal totalDayAmount= communityService.getTotalDayAmountByCommunityId(community.getCommunityId());
+                    BigDecimal totalMonthAmount =communityService.getTotalMonthAmountByCommunityId(community.getCommunityId());
                     int count = 0;
                     int sucessCount = 0;
                     for (Block block : blocks) {
@@ -111,12 +114,16 @@ public class CenterController {
                     community.setDeviceCount(count);
                     community.setSucessCount(sucessCount);
                     community.setRegionName(region.getRegionName());
+                    community.setTotalDayAmount(totalDayAmount);
+                    community.setTotalMonthAmount(totalMonthAmount);
                 }
 
             } else if (operator.getUserType() == 2) {
                 Community community = communityService.getByCommunityNameAndEnprNo(operator.getManageCommunity(), enprNo);
                 communityList.add(community);
                 List<Block> blocks = blockDao.getAllByCommunityId(community.getCommunityId());
+                BigDecimal totalDayAmount= communityService.getTotalDayAmountByCommunityId(community.getCommunityId());
+                BigDecimal totalMonthAmount =communityService.getTotalMonthAmountByCommunityId(community.getCommunityId());
                 int count = 0;
                 int sucessCount = 0;
                 for (Block block : blocks) {
@@ -133,6 +140,8 @@ public class CenterController {
                 }
                 community.setDeviceCount(count);
                 community.setSucessCount(sucessCount);
+                community.setTotalDayAmount(totalDayAmount);
+                community.setTotalMonthAmount(totalMonthAmount);
             }
             jsonMap.put("code", "200");
             jsonMap.put("info", communityList);
@@ -141,8 +150,6 @@ public class CenterController {
             jsonMap.put("code", "-1");
             jsonMap.put("info", "查询失败");
         }
-
-
         Object object = JSONObject.toJSON(jsonMap);
         return object;
     }
