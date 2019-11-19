@@ -54,14 +54,14 @@ public class Community implements Serializable {
      */
     @Basic
     @Column(name = "total_dayamount")
-    private java.math.BigDecimal totalDayAmount;
+    private java.math.BigDecimal dayAmounts;
 
     /**
      * 总月用量
      */
     @Basic
     @Column(name = "total_monthamount")
-    private java.math.BigDecimal totalMonthAmount;
+    private java.math.BigDecimal monthAmounts;
 
     @Transient
     private Integer deviceCount;
@@ -137,19 +137,19 @@ public class Community implements Serializable {
         this.regionName = regionName;
     }
 
-    public BigDecimal getTotalDayAmount() {
-        return totalDayAmount;
+    public BigDecimal getDayAmounts() {
+        return dayAmounts;
     }
 
-    public void setTotalDayAmount(BigDecimal totalDayAmount) {
-        this.totalDayAmount = totalDayAmount;
+    public void setDayAmounts(BigDecimal dayAmounts) {
+        this.dayAmounts = dayAmounts;
     }
 
-    public BigDecimal getTotalMonthAmount() {
-        return totalMonthAmount;
+    public BigDecimal getMonthAmounts() {
+        return monthAmounts;
     }
 
-    public void setTotalMonthAmount(BigDecimal totalMonthAmount) {
-        this.totalMonthAmount = totalMonthAmount;
+    public void setMonthAmounts(BigDecimal monthAmounts) {
+        this.monthAmounts = monthAmounts;
     }
 }
