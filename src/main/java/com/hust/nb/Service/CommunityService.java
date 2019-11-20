@@ -1,6 +1,10 @@
 package com.hust.nb.Service;
 
 import com.hust.nb.Entity.Community;
+import com.hust.nb.Entity.HistoryDayCount;
+import com.hust.nb.Entity.HistoryMonthCount;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -23,4 +27,8 @@ public interface CommunityService {
     void saveCommunityWater(Community community);
 
     BigDecimal getTotalMonthAmountByCommunityId(Integer communityId);
+
+    Page<HistoryDayCount> getDayAmountsByCommunityName(String communityName, Pageable pageable);
+
+    Page<HistoryMonthCount> getMonthAmountsByCommunityName(String communityName, Pageable pageable);
 }

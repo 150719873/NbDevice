@@ -1,6 +1,9 @@
 package com.hust.nb.Dao;
 
 import com.hust.nb.Entity.Community;
+import com.hust.nb.Entity.Enterprise;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -31,4 +34,8 @@ public interface CommunityDao extends JpaRepository<Community,Community>,JpaSpec
 
     @Query(nativeQuery = true, value = "select sum(m.month_amount) as monthAmounts from mixAll.dbo.nt_monthcost m,mixAll.dbo.nt_user u,mixAll.dbo.nt_block b where m.user_id =u.user_id and u.block_id = b.block_id and b.community_id = ?1")
     BigDecimal getTotalMonthAmountByCommunityId(Integer communityId);
+
+    List<Community> findAll();
+
+
 }

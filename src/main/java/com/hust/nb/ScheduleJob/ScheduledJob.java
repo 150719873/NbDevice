@@ -3,6 +3,7 @@ package com.hust.nb.ScheduleJob;
 import com.hust.nb.Controller.DeviceController;
 import com.hust.nb.Dao.*;
 import com.hust.nb.Entity.*;
+import com.hust.nb.Service.CommunityService;
 import com.hust.nb.Service.ServiceImpl.DaycostService;
 import com.hust.nb.util.GetDate;
 import com.hust.nb.util.QBTDeviceTmpGetter;
@@ -14,10 +15,8 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * Description:nb
@@ -69,6 +68,18 @@ public class ScheduledJob {
 
     @Autowired
     DeviceController deviceController;
+
+    @Autowired
+    HistoryDayCountDao historyDayCountDao;
+
+    @Autowired
+    CommunityService communityService;
+
+    @Autowired
+    HistoryMonthCountDao historyMonthCountDao;
+
+
+
 
     /**
      * 定时功能，每天凌晨三点更新所有出厂水表读数
@@ -302,6 +313,61 @@ public class ScheduledJob {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+            }
+        }
+    }
+
+
+    /**
+     * 定时功能，每天早上十点存储日用量
+     */
+    @Scheduled(cron = "0 0 10 * * ?")
+    //@Scheduled(cron = "0 */1 * * * ?")
+    public void saveDayAmounts()
+    {
+        List<Community> communityList = communityDao.findAll();
+        Date today = new Date();
+        Date yesterday = new Date(today.getTime() - 86400000L);
+        String readDate =new SimpleDateFormat("yyyy-MM-dd").format(yesterday);
+        for (Community community : communityList)
+        {
+            HistoryDayCount historyDayCount =new HistoryDayCount();
+            historyDayCount.setCommunityName(community.getCommunityName());
+            BigDecimal dayAmounts= communityService.getTotalDayAmountByCommunityId(community.getCommunityId());
+            historyDayCount.setDayAmounts(dayAmounts);
+            historyDayCount.setReadDate(readDate);
+            try
+            {
+                historyDayCountDao.save(historyDayCount);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * 定时功能，每月1号10点存储上个月总月用量
+     */
+    @Scheduled(cron = "0 0 10 1 * ?")
+    //@Scheduled(cron = "0 */1 * * * ?")
+    public void saveMonthAmounts()
+    {
+        List<Community> communityList = communityDao.findAll();
+        Date today = new Date();
+        Date yesterday = new Date(today.getTime() - 86400000L);
+        String month =new SimpleDateFormat("yyyy-MM").format(yesterday);
+        for (Community community : communityList)
+        {
+            HistoryMonthCount historyMonthCount =new HistoryMonthCount();
+            historyMonthCount.setCommunityName(community.getCommunityName());
+            BigDecimal monthAmounts= communityService.getTotalMonthAmountByCommunityId(community.getCommunityId());
+            historyMonthCount.setMonthAmounts(monthAmounts);
+            historyMonthCount.setMonth(month);
+            try
+            {
+                historyMonthCountDao.save(historyMonthCount);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }

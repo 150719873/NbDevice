@@ -1,9 +1,15 @@
 package com.hust.nb.Service.ServiceImpl;
 
 import com.hust.nb.Dao.CommunityDao;
+import com.hust.nb.Dao.HistoryDayCountDao;
+import com.hust.nb.Dao.HistoryMonthCountDao;
 import com.hust.nb.Entity.Community;
+import com.hust.nb.Entity.HistoryDayCount;
+import com.hust.nb.Entity.HistoryMonthCount;
 import com.hust.nb.Service.CommunityService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -18,6 +24,12 @@ public class CommunityServiceImpl implements CommunityService {
 
     @Autowired
     CommunityDao communityDao;
+
+    @Autowired
+    HistoryDayCountDao historyDayCountDao;
+
+    @Autowired
+    HistoryMonthCountDao historyMonthCountDao;
 
     @Override
     public List<Community> getByRegionId(int regionId) {
@@ -57,6 +69,17 @@ public class CommunityServiceImpl implements CommunityService {
         return communityDao.getTotalMonthAmountByCommunityId(communityId);
     }
 
+    @Override
+    public Page<HistoryDayCount> getDayAmountsByCommunityName(String communityName, Pageable pageable)
+    {
+        return historyDayCountDao.getDayAmountsByCommunityName(communityName,pageable);
+    }
+
+    @Override
+    public Page<HistoryMonthCount> getMonthAmountsByCommunityName(String communityName, Pageable pageable)
+    {
+        return historyMonthCountDao.getMonthAmountsByCommunityName(communityName,pageable);
+    }
 
 
 

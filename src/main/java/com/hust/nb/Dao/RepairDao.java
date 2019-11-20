@@ -44,7 +44,7 @@ public interface RepairDao extends JpaRepository<RepairItem,RepairItem>,JpaSpeci
 
 //    @Query(nativeQuery = true, value = "select user_id from mixAll.dbo.nt_user where enprNo = ?1 and user_no =?2" )
 //    Integer findUserIdByEnprNoAndUserNo(String enprNo, String userNo);
-//
+
 //    @Query(nativeQuery = true, value = "select device_no from mixAll.dbo.nb_device where user_id = ?1 " )
 //    String findDeviceNoByUserId(Integer userId);
 

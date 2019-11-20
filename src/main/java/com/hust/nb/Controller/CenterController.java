@@ -614,4 +614,62 @@ public class CenterController {
         detailMap.put("deviceDetailList", deviceDetailList);
         return detailMap;
     }
+
+    /**
+     * 查看小区总日用量历史数据
+     */
+    @CrossOrigin
+    @ResponseBody
+    @PostMapping("/getDayAmounts")
+    public Object getDayAmounts(@RequestBody String msg)
+    {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        String communityName = jsonObject.getString("communityName");
+        int rows = jsonObject.getInteger("rows");
+        int page = Integer.parseInt(jsonObject.getString("page"));
+        try {
+            Pageable pageable = PageRequest.of(page - 1, rows);
+            Page<HistoryDayCount> page01 = communityService.getDayAmountsByCommunityName(communityName,pageable);
+            jsonMap.put("code","200");
+            jsonMap.put("info", "查看成功");
+            jsonMap.put("data",page01);
+        }catch (Exception e){
+            e.printStackTrace();
+            jsonMap.put("code","-1");
+            jsonMap.put("info", "查询失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+    /**
+     * 查看小区总月用量历史数据
+     */
+    @CrossOrigin
+    @ResponseBody
+    @PostMapping("/getMonthAmounts")
+    public Object getMonthAmounts(@RequestBody String msg)
+    {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        String communityName = jsonObject.getString("communityName");
+        int rows = jsonObject.getInteger("rows");
+        int page = Integer.parseInt(jsonObject.getString("page"));
+        try {
+            Pageable pageable = PageRequest.of(page - 1, rows);
+            Page<HistoryMonthCount> page02 = communityService.getMonthAmountsByCommunityName(communityName,pageable);
+            jsonMap.put("code","200");
+            jsonMap.put("info", "查看成功");
+            jsonMap.put("data",page02);
+        }catch (Exception e){
+            e.printStackTrace();
+            jsonMap.put("code","-1");
+            jsonMap.put("info", "查看失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+
 }
