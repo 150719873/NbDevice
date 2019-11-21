@@ -24,6 +24,14 @@ public class HistoryMonthCount implements Serializable
     private String communityName;
 
     /**
+     * 小区编号
+     */
+    @Basic
+    @Column(name = "community_id")
+    private Integer communityId;
+
+
+    /**
      * 总月用量
      */
     @Basic
@@ -68,5 +76,13 @@ public class HistoryMonthCount implements Serializable
 
     public void setMonth(String month) {
         this.month = month;
+    }
+
+    public Integer getCommunityId() {
+        return communityId;
+    }
+
+    public void setCommunityId(Integer communityId) {
+        this.communityId = communityId;
     }
 }

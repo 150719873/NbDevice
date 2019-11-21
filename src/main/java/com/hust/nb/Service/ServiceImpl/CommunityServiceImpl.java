@@ -70,15 +70,15 @@ public class CommunityServiceImpl implements CommunityService {
     }
 
     @Override
-    public Page<HistoryDayCount> getDayAmountsByCommunityName(String communityName, Pageable pageable)
+    public Page<HistoryDayCount> getDayAmountsByCommunityId(Integer communityId, Pageable pageable)
     {
-        return historyDayCountDao.getDayAmountsByCommunityName(communityName,pageable);
+        return historyDayCountDao.getDayAmountsByCommunityId(communityId,pageable);
     }
 
     @Override
-    public Page<HistoryMonthCount> getMonthAmountsByCommunityName(String communityName, Pageable pageable)
+    public Page<HistoryMonthCount> getMonthAmountsByCommunityId(Integer communityId, Pageable pageable)
     {
-        return historyMonthCountDao.getMonthAmountsByCommunityName(communityName,pageable);
+        return historyMonthCountDao.getMonthAmountsByCommunityId(communityId,pageable);
     }
 
 

@@ -18,6 +18,15 @@ public class HistoryDayCount implements Serializable
     private Integer id;
 
     /**
+     * 小区编号
+     */
+    @Basic
+    @Column(name = "community_id")
+    private Integer communityId;
+
+
+
+    /**
      * 小区名
      */
     @Basic
@@ -70,5 +79,11 @@ public class HistoryDayCount implements Serializable
         this.readDate = readDate;
     }
 
+    public Integer getCommunityId() {
+        return communityId;
+    }
 
+    public void setCommunityId(Integer communityId) {
+        this.communityId = communityId;
+    }
 }

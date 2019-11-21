@@ -28,7 +28,7 @@ public interface CommunityService {
 
     BigDecimal getTotalMonthAmountByCommunityId(Integer communityId);
 
-    Page<HistoryDayCount> getDayAmountsByCommunityName(String communityName, Pageable pageable);
+    Page<HistoryDayCount> getDayAmountsByCommunityId(Integer communityId, Pageable pageable);
 
-    Page<HistoryMonthCount> getMonthAmountsByCommunityName(String communityName, Pageable pageable);
+    Page<HistoryMonthCount> getMonthAmountsByCommunityId(Integer communityId, Pageable pageable);
 }

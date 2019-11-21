@@ -625,12 +625,12 @@ public class CenterController {
     {
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
-        String communityName = jsonObject.getString("communityName");
+        Integer communityId = jsonObject.getInteger("communityId");
         int rows = jsonObject.getInteger("rows");
         int page = Integer.parseInt(jsonObject.getString("page"));
         try {
             Pageable pageable = PageRequest.of(page - 1, rows);
-            Page<HistoryDayCount> page01 = communityService.getDayAmountsByCommunityName(communityName,pageable);
+            Page<HistoryDayCount> page01 = communityService.getDayAmountsByCommunityId(communityId,pageable);
             jsonMap.put("code","200");
             jsonMap.put("info", "查看成功");
             jsonMap.put("data",page01);
@@ -653,12 +653,12 @@ public class CenterController {
     {
         Map<String, Object> jsonMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(msg);
-        String communityName = jsonObject.getString("communityName");
+        Integer communityId = jsonObject.getInteger("communityId");
         int rows = jsonObject.getInteger("rows");
         int page = Integer.parseInt(jsonObject.getString("page"));
         try {
             Pageable pageable = PageRequest.of(page - 1, rows);
-            Page<HistoryMonthCount> page02 = communityService.getMonthAmountsByCommunityName(communityName,pageable);
+            Page<HistoryMonthCount> page02 = communityService.getMonthAmountsByCommunityId(communityId,pageable);
             jsonMap.put("code","200");
             jsonMap.put("info", "查看成功");
             jsonMap.put("data",page02);

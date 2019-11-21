@@ -333,6 +333,7 @@ public class ScheduledJob {
         {
             HistoryDayCount historyDayCount =new HistoryDayCount();
             historyDayCount.setCommunityName(community.getCommunityName());
+            historyDayCount.setCommunityId(community.getCommunityId());
             BigDecimal dayAmounts= communityService.getTotalDayAmountByCommunityId(community.getCommunityId());
             historyDayCount.setDayAmounts(dayAmounts);
             historyDayCount.setReadDate(readDate);
@@ -360,6 +361,7 @@ public class ScheduledJob {
         {
             HistoryMonthCount historyMonthCount =new HistoryMonthCount();
             historyMonthCount.setCommunityName(community.getCommunityName());
+            historyMonthCount.setCommunityId(community.getCommunityId());
             BigDecimal monthAmounts= communityService.getTotalMonthAmountByCommunityId(community.getCommunityId());
             historyMonthCount.setMonthAmounts(monthAmounts);
             historyMonthCount.setMonth(month);
