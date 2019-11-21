@@ -13,6 +13,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface HistoryMonthCountDao extends JpaRepository<HistoryMonthCount, HistoryMonthCount>, JpaSpecificationExecutor<HistoryMonthCount>
 {
-    @Query(nativeQuery = true, value = "select  * from mixAll.dbo.nt_historyMonthCount where community_name = ?1")
+    @Query(nativeQuery = true, value = "select  * from mixAll.dbo.nt_historyMonthCount where community_name = ?1 order by id desc")
     Page<HistoryMonthCount> getMonthAmountsByCommunityName(String communityName, Pageable pageable);
 }

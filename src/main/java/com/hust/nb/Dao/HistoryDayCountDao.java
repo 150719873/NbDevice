@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository;
 public interface HistoryDayCountDao extends JpaRepository<HistoryDayCount, HistoryDayCount>, JpaSpecificationExecutor<HistoryDayCount>
 {
 
-    @Query(nativeQuery = true, value = "select  * from mixAll.dbo.nt_historyDayCount where community_name = ?1")
+    @Query(nativeQuery = true, value = "select  * from mixAll.dbo.nt_historyDayCount where community_name = ?1 order by id desc")
     Page<HistoryDayCount> getDayAmountsByCommunityName(String communityName, Pageable pageable);
 
 }

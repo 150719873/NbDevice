@@ -29,10 +29,10 @@ public interface CommunityDao extends JpaRepository<Community,Community>,JpaSpec
     @Query(nativeQuery = true, value = "select enprNo from mixAll.dbo.nt_community where community_id = ?1")
     String getEnprNoByCommunityId(Integer communityId);
 
-    @Query(nativeQuery = true, value = "select sum(d.day_amount) as dayAmounts from mixAll.dbo.nb_daycost d,mixAll.dbo.nt_user u,mixAll.dbo.nt_block b where d.user_id =u.user_id and u.block_id = b.block_id and b.community_id = ?1")
+    @Query(nativeQuery = true, value = "select sum(d.day_amount) as dayAmounts from mixAll.dbo.nb_device d,mixAll.dbo.nt_user u,mixAll.dbo.nt_block b where d.user_id =u.user_id and u.block_id = b.block_id and b.community_id = ?1")
     BigDecimal getTotalDayAmountByCommunityId(Integer communityId);
 
-    @Query(nativeQuery = true, value = "select sum(m.month_amount) as monthAmounts from mixAll.dbo.nt_monthcost m,mixAll.dbo.nt_user u,mixAll.dbo.nt_block b where m.user_id =u.user_id and u.block_id = b.block_id and b.community_id = ?1")
+    @Query(nativeQuery = true, value = "select sum(d.month_amount) as monthAmounts from mixAll.dbo.nb_device d,mixAll.dbo.nt_user u,mixAll.dbo.nt_block b where d.user_id =u.user_id and u.block_id = b.block_id and b.community_id = ?1")
     BigDecimal getTotalMonthAmountByCommunityId(Integer communityId);
 
     List<Community> findAll();
