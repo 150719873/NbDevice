@@ -1,9 +1,7 @@
 package com.hust.nb.Service;
 
 
-import com.hust.nb.Entity.Block;
-import com.hust.nb.Entity.Device;
-import com.hust.nb.Entity.User;
+import com.hust.nb.Entity.*;
 
 import java.util.List;
 
@@ -21,7 +19,14 @@ public interface ImportExcelService {
 
     void saveImportedExcelDevice(Device device);
 
+    void saveImportedExcelMechanicalDevice(MechanicalDevice mechanicalDevice);
+
+    void saveImportedExcelMechanicalDeviceHistory(MechanicalDeviceHistory mdHistory);
+
     List<String> findUserNo();
+
+    //查询机械表编号
+    List<String> findDeviceNo();
 
     Integer findUserByUserNameAndUserTelAndAddr(String userName, String userTel, String addr);
 }

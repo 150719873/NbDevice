@@ -1,9 +1,6 @@
 package com.hust.nb.util;
 
-import com.hust.nb.Entity.Daycount;
-import com.hust.nb.Entity.DeviceChange;
-import com.hust.nb.Entity.Notice;
-import com.hust.nb.Entity.Operator;
+import com.hust.nb.Entity.*;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -68,5 +65,13 @@ public class EntityFactory {
         notice.setEnprNo(enprNo);
         notice.setObjects(objects);
         return notice;
+    }
+
+    public static ReadMan ReadManFactory(Integer readManNo,String readManName,String readManTel){
+        ReadMan readMan = new ReadMan();
+        readMan.setReadManNo(readManNo);
+        readMan.setReadManName(readManName);
+        readMan.setReadManTel(readManTel);
+        return readMan;
     }
 }

@@ -27,6 +27,7 @@ import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.math.BigDecimal;
 
 /**
  * NB导入
@@ -62,6 +63,13 @@ public class ImportExcelController {
 
     @Autowired
     DeviceCheckDao deviceCheckDao;
+
+    @Autowired
+    MechanicalDeviceService mechanicalDeviceService;
+
+    @Autowired
+    MechanicalDeviceHistoryService mechanicalDeviceHistoryService;
+
 
     private static Logger logger = LoggerFactory.getLogger(ImportExcelController.class);
 
@@ -744,4 +752,616 @@ public class ImportExcelController {
         Object object = JSONObject.toJSON(jsonMap);
         return object;
     }
+
+    /**
+     * 手工初始表导入检测
+     */
+    @CrossOrigin
+    @ResponseBody
+    @PostMapping("/checkManual")
+    public Object checkManual(HttpServletRequest request) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        MultipartHttpServletRequest params = ((MultipartHttpServletRequest) request);
+        MultipartFile file = ((MultipartHttpServletRequest) request).getFile("file");
+        String enprNo = params.getParameter("enprNo");
+        System.out.println(params.getParameter("communityId"));
+        Integer communityId = Integer.parseInt(params.getParameter("communityId"));
+        boolean isExcel2003 = true;
+        String fileName = file.getOriginalFilename();
+
+        if (WDWUtil.isExcel2007(fileName)) {
+            isExcel2003 = false;
+        }
+        InputStream is = null;
+        try {
+            is = file.getInputStream();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        List<List<String>>[] sheets = importExcel.readSheets(is, isExcel2003);//读取整个EXCEL文件
+        try {
+            //查询现有用户编号
+            List<String> userNoList = importExcelService.findUserNo();
+            //查询用户电话号码与用户名
+            List<User> userInfo = userService.findInfo();
+            //查询当前水司下的表编号
+            List<String> deviceNoList = mechanicalDeviceService.findDeviceNoByEnprNo(enprNo);
+            //查询IMEI号
+            //List<String> imeiList = deviceService.findImei();
+            //用户电话
+            Map<String, String> mapTel = new HashMap<>();
+            //创建HashSet判断唯一性
+            Set<String> userNo = new HashSet<>();
+            Set<String> deveceN = new HashSet<>();
+            deveceN.addAll(deviceNoList);
+            userNo.addAll(userNoList);
+            for (User user : userInfo) {
+                mapTel.put(user.getUserTel() + user.getUserName(), user.getUserName());
+            }
+            StringBuffer errstr = new StringBuffer();
+            for (int i = 0; i < sheets.length; i++) {
+                List<List<String>> list = sheets[i];
+                String blockName = importExcel.blockName[i];
+                Block block = blockDao.getAllByCommunityIdAndBlockName(communityId, blockName);
+                for (int k = 2; k < list.size(); k++) {
+                    List<String> cellList = list.get(k);
+                    int j = 1 + k;
+                    try {
+                        if (cellList.get(0) == null) {
+                            continue;
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        if (StringUtils.isEmpty(cellList.get(1))) {
+                            errstr.append("sheet为" + blockName + "序号为(" + j + ")这一行的用户名为空，请检查excel！");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        if (StringUtils.isEmpty(cellList.get(2))) {
+                            errstr.append("sheet为" + blockName + "序号为(" + j + ")这一行的用户类型为空，请检查excel！");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    User user = userService.findByUserNameAndUserAddrAAndUserTel(cellList.get(1), cellList.get(5), cellList.get(3));
+                    //Device device = deviceService.findByDeviceNoAndImei(cellList.get(6), cellList.get(7));
+                    MechanicalDevice machanicalDevice = mechanicalDeviceService.getByDeviceNoAndEnprNo(cellList.get(6),enprNo);
+                    try {
+                        if (user != null && machanicalDevice != null) {
+                            boolean isBlockId = user.getBlockId() == block.getBlockId();
+                            boolean isUserId = machanicalDevice.getUserId().equals(user.getUserId());
+                            if (isBlockId && isUserId) {
+                                if (cellList.get(3).equals(user.getUserTel()) && cellList.get(0).equals(user.getUserNo())
+                                ) {
+                                    continue;
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        if (user != null && block != null) {
+                            if (!user.getEnprNo().equals(enprNo)) {
+                                errstr.append("sheet为" + blockName + "序号为(" + j + ")这一行的用户所属水司与已导入所属水司不符，请检查excel！");
+                            }
+
+                            if (user.getBlockId() != block.getBlockId()) {
+                                errstr.append("sheet为" + blockName + "序号为(" + j + ")这一行的用户所属楼栋与已导入所属楼栋不符，请检查excel！");
+                            }
+                            Block commnityId = blockDao.getByBlockId(user.getBlockId());
+                            if (commnityId.getCommunityId() != communityId) {
+                                errstr.append("sheet为" + blockName + "序号为(" + j + ")这一行的用户所属小区与已导入所属小区不符，请检查excel！");
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    try {
+                        if (StringUtils.isEmpty(cellList.get(3))) {
+                            errstr.append("sheet为" + blockName + "序号为(" + j + ")这一行的用户电话为空，请检查excel！");
+                        } else if (cellList.get(3).length() != 11 && cellList.get(3).length() < 4 && cellList.get(3).length() > 8) {
+                            errstr.append("sheet为" + blockName + "序号为(" + j + ")这一行的用户电话位数有误，请检查excel！");
+                        } else if (mapTel.containsKey(cellList.get(3) + cellList.get(1)) && !mapTel.get(cellList.get(3) + cellList.get(1)).equals(cellList.get(1))) {
+                            errstr.append("sheet为" + blockName + "序号为(" + j + ")这一行的用户电话已存在且与所存在用户名不符，请检查excel！");
+                        } else if (!mapTel.containsKey(cellList.get(3))) {
+                            mapTel.put(cellList.get(3), cellList.get(1));
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    try {
+                        if (StringUtils.isEmpty(cellList.get(6))) {
+                            errstr.append("sheet为" + blockName + "序号为(" + j + ")这一行的表编号为空，请检查excel！");
+                        } else if (!deveceN.add(cellList.get(6))) {
+                            errstr.append("sheet为" + blockName + "序号为(" + j + ")这一行的表编号已存在，请检查excel！");
+                        } else {
+                            deveceN.add(cellList.get(6));
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    try {
+                        if (StringUtils.isEmpty(cellList.get(5))) {
+                            errstr.append("sheet为" + blockName + "序号为(" + j + ")这一行的用户住址为空，请检查excel！");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    try {
+                        if (StringUtils.isEmpty(cellList.get(7))) {
+                            errstr.append("sheet为" + blockName + "序号为(" + j + ")这一行的口径为空，请检查excel！");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    try {
+                        if (StringUtils.isEmpty(cellList.get(0))) {
+                            errstr.append("sheet为" + blockName + "序号为(" + j + ")这一行的用户编号为空，请检查excel！");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    try {
+                        if (user != null && !user.getUserNo().equals(cellList.get(0))) {
+                            errstr.append("sheet为" + blockName + "序号为(" + j + ")这一行的用户已存在但用户编号与已存在用户编号不同，请检查excel！");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    try {
+                        if (user == null) {
+                            if (!userNo.add(cellList.get(0))) {
+                                errstr.append("sheet为" + blockName + "序号为(" + j + ")这一行的用户编号已存在，请检查excel！");
+                            } else {
+                                userNo.add(cellList.get(0));
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            }
+            try {
+                if ("".equals(errstr.toString())) {
+                    errstr.append("恭喜，资料符合要求");
+                    jsonMap.put("code", "200");
+                    jsonMap.put("info", errstr);
+                } else {
+                    jsonMap.put("code", "-1");
+                    jsonMap.put("info", errstr);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            e.printStackTrace();
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "检测失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+    /**
+     * 手工初始导入表
+     */
+    @ResponseBody
+    @PostMapping("/nbManual")
+    public Object nbManual(HttpServletRequest request){
+        MultipartHttpServletRequest params = ((MultipartHttpServletRequest) request);
+        MultipartFile file = ((MultipartHttpServletRequest) request).getFile("file");
+        String enprNo = params.getParameter("enprNo");
+        Integer communityId = Integer.parseInt(params.getParameter("communityId"));
+        Map<String, Object> jsonMap = new HashMap<>();
+        String fileName = file.getOriginalFilename();
+            boolean isExcel2003 = true;
+            if (enprNo != null) {
+                String blockName = null;
+                String userName = null;
+                String userTel = null;
+                int userNo = 0;
+                int size = 0;
+                int userType = 0;
+                int deviceType = 0;
+
+
+                if (WDWUtil.isExcel2007(fileName)) {
+                    isExcel2003 = false;
+                }
+                InputStream is = null;
+                try
+                {
+                    is = file.getInputStream();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    e.printStackTrace();
+                }
+                List<List<String>>[] sheets = importExcel.readSheets(is, isExcel2003);//读取整个EXCEL文件
+                List<String> userNoList = importExcelService.findUserNo();
+                for (int k = 0; k < sheets.length; k++) {//k代表第k + 1个sheet，blockName和sheet是对应的
+                    if (sheets[k] != null) {
+                        blockName = importExcel.blockName[k];//得到blockName
+                    }
+                    List<List<String>> dataList = sheets[k];//得到每个sheet数据
+                    Block block0 = importExcelService.findBlockByCommunityIdAndBlockName(communityId, blockName);
+                    if (block0 == null) {//如果不存在此楼栋，导入
+                        Block blockEntity = new Block();
+                        blockEntity.setBlockName(blockName);
+                        blockEntity.setCommunityId(communityId);
+                        blockEntity.setEnprNo(enprNo);
+                        try
+                        {
+                            importExcelService.saveBlock(blockEntity);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            jsonMap.put("code", "-1");
+                            jsonMap.put("info", "导入楼栋失败");
+                        }
+                    }
+                    try
+                    {
+                        Block block = importExcelService.findBlockByCommunityIdAndBlockName(communityId, blockName);
+                        for (int i = 2; i < dataList.size(); i++) {//循环每一行，即对应单个用户，sheet表的第一行是填写注释，所以从1开始
+                            //插入User表
+                            List<String> cellList = dataList.get(i);
+                            if (StringUtils.isNotEmpty(cellList.get(0)) && StringUtils.isNotEmpty(cellList.get(6))) {//判断用户编号和表编号不为空
+                                if (!userNoList.contains(cellList.get(0))) {
+                                    User userEntity = new User();
+
+                                    userName = cellList.get(1);
+                                    userTel = cellList.get(3);
+                                    userEntity.setUserName(userName);
+
+                                    Double f = Double.valueOf(cellList.get(2));
+                                    deviceType = (int) Math.ceil(f);
+                                    userEntity.setUserType(deviceType);
+
+                                    if (StringUtils.isNotEmpty(cellList.get(4))) {
+                                        userEntity.setUserPhone(cellList.get(4));
+                                    }
+                                    userEntity.setUserTel(userTel);
+                                    userEntity.setUserAddr(cellList.get(5));
+                                    userEntity.setBlockId(block.getBlockId());
+                                    userEntity.setUserNo(cellList.get(0));
+                                    userEntity.setPassword(cellList.get(0) + "123");
+                                    userEntity.setEnprNo(enprNo);
+                                    userEntity.setMonthExpense(new BigDecimal("0"));
+
+                                    userEntity.setAccountBalance(new BigDecimal("0"));
+                                    userNoList.add(cellList.get(0));
+                                    try {
+                                        importExcelService.saveImportedExcel(userEntity);
+                                        //对于user表，数据库设计的是user_name和block_id,addr在一起的联合索引，即三个都一样的话就插不进去
+                                        //如果插不进去则说明已经存在这个用户，为保证重复批量导入时不会导入同一个用户多次
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                        jsonMap.put("code", "-1");
+                                        jsonMap.put("info", "导入user表失败");
+                                    }
+                                }
+                                //插入mechanicalDevice表
+                                MechanicalDevice mechanicalDevice = mechanicalDeviceService.getByDeviceNoAndEnprNo(cellList.get(6), enprNo);
+                                if (mechanicalDevice == null)
+                                {
+                                    MechanicalDevice mechanicalDeviceEntity = new MechanicalDevice();
+                                    try
+                                    {
+                                        String addr = cellList.get(5);
+                                        logger.info("addr is : " + addr);
+                                        userNo = importExcelService.findUserByUserNameAndUserTelAndAddr(cellList.get(1), cellList.get(3), addr);
+                                    } catch (Exception e) {
+                                        logger.error("根据姓名和电话查找User失败" + e.getMessage());
+                                    }
+
+                                    mechanicalDeviceEntity.setUserId(userNo);
+                                    mechanicalDeviceEntity.setDeviceNo(cellList.get(6));
+
+                                    Double f2 = Double.valueOf(cellList.get(2));
+                                    userType = (int) Math.ceil(f2);
+                                    mechanicalDeviceEntity.setWaterType(userType);
+
+                                    Double f4 = Double.valueOf(cellList.get(7));
+                                    size = (int) Math.ceil(f4);
+                                    mechanicalDeviceEntity.setCaliber(size);
+
+                                    mechanicalDeviceEntity.setEnprNo(enprNo);
+                                    mechanicalDeviceEntity.setMonthAmount(new BigDecimal("0"));
+                                    mechanicalDeviceEntity.setDeviceVender(cellList.get(10));
+                                    mechanicalDeviceEntity.setDeviceModel(cellList.get(11));
+                                    mechanicalDeviceEntity.setReadValue(new BigDecimal(cellList.get(9)));
+                                    SimpleDateFormat date = new SimpleDateFormat("yyyy-MM-dd");
+                                    java.util.Date d = null;
+                                    try
+                                    {
+                                        if (StringUtils.isNotEmpty(cellList.get(8)))
+                                        {
+                                            d = date.parse(cellList.get(8));
+                                            java.sql.Date date1 = new java.sql.Date(d.getTime());
+                                            mechanicalDeviceEntity.setInstallDate(date1);
+                                            mechanicalDeviceEntity.setReadTime(Timestamp.valueOf(cellList.get(8)));
+                                        } else {
+                                            Timestamp day = GetDate.getCurrentDay();
+                                            java.sql.Date date1 = new java.sql.Date(day.getTime());
+                                            mechanicalDeviceEntity.setInstallDate(date1);
+                                            mechanicalDeviceEntity.setReadTime(day);
+                                        }
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+
+                                    try {
+                                        importExcelService.saveImportedExcelMechanicalDevice(mechanicalDeviceEntity);
+                                    } catch (Exception e)
+                                    {
+                                        e.printStackTrace();
+                                        jsonMap.put("code", "-1");
+                                        jsonMap.put("info", "导入device表失败");
+                                    }
+                                }
+                            }
+                        }
+                        jsonMap.put("code", "200");
+                        jsonMap.put("info", "添加成功");
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
+                        jsonMap.put("code", "-1");
+                        jsonMap.put("info", "添加失败");
+                    }
+                }
+
+            } else {
+                jsonMap.put("code", "-1");
+                jsonMap.put("info", "添加失败");
+            }
+
+            Object object = JSONObject.toJSON(jsonMap);
+            return object;
+
+    }
+
+    /**
+     * 手工抄表导入检测
+     */
+    @CrossOrigin
+    @ResponseBody
+    @PostMapping("/checkMechanical")
+    public Object checkMechanical(HttpServletRequest request) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        MultipartHttpServletRequest params = ((MultipartHttpServletRequest) request);
+        MultipartFile file = ((MultipartHttpServletRequest) request).getFile("file");
+        String enprNo = params.getParameter("enprNo");
+        System.out.println(params.getParameter("communityId"));
+        Integer communityId = Integer.parseInt(params.getParameter("communityId"));
+        boolean isExcel2003 = true;
+        String fileName = file.getOriginalFilename();
+
+        if (WDWUtil.isExcel2007(fileName)) {
+            isExcel2003 = false;
+        }
+        InputStream is = null;
+        try {
+            is = file.getInputStream();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        List<List<String>>[] sheets = importExcel.readSheets(is, isExcel2003);//读取整个EXCEL文件
+        try {
+            //查询现有用户编号
+            List<String> userNoList = importExcelService.findUserNo();
+            //查询用户电话号码与用户名
+            List<User> userInfo = userService.findInfo();
+            //查询当前水司下的表编号
+            List<String> deviceNoList = mechanicalDeviceService.findDeviceNoByEnprNo(enprNo);
+            //用户电话
+            Map<String, String> mapTel = new HashMap<>();
+            //创建HashSet判断唯一性
+            Set<String> userNo = new HashSet<>();
+            Set<String> deveceN = new HashSet<>();
+            deveceN.addAll(deviceNoList);
+            userNo.addAll(userNoList);
+            for (User user : userInfo) {
+                mapTel.put(user.getUserTel() + user.getUserName(), user.getUserName());
+            }
+            StringBuffer errstr = new StringBuffer();
+            for (int i = 0; i < sheets.length; i++) {
+                List<List<String>> list = sheets[i];
+                String blockName = importExcel.blockName[i];
+                Block block = blockDao.getAllByCommunityIdAndBlockName(communityId, blockName);
+                for (int k = 2; k < list.size(); k++) {
+                    List<String> cellList = list.get(k);
+                    int j = 1 + k;
+
+                    try {
+                        if (StringUtils.isEmpty(cellList.get(0))) {
+                            errstr.append("sheet为" + blockName + "序号为(" + j + ")这一行的表编号为空，请检查excel！");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        if (StringUtils.isEmpty(cellList.get(1))) {
+                            errstr.append("sheet为" + blockName + "序号为(" + j + ")这一行的表读数为空，请检查excel！");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        if (StringUtils.isEmpty(cellList.get(3))) {
+                            errstr.append("sheet为" + blockName + "序号为(" + j + ")这一行的抄表员id为空，请检查excel！");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    MechanicalDevice mechanicalDevice = mechanicalDeviceService.getByDeviceNoAndEnprNo(cellList.get(0),enprNo);
+                    try {
+                        if (!StringUtils.isEmpty(cellList.get(0)) && mechanicalDevice == null){
+                            errstr.append("sheet为" + blockName + "序号为(" + j + ")这一行的表编号不存在，请检查excel！");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            try {
+                if ("".equals(errstr.toString())) {
+                    errstr.append("恭喜，资料符合要求");
+                    jsonMap.put("code", "200");
+                    jsonMap.put("info", errstr);
+                } else {
+                    jsonMap.put("code", "-1");
+                    jsonMap.put("info", errstr);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            e.printStackTrace();
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "检测失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+    /**
+     * 手工抄表导入表
+     */
+    @ResponseBody
+    @PostMapping("/nbMechanical")
+    public Object nbMechanical(HttpServletRequest request){
+        MultipartHttpServletRequest params = ((MultipartHttpServletRequest) request);
+        MultipartFile file = ((MultipartHttpServletRequest) request).getFile("file");
+        String enprNo = params.getParameter("enprNo");
+        Integer communityId = Integer.parseInt(params.getParameter("communityId"));
+        Map<String, Object> jsonMap = new HashMap<>();
+        String fileName = file.getOriginalFilename();
+        boolean isExcel2003 = true;
+        if (enprNo != null) {
+            String blockName = null;
+            String deviceNo = null;
+            int readManId = 0;
+
+
+            //判断Word版本
+            if (WDWUtil.isExcel2007(fileName)) {
+                isExcel2003 = false;
+            }
+            InputStream is = null;
+            try
+            {
+                is = file.getInputStream();
+            } catch (IOException e) {
+                e.printStackTrace();
+                e.printStackTrace();
+            }
+
+            //读取整个EXCEL文件
+            List<List<String>>[] sheets = importExcel.readSheets(is, isExcel2003);
+            for (int k = 0; k < sheets.length; k++) {//k代表第k + 1个sheet，blockName和sheet是对应的
+                List<List<String>> dataList = sheets[k];//得到每个sheet数据
+                try
+                {
+                    Block block = importExcelService.findBlockByCommunityIdAndBlockName(communityId, blockName);
+                    for (int i = 2; i < dataList.size(); i++) {//循环每一行，即对应单个用户，sheet表的第一行是填写注释，所以从1开始
+                        //插入History表
+                        List<String> cellList = dataList.get(i);
+                        if (StringUtils.isNotEmpty(cellList.get(0))) {//判断表编号不为空
+
+                            MechanicalDeviceHistory mdHistoryEntiry = new MechanicalDeviceHistory();
+
+                            mdHistoryEntiry.setDeviceNo(cellList.get(0));
+
+                            mdHistoryEntiry.setDeviceValue(new BigDecimal(cellList.get(1)));
+
+                            Double f = Double.valueOf(cellList.get(3));
+                            readManId = (int) Math.ceil(f);
+                            mdHistoryEntiry.setReadmanId(readManId);
+
+                            SimpleDateFormat date = new SimpleDateFormat("yyyy-MM-dd");
+                            java.util.Date d = null;
+                            try
+                            {
+                                if (StringUtils.isNotEmpty(cellList.get(2)))
+                                {
+                                    d = date.parse(cellList.get(2));
+                                    java.sql.Date date1 = new java.sql.Date(d.getTime());
+                                    mdHistoryEntiry.setReadTime(date1);
+//                                    mdHistoryEntiry.setReadTime(Timestamp.valueOf(cellList.get(2)));
+                                } else {
+                                    Timestamp day = GetDate.getCurrentDay();
+                                    java.sql.Date date1 = new java.sql.Date(day.getTime());
+                                    mdHistoryEntiry.setReadTime(date1);
+//                                    mdHistoryEntiry.setReadTime(day);
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+
+//                            SimpleDateFormat date = new SimpleDateFormat("yyyy-MM-dd");
+//                            java.util.Date d = null;
+//                            try
+//                            {
+//                                if (StringUtils.isNotEmpty(cellList.get(2)))
+//                                {
+//                                    d = date.parse(cellList.get(2));
+//                                    java.sql.Date date1 = new java.sql.Date(d.getTime());
+//                                    mdHistoryEntiry.setReadTime(date1);
+//                                } else {
+//                                    Timestamp day = GetDate.getCurrentDay();
+//                                    java.sql.Date date1 = new java.sql.Date(day.getTime());
+//                                    mdHistoryEntiry.setReadTime(date1);
+//                                }
+//                            } catch (Exception e) {
+//                                e.printStackTrace();
+//                            }
+
+                            try {
+                                importExcelService.saveImportedExcelMechanicalDeviceHistory(mdHistoryEntiry);
+                            } catch (Exception e)
+                            {
+                                e.printStackTrace();
+                                jsonMap.put("code", "-1");
+                                jsonMap.put("info", "导入抄表失败");
+                            }
+
+                        }
+                    }
+                    jsonMap.put("code", "200");
+                    jsonMap.put("info", "添加成功");
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                    jsonMap.put("code", "-1");
+                    jsonMap.put("info", "添加失败");
+                }
+            }
+
+        }   else {
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "添加失败");
+            }
+
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+
+    }
 }
+

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.hust.nb.Config.Constants;
 import com.hust.nb.Dao.OperatorDao;
+import com.hust.nb.Dao.ReadManDao;
 import com.hust.nb.Dao.RepairDao;
 import com.hust.nb.Entity.*;
 import com.hust.nb.Entity.Notice;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import javax.swing.text.html.parser.Entity;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -46,7 +48,13 @@ public class OperateController {
     DeviceService deviceService;
 
     @Autowired
+    MechanicalDeviceService mechanicalDeviceService;
+
+    @Autowired
     OperatorDao operatorDao;
+
+    @Autowired
+    ReadManDao readManDao;
 
     @Autowired
     EnterpriseService enterpriseService;
@@ -250,6 +258,34 @@ public class OperateController {
             int userId = device.getUserId();
             User user = userService.getByUserId(userId);
             Map detailMap = getFrontInfoByUser(user);
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "查询成功");
+            jsonMap.put("data", detailMap);
+        } catch (Exception e) {
+            e.printStackTrace();
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "查询失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+    /**
+     * 方法功能描述:根据机械表地址和水司编码查询用户
+     */
+    @ResponseBody
+    @PostMapping("/GetUserByMechanicalDeviceNoAndEnprNo")
+    @CrossOrigin
+    public Object GetUserByMechanicalDeviceNoAndEnprNo(@RequestBody String msg) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        String mechanicalDeviceNo = jsonObject.getString("mechanicalDeviceNo");
+        String enprNo = jsonObject.getString("enprNo");
+        try {
+            MechanicalDevice mechanicalDevice = mechanicalDeviceService.getByDeviceNoAndEnprNo(mechanicalDeviceNo, enprNo);
+            int userId = mechanicalDevice.getUserId();
+            User user = userService.getByUserId(userId);
+            Map detailMap = getFrontMechanicalInfoByUser(user);
             jsonMap.put("code", "200");
             jsonMap.put("info", "查询成功");
             jsonMap.put("data", detailMap);
@@ -496,6 +532,42 @@ public class OperateController {
             }
         }
         detailMap.put("deviceDetailList", deviceDetailList);
+        return detailMap;
+    }
+
+    /**
+     * 用于前端显示的所有信息(机械表)
+     * 2019-12
+     */
+    private Map getFrontMechanicalInfoByUser(User user) {
+        Map<String, Object> detailMap = new HashMap<>();
+        String addr = user.getUserAddr();
+        int userId = user.getUserId();
+        String userName = user.getUserName();
+
+        detailMap.put("addr", addr);
+        detailMap.put("userId", userId);
+        detailMap.put("userName", userName);
+        detailMap.put("monthExpense", user.getMonthExpense());
+        detailMap.put("accountBalance", user.getAccountBalance());
+        detailMap.put("userType", user.getUserType());
+        detailMap.put("userNo", user.getUserNo());
+
+        List<MechanicalDevice> mechanicalDeviceList = mechanicalDeviceService.getAllByUserId(userId);
+        List<Object> mechanicalDeviceDetailList = new ArrayList<>();
+        if (mechanicalDeviceList != null && mechanicalDeviceList.size() > 0) {
+            for (MechanicalDevice mechanicalDevice : mechanicalDeviceList) {
+                Map<String, Object> deviceMap = new HashMap<>();
+                //获取表编号
+                deviceMap.put("deviceNo", mechanicalDevice.getDeviceNo());
+                //获取表读数
+                deviceMap.put("deviceValue", mechanicalDevice.getReadValue());
+                //获取月用量
+                deviceMap.put("monthAmount", mechanicalDevice.getMonthAmount());
+                mechanicalDeviceDetailList.add(deviceMap);
+            }
+        }
+        detailMap.put("deviceDetailList", mechanicalDeviceDetailList);
         return detailMap;
     }
 
@@ -777,6 +849,66 @@ public class OperateController {
             e.printStackTrace();
             jsonMap.put("code", "-1");
             jsonMap.put("info", "显示失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+    /**
+     * 增加或修改抄表员
+     *
+     * @param msg
+     * @return
+     */
+    @ResponseBody
+    @PostMapping("/addOrModifyReadMan")
+    @CrossOrigin
+    public Object addOrModifyReadMan(@RequestBody String msg) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        Integer readManId = jsonObject.getInteger("readManId");
+        Integer readManNo = jsonObject.getInteger("readManNo");
+        String readManName = jsonObject.getString("readManName");
+        String readManTel = jsonObject.getString("readManTel");
+        try{
+            if(readManId == null){
+                //新增
+                ReadMan readMan = EntityFactory.ReadManFactory(readManNo,readManName,readManTel);
+                readManDao.save(readMan);
+            } else {
+                //修改
+                ReadMan readMan = JSON.parseObject(msg,ReadMan.class);
+                readManDao.save(readMan);
+            }
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "成功");
+        } catch (Exception e){
+            e.printStackTrace();
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "失败");
+        }
+        Object object = JSONObject.toJSON(jsonMap);
+        return object;
+    }
+
+    /**
+     * 删除抄表员
+     */
+    @ResponseBody
+    @PostMapping("/deleteReadMan")
+    @CrossOrigin
+    public Object deleteReadMan(@RequestBody String msg) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        int readManId = jsonObject.getInteger("readManId");
+        try {
+            readManDao.deleteByReadManId(readManId);
+            jsonMap.put("code", "200");
+            jsonMap.put("info", "删除成功");
+        } catch (Exception e) {
+            e.printStackTrace();
+            jsonMap.put("code", "-1");
+            jsonMap.put("info", "删除失败");
         }
         Object object = JSONObject.toJSON(jsonMap);
         return object;
